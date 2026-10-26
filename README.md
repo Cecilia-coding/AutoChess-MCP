@@ -207,7 +207,7 @@ npm audit
 - 棋局事件的等待、唤醒与确认流程参考了 Galatea Garden Wake Bridge 和 Galatea Garden ChatGPT Wake MCP。
 - 默认头像的确定性镜像图案参考了 minidenticons。
 
-也感谢某雪本人、陪她折腾棋局的 Codex 与 ChatGPT 两只小机，以及负责美术的 Gemini。😼
+也感谢某雪本人、陪她折腾棋局的 Codex 与 ChatGPT 两只小机、负责美术的 Gemini，以及自由发挥贡献了一组作品的 Grok。😼
 
 ## License
 
