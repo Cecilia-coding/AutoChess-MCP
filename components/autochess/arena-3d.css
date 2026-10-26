@@ -1,0 +1,149 @@
+/* ==========================================================================
+   三维棋盘样式 (Arena 3D Styles) - 复苏季节皮肤集成
+   ========================================================================== */
+
+@import './theme-revival.css';
+
+/* 基础棋盘壳（默认全屏自适应，不加挤压框） */
+.peach-arena-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--skin-ink-main);
+  overflow: hidden;
+}
+
+.peach-arena-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.peach-arena-scene {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  max-height: none !important;
+  overflow: hidden;
+  background: transparent;
+  isolation: isolate;
+}
+
+.peach-arena-scene canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  touch-action: none;
+}
+
+/* 棋子血条与状态标牌 */
+.peach-unit-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.peach-unit-labels .label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  text-align: center;
+  white-space: nowrap;
+  background: rgba(254, 254, 251, 0.94);
+  border: 1px solid rgba(59, 102, 71, 0.45);
+  border-radius: 7px;
+  padding: 3px 6px;
+  color: #1b3d22;
+  font-size: 11px;
+  box-shadow: 0 2px 8px rgba(35, 52, 38, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(4px);
+}
+
+.peach-unit-labels .label.red {
+  color: #9d343d;
+  border-color: rgba(215, 118, 129, 0.6);
+  background: rgba(255, 246, 245, 0.94);
+}
+
+.peach-unit-labels .label.dead {
+  background: rgba(230, 230, 226, 0.85);
+  color: #7b837c;
+  border-color: #b5beb6;
+  opacity: 0.65;
+}
+
+.peach-unit-labels .label .hp {
+  width: 46px;
+  height: 4px;
+  margin: 2px auto;
+  background: rgba(135, 172, 142, 0.25);
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.peach-unit-labels .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b6647, #669c5e);
+}
+
+.peach-unit-labels .red .fill {
+  background: linear-gradient(90deg, #b94e4c, #e06c6a);
+}
+
+.peach-unit-labels .numbers {
+  font-size: 9px;
+  font-family: var(--skin-font-heading);
+  color: var(--skin-ink-muted);
+}
+
+.peach-unit-labels .mana {
+  width: 46px;
+  height: 3px;
+  margin: 2px auto 0;
+  background: rgba(180, 205, 225, 0.4);
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.peach-unit-labels .mana .fill {
+  height: 100%;
+  background: #3b7dc4;
+}
+
+.peach-unit-labels .red .mana .fill {
+  background: #5b8fe0;
+}
+
+.peach-unit-labels .selected {
+  outline: 2px solid var(--skin-primary);
+  outline-offset: 2px;
+}
+
+/* 商店/宝箱卡片配图 */
+.peach-card-art {
+  width: 100%;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--skin-border-light);
+  margin-bottom: 6px;
+}
+
+/* 视口自适应微调 */
+@media (max-width: 640px) {
+  .peach-unit-labels .label {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+}

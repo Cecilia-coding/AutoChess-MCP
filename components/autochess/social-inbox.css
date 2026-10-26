@@ -1,0 +1,12 @@
+.social-inbox-toggle { position:fixed; right:12px; bottom:calc(94px + env(safe-area-inset-bottom)); z-index:70; border:1px solid #c3b2c8; border-radius:24px; padding:9px 15px; background:#fcf8ff; color:#68516e; box-shadow:0 3px 16px #33203b22; font-size:13px; }
+.social-inbox-dialog { position:fixed; inset:0; margin:auto; width:min(440px,calc(100vw - 24px)); max-height:calc(100dvh - 40px); overflow:auto; padding:20px; border:1px solid #cebed5; border-radius:22px; background:#fcf8ff; color:#59465f; box-sizing:border-box; }
+.social-inbox-dialog::backdrop { background:#22182c88; }
+.social-inbox-dialog header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.social-inbox-dialog h2 { font-size:22px; }.social-inbox-dialog h3 { margin:16px 0 8px; font-weight:600; }
+.social-inbox-dialog p { margin:8px 0; font-size:13px; overflow-wrap:anywhere; }
+.social-inbox-dialog article { padding:12px; margin:8px 0; border:1px solid #dfd3e3; border-radius:12px; }
+.social-inbox-dialog button,.social-invite-list button { border:1px solid #c5b4cf; border-radius:12px; padding:8px 12px; margin:4px 6px 4px 0; background:#fff; color:inherit; }
+.social-inbox-dialog button:disabled,.social-invite-list button:disabled { opacity:.5; }
+.social-invite-list { margin:12px 0; }.social-invite-list p { font-size:12px; }
+.social-invite-peer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; padding:6px 0; border-bottom:1px solid #ccb7d533; }
+.social-invite-peer span { min-width:0; overflow-wrap:anywhere; flex:1 1 140px; }.social-invite-peer small { display:block; }

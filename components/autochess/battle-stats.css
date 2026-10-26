@@ -1,0 +1,22 @@
+.room-sidepanel .room-side-tabs{grid-template-columns:repeat(4,minmax(0,1fr));gap:2px}
+.room-sidepanel .room-side-tabs button{padding:6px 1px;white-space:nowrap}
+.battle-stats{font-size:11px;font-variant-numeric:tabular-nums}
+.battle-stats header{display:flex;justify-content:space-between;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.battle-stats header>span,.battle-stats-note,.battle-stats-opponent{color:var(--skin-ink-muted)}
+.battle-stats-teams{display:flex;gap:4px}
+.battle-stats-teams button{flex:1;border:1px solid var(--skin-border-light);border-radius:6px;background:transparent;padding:4px;color:inherit;cursor:pointer}
+.battle-stats-teams button[aria-pressed=true]{background:var(--skin-primary);color:white;border-color:transparent}
+.battle-stats-opponent{margin:6px 0;overflow-wrap:anywhere}
+.battle-stats-total{display:flex;flex-wrap:wrap;gap:3px 12px;padding:6px 0;border-bottom:1px solid var(--skin-border-light)}
+.battle-stats-labels{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0 4px;color:var(--skin-ink-muted)}
+.battle-stats-labels span:first-child{color:#935739}.battle-stats-labels span:last-child{color:#4f7290}
+.battle-stats ol{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.battle-stats-name{display:flex;gap:6px;align-items:center;margin-bottom:3px;min-width:0}
+.battle-stats-name>span{color:var(--skin-ink-muted);font-size:9px}.battle-stats-name>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.battle-stats-values{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
+.battle-stats-values>span{position:relative;min-width:0;background:#ffffff60;border-radius:3px;overflow:hidden;padding:2px 4px}
+.battle-stats-values i{position:absolute;inset:0 auto 0 0;transition:width .1s linear;min-width:0}
+.battle-stats-values .is-dealt i{background:#c4865955}.battle-stats-values .is-taken i{background:#7097b455}
+.battle-stats-values b{position:relative;font-weight:500}
+.battle-stats-note{display:block;margin-top:12px;font-size:10px}.battle-stats-empty{font-size:12px;line-height:1.7;color:var(--skin-ink-muted)}
+@media(prefers-reduced-motion:reduce){.battle-stats-values i{transition:none}}

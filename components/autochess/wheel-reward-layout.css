@@ -1,0 +1,38 @@
+/* Production layout for the revival reward card. */
+.wheel-reward-dialog { position:fixed; inset:0; margin:auto; width:min(480px,calc(100vw - 20px)); max-width:calc(100vw - 20px); max-height:calc(100dvh - 24px); padding:44px 16px 24px; border:1px solid #7fa06a66; border-radius:18px; color:var(--revival-ink-light); background:radial-gradient(ellipse at 50% 25%,#1d3627,#102016 60%,#08110b); box-shadow:0 24px 80px #0008; font-family:var(--font-serif-cn); overflow:auto; overscroll-behavior:contain; }
+.wheel-reward-dialog::backdrop { background:#06100bd9; backdrop-filter:blur(5px); }
+.wheel-reward-dialog .reward-stage-viewport { width:100%; max-width:100%; min-height:340px; padding:14px 0; perspective:1200px; }
+.wheel-reward-dialog .reward-stage-viewport[data-stage="revealed"],.wheel-reward-dialog .reward-stage-viewport[data-stage="accepted"] { min-height:0; }
+.wheel-reward-dialog .sealed-revival-parcel { width:min(350px,100%); max-width:100%; padding:24px 12px; font-family:inherit; white-space:normal; }
+.wheel-reward-dialog .sealed-revival-parcel:disabled { opacity:1; cursor:default; }
+.wheel-reward-dialog [data-stage="arriving"] .sealed-revival-parcel { visibility:hidden; }
+.wheel-reward-dialog .revealed-revival-card { width:min(380px,100%); max-width:100%; padding:24px 18px 20px; }
+.wheel-reward-dialog .revealed-revival-card.is-active:not(.is-claimed) { animation:wheelReward-cardEnter .8s var(--ease-bounce) both; }
+@keyframes wheelReward-cardEnter { from { opacity:0; transform:translateY(44px) scale(.92); } to { opacity:1; transform:translateY(0) scale(1); } }
+.wheel-reward-dialog .wheel-reward-close { position:absolute; top:8px; right:10px; z-index:60; width:36px; height:36px; border:1px solid #7fa06a80; border-radius:50%; background:#15291d; color:#f0f7ee; font:24px/1 sans-serif; padding:0; cursor:pointer; }
+.wheel-reward-dialog button:focus-visible { outline:3px solid #e5be6b; outline-offset:4px; }
+.wheel-reward-dialog .parcel-text-block,.wheel-reward-dialog .parcel-sub-text { display:block; }
+.wheel-reward-dialog .wheel-draw-tag { max-width:95%; white-space:normal; text-align:center; }
+.wheel-reward-dialog .dove-carrier-actor { top:12%; }
+.wheel-reward-dialog .dove-carrier-actor img { width:100%; height:100%; }
+.wheel-reward-dialog .wheel-reward-art { display:block; width:128px; height:128px; object-fit:contain; margin:0 auto 12px; position:relative; z-index:2; }
+.wheel-reward-dialog .wheel-reward-art.is-board { width:100%; max-width:240px; height:150px; border-radius:8px; }
+.wheel-reward-dialog .reward-name-title { text-align:center; overflow-wrap:anywhere; }
+.wheel-reward-dialog .wheel-reward-theme { font-size:12px; line-height:1.6; text-align:center; color:#b0c9ac; margin:0 0 10px; }
+.wheel-reward-dialog .revival-card-header { flex-wrap:wrap; gap:8px; }
+.wheel-reward-dialog .revival-quote-text { white-space:pre-wrap; overflow-wrap:anywhere; }
+.wheel-reward-dialog .revival-sender-credit { overflow-wrap:anywhere; }
+.wheel-reward-dialog .wheel-reward-error { color:#ffcebc; font-size:13px; line-height:1.6; margin:0 0 12px; overflow-wrap:anywhere; }
+.wheel-reward-dialog .wheel-reward-later { font-size:11px; color:#b0c9ac; line-height:1.7; margin-top:12px; text-align:center; }
+.wheel-reward-dialog .claim-action-btn:disabled { opacity:.65; cursor:wait; }
+.wheel-reward-dialog .wheel-reward-finish { position:relative; z-index:2; padding:24px 12px; text-align:center; display:grid; gap:18px; }
+.wheel-reward-dialog .wheel-reward-finish-mark { color:#e5be6b; font-size:40px; }
+.wheel-reward-dialog .wheel-reward-finish strong { font-size:22px; }
+.wheel-reward-dialog .wheel-reward-finish>span { line-height:1.7; overflow-wrap:anywhere; }
+.wheel-reward-dialog .wheel-reward-dust { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+.wheel-reward-dialog .wheel-reward-dust span { position:absolute; left:var(--dust-x); top:-24px; color:#d6eac8; opacity:.45; animation:wheelReward-dust var(--dust-speed) var(--dust-delay) linear infinite; }
+@keyframes wheelReward-dust { to { transform:translate(20px,700px) rotate(80deg); } }
+.wheel-reward-dialog[data-motion-paused="true"] *, .wheel-reward-dialog[data-motion-paused="true"] *::before { animation-play-state:paused!important; }
+@media (max-width:380px) { .wheel-reward-dialog { padding-inline:10px; } .wheel-reward-dialog .revealed-revival-card { padding-inline:14px; } .wheel-reward-dialog .revival-message-scroll { padding-inline:12px; } }
+@media (prefers-reduced-motion:reduce) { .wheel-reward-dialog *, .wheel-reward-dialog *::before { animation:none!important; transition:none!important; } .wheel-reward-dialog .wheel-reward-dust,.wheel-reward-dialog .dove-carrier-actor { display:none; } }
+.wheel-reward-dialog a.wheel-reward-equip{display:flex;align-items:center;justify-content:center;text-decoration:none;text-align:center;color:inherit}

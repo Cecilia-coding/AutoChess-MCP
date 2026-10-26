@@ -1,0 +1,15 @@
+.git
+.github
+.local
+.tmp
+node_modules
+.vinext
+.next
+dist
+out
+npm-debug.log*
+coverage
+data
+agent-credentials
+.env*
+!.env.example

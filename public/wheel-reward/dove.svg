@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90" width="100%" height="100%">
+  <style>.wing-left{transform-origin:45px 50px;animation:flap-left .38s ease-in-out infinite alternate}.wing-right{transform-origin:75px 52px;animation:flap-right .38s ease-in-out infinite alternate}@keyframes flap-left{to{transform:rotate(-38deg) scaleY(.7)}}@keyframes flap-right{to{transform:rotate(38deg) scaleY(.7)}}@media(prefers-reduced-motion:reduce){g{animation:none!important}}</style>
+        <!-- 橄榄枝叶 (白鸽口中衔着) -->
+        <g transform="translate(18, 48) rotate(-15)">
+          <path d="M 0,0 Q 12,-6 26,0" stroke="#7fa06a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <!-- 嫩叶 -->
+          <ellipse cx="6" cy="-4" rx="4" ry="2" fill="#96bb81" transform="rotate(-20 6 -4)"/>
+          <ellipse cx="14" cy="-5" rx="4.5" ry="2" fill="#7fa06a" transform="rotate(-35 14 -5)"/>
+          <ellipse cx="20" cy="-2" rx="4" ry="1.8" fill="#96bb81" transform="rotate(25 20 -2)"/>
+          <ellipse cx="26" cy="1" rx="3.5" ry="1.6" fill="#cca046"/>
+        </g>
+
+        <!-- 左侧翅膀 (后翼) -->
+        <g class="wing-left">
+          <path d="M 45,50 C 40,25 25,10 10,8 C 18,22 28,38 42,52 Z" fill="#e8f3e5" stroke="#c4dec0" stroke-width="0.8"/>
+          <path d="M 42,50 C 35,28 20,18 14,14 C 22,26 32,40 40,52 Z" fill="#f4faf2"/>
+        </g>
+
+        <!-- 白鸽身躯与头部 -->
+        <g>
+          <path d="M 28,48 C 22,46 16,42 22,36 C 26,32 34,34 40,38 C 50,42 68,44 85,50 C 95,54 105,62 108,70 C 98,68 88,64 78,60 C 60,54 44,52 32,50 Z" fill="#ffffff" filter="drop-shadow(0 3px 6px rgba(0,0,0,0.25))"/>
+          <!-- 鸽喙 (喙衔枝) -->
+          <polygon points="16,41 22,38 22,44" fill="#cca046"/>
+          <!-- 明眸 -->
+          <circle cx="25" cy="38" r="1.5" fill="#1b3325"/>
+          <circle cx="25.5" cy="37.5" r="0.6" fill="#ffffff"/>
+        </g>
+
+        <!-- 右侧翅膀 (前翼，展翅层次) -->
+        <g class="wing-right">
+          <path d="M 52,50 C 60,22 80,6 98,2 C 88,18 76,36 56,54 Z" fill="#ffffff" stroke="#d5e8d2" stroke-width="0.8"/>
+          <path d="M 54,50 C 64,28 82,14 94,10 C 84,24 74,38 58,52 Z" fill="#f7fbf6"/>
+          <path d="M 56,50 C 68,34 82,22 90,18 C 82,30 72,42 60,50 Z" fill="#ffffff"/>
+        </g>
+
+        <!-- 尾羽 -->
+        <g>
+          <path d="M 85,50 C 102,52 114,56 120,60 C 110,62 98,60 88,56 Z" fill="#f0f7ee"/>
+        </g>
+      </svg>

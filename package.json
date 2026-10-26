@@ -1,0 +1,60 @@
+{
+  "name": "autochess-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Data-driven multiplayer autochess server and web client with MCP support",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "vinext dev",
+    "build": "vite build",
+    "build:local": "vite build --mode localpreview",
+    "preview:local": "npm run build:local && npm run start",
+    "start": "vinext start --port 8787 --hostname 127.0.0.1",
+    "room:server": "tsx --env-file-if-exists=.env.local scripts/chess-room-server.ts",
+    "cloud": "node --env-file-if-exists=.env.local scripts/chess-cloud.mjs",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@base-ui/react": "1.7.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "express": "5.3.0",
+    "lucide-react": "1.31.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-server-dom-webpack": "19.3.1",
+    "sharp": "0.35.5",
+    "tailwind-merge": "3.6.0",
+    "three": "0.186.0",
+    "tw-animate-css": "1.4.0",
+    "vinext": "1.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.38",
+    "oxfmt": "0.74.0",
+    "oxlint": "1.76.0",
+    "oxlint-tsgolint": "7.0.2001",
+    "tailwindcss": "4.2.1",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vite": "8.3.5"
+  },
+  "overrides": {
+    "esbuild": "0.28.2",
+    "fflate": "0.8.3"
+  },
+  "type": "module"
+}

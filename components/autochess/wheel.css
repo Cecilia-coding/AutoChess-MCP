@@ -1,0 +1,732 @@
+/* ==========================================================================
+   对对碰 (Duiduipeng / Wheel) - 古籍典藏美学 (Muted Codex Aesthetics)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Noto+Serif+SC:wght@400;600;700&display=swap');
+
+:root {
+  --codex-bg: #f6f2f9;
+  --codex-surface: rgba(254, 252, 255, 0.94);
+  --codex-surface-subtle: #f8f3fa;
+  --codex-card: #ffffff;
+  --codex-border: #dcd0e4;
+  --codex-border-light: rgba(220, 208, 228, 0.6);
+  --codex-border-gold: rgba(179, 136, 72, 0.45);
+  --codex-border-rose: rgba(138, 72, 107, 0.35);
+  --codex-ink-main: #2b2338;
+  --codex-ink-muted: #6c5e7b;
+  --codex-ink-subtle: #9a8cad;
+  --codex-rose: #8a486b;
+  --codex-rose-soft: #fbf2f6;
+  --codex-gold: #b38848;
+  --codex-gold-soft: #faf4e8;
+  --codex-jade: #365349;
+  --codex-shadow: 0 16px 48px rgba(43, 35, 56, 0.06), 0 2px 8px rgba(43, 35, 56, 0.02);
+  --codex-font-mincho: "Huiwen Mincho", var(--font-noto-serif), "Noto Serif SC", "Songti SC", serif;
+  --codex-font-serif-italic: "Cormorant Garamond", Georgia, serif;
+  --ease-damped: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 页面基底：柔雾灰紫羊皮与极细古典经纬网格 */
+body:has(.wheel-page) {
+  background-color: var(--codex-bg);
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(220, 208, 228, 0.45) 0%, transparent 70%),
+    linear-gradient(rgba(220, 208, 228, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(220, 208, 228, 0.18) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+  background-position: 0 0, -1px -1px, -1px -1px;
+}
+
+.wheel-page {
+  max-width: 820px;
+  margin: 24px auto 48px;
+  padding: 32px 28px max(48px, env(safe-area-inset-bottom));
+  color: var(--codex-ink-main);
+  background: var(--codex-surface);
+  border: 1px solid var(--codex-border);
+  outline: 1px solid var(--codex-border-light);
+  outline-offset: -6px;
+  border-radius: 20px;
+  box-shadow: var(--codex-shadow);
+  min-height: calc(100dvh - 48px);
+  font-family: var(--codex-font-mincho);
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.wheel-page * {
+  box-sizing: border-box;
+}
+
+/* 四角古典星芒装饰 */
+.wheel-page::before,
+.wheel-page::after {
+  position: absolute;
+  font-family: var(--codex-font-serif-italic);
+  font-size: 12px;
+  color: var(--codex-rose);
+  opacity: 0.75;
+  pointer-events: none;
+  z-index: 1;
+}
+.wheel-page::before {
+  content: '✦';
+  top: 14px;
+  left: 16px;
+}
+.wheel-page::after {
+  content: '✦';
+  top: 14px;
+  right: 16px;
+}
+
+.wheel-page a {
+  color: var(--codex-rose);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.wheel-page a:hover {
+  color: var(--codex-gold);
+}
+
+/* 顶部返回按钮与页眉 */
+.wheel-page header {
+  text-align: center;
+  padding: 16px 0 24px;
+  position: relative;
+}
+
+.wheel-page header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--codex-font-serif-italic);
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  color: var(--codex-rose);
+  text-transform: uppercase;
+  font-style: italic;
+  margin-bottom: 6px;
+}
+.wheel-page header span::before,
+.wheel-page header span::after {
+  content: '❖';
+  font-size: 9px;
+  opacity: 0.8;
+  color: var(--codex-gold);
+}
+
+.wheel-page h1 {
+  font-family: var(--codex-font-mincho);
+  font-size: 38px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--codex-ink-main);
+  margin: 10px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.wheel-page h1::before,
+.wheel-page h1::after {
+  content: '';
+  display: block;
+  width: 42px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--codex-border-gold), transparent);
+}
+
+.wheel-page header p {
+  font-size: 13.5px;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+  color: var(--codex-ink-muted);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.wheel-page h2 {
+  font-family: var(--codex-font-mincho);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--codex-ink-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.wheel-page h2::before {
+  content: '❖';
+  font-size: 13px;
+  color: var(--codex-rose);
+}
+
+.wheel-page h3 {
+  font-family: var(--codex-font-mincho);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--codex-ink-main);
+  margin: 8px 0;
+}
+
+.wheel-page p {
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+/* 按钮与链接交互基石 */
+.wheel-page button {
+  font-family: var(--codex-font-mincho);
+  border: 1px solid var(--codex-border);
+  border-radius: 12px;
+  background: var(--codex-card);
+  color: var(--codex-ink-main);
+  padding: 10px 18px;
+  cursor: pointer;
+  min-height: 44px;
+  font-size: 13.5px;
+  letter-spacing: 0.04em;
+  transition: all 0.2s var(--ease-damped);
+}
+.wheel-page button:hover:not(:disabled) {
+  border-color: var(--codex-border-rose);
+  color: var(--codex-rose);
+  background: var(--codex-rose-soft);
+  box-shadow: 0 4px 14px rgba(138, 72, 107, 0.08);
+}
+.wheel-page button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* 快捷导航 (Shortcuts Bookmark Ribbon) */
+.wheel-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 6px;
+  background: rgba(246, 240, 250, 0.65);
+  border: 1px solid var(--codex-border-light);
+  border-radius: 999px;
+}
+.wheel-page .wheel-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 16px;
+  margin: 2px;
+  border: 1px solid var(--codex-border-light);
+  border-radius: 999px;
+  background: var(--codex-card);
+  color: var(--codex-ink-muted);
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-align: center;
+  transition: all 0.2s var(--ease-damped);
+}
+.wheel-shortcuts .wheel-link {
+  margin: 0;
+  flex: 1 1 110px;
+  max-width: 140px;
+  border-color: transparent;
+  background: transparent;
+}
+.wheel-shortcuts .wheel-link:hover {
+  background: var(--codex-card);
+  border-color: var(--codex-border);
+  color: var(--codex-rose);
+  box-shadow: 0 2px 8px rgba(43, 35, 56, 0.04);
+}
+
+.wheel-page :is(button, .wheel-link) {
+  transition: background-color 0.2s var(--ease-damped),
+              box-shadow 0.2s var(--ease-damped),
+              transform 0.2s var(--ease-damped),
+              border-color 0.2s var(--ease-damped),
+              color 0.2s var(--ease-damped);
+}
+.wheel-page :is(button, .wheel-link):focus-visible {
+  outline: 2px solid var(--codex-rose);
+  outline-offset: 3px;
+}
+.wheel-page :is(button:enabled, .wheel-link):active {
+  transform: translateY(1.5px);
+  box-shadow: inset 0 2px 5px rgba(138, 72, 107, 0.18);
+}
+.wheel-page [id] {
+  scroll-margin-top: 80px;
+}
+
+/* 试玩体验标贴 */
+.wheel-preview {
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: var(--codex-rose-soft);
+  border: 1px solid var(--codex-border-rose);
+  font-size: 13px;
+  color: var(--codex-rose);
+  text-align: center;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+}
+
+/* 购券区 (Ticket Shop) */
+.wheel-ticket-shop {
+  margin: 20px 0 28px;
+  padding: 22px 24px;
+  border: 1px solid var(--codex-border);
+  outline: 1px solid var(--codex-border-light);
+  outline-offset: -5px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #ffffff 0%, #faf6fd 100%);
+  box-shadow: 0 4px 16px rgba(43, 35, 56, 0.03);
+}
+.wheel-ticket-shop p {
+  font-size: 13px;
+  color: var(--codex-ink-muted);
+  margin: 8px 0;
+}
+
+/* 盘面抽奖区与记数卡 (Live Bar & Counters) */
+.wheel-play-area {
+  margin: 24px 0;
+}
+.wheel-counters {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 0 0 16px;
+  font-size: 12px;
+  text-align: center;
+}
+.wheel-counters > span {
+  flex: 1;
+  max-width: 160px;
+  padding: 12px 14px 10px;
+  background: var(--codex-card);
+  border: 1px solid var(--codex-border);
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(43, 35, 56, 0.03);
+  color: var(--codex-ink-muted);
+  letter-spacing: 0.08em;
+  position: relative;
+}
+.wheel-counters strong {
+  display: block;
+  font-family: var(--codex-font-mincho);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--codex-ink-main);
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
+/* 九格对对碰棋盘 · 浑天仪神思机甲盘 (Astrolabe Fortune Tray) */
+.wheel-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 440px;
+  margin: 18px auto;
+  padding: 22px;
+  background: linear-gradient(145deg, #fdfbfe 0%, #f3ebf6 100%);
+  border: 1px solid var(--codex-border);
+  outline: 1px solid rgba(220, 208, 228, 0.55);
+  outline-offset: -6px;
+  border-radius: 22px;
+  box-shadow: 0 18px 48px rgba(43, 35, 56, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  position: relative;
+}
+.wheel-board::before {
+  content: '✦';
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-size: 10px;
+  color: var(--codex-gold);
+  opacity: 0.7;
+}
+.wheel-board::after {
+  content: '✦';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 10px;
+  color: var(--codex-gold);
+  opacity: 0.7;
+}
+
+.wheel-board > div {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(220, 208, 228, 0.75);
+  box-shadow: 0 4px 12px rgba(70, 45, 80, 0.03), inset 0 0 0 1px rgba(255, 255, 255, 0.95);
+  transition: transform 0.25s var(--ease-damped),
+              box-shadow 0.25s var(--ease-damped),
+              border-color 0.25s var(--ease-damped);
+}
+.wheel-board > div:hover {
+  transform: translateY(-2px);
+  border-color: var(--codex-border-rose);
+  box-shadow: 0 6px 18px rgba(138, 72, 107, 0.08);
+}
+
+.wheel-board span {
+  font-size: clamp(32px, 8vw, 46px);
+  line-height: 1.1;
+  filter: drop-shadow(0 2px 4px rgba(43, 35, 56, 0.06));
+}
+.wheel-board small {
+  font-family: var(--codex-font-mincho);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  margin-top: 6px;
+  color: var(--codex-ink-muted);
+}
+
+/* 动效与触碰 */
+.wheel-board .is-colliding {
+  position: relative;
+  z-index: 2;
+  animation: wheel-collision 0.8s var(--ease-damped) both;
+  background: #fffdf6;
+  border-color: var(--codex-gold);
+  box-shadow: 0 0 24px rgba(204, 160, 70, 0.5), inset 0 0 10px rgba(204, 160, 70, 0.2);
+}
+
+/* 交互控制按扭群 */
+.wheel-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 24px 0 16px;
+}
+.wheel-controls > button:first-child {
+  background: linear-gradient(135deg, #44324a 0%, #302136 100%);
+  color: #faf4e8;
+  border: 1px solid #6b5174;
+  border-radius: 999px;
+  padding: 12px 28px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 18px rgba(48, 33, 54, 0.22);
+}
+.wheel-controls > button:first-child:hover:not(:disabled) {
+  background: linear-gradient(135deg, #553e5d 0%, #3d2a45 100%);
+  border-color: #8c6d98;
+  color: #ffffff;
+  box-shadow: 0 6px 24px rgba(48, 33, 54, 0.32);
+  transform: translateY(-1.5px);
+}
+.wheel-controls > button:first-child:active:not(:disabled) {
+  transform: translateY(1.5px);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.wheel-rule {
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--codex-ink-muted);
+  max-width: 600px;
+  margin: 8px auto;
+}
+
+.wheel-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 16px;
+  margin: 14px auto;
+  max-width: 580px;
+  background: var(--codex-gold-soft);
+  border: 1px solid var(--codex-border-gold);
+  border-radius: 14px;
+  color: #855b20;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(179, 136, 72, 0.08);
+}
+.wheel-results strong {
+  color: #704711;
+}
+
+/* 分区通栏与装帧卡片 (Sections & Index Cards) */
+.wheel-section {
+  margin-top: 36px;
+  border-top: 1px solid var(--codex-border);
+  padding-top: 24px;
+  position: relative;
+}
+.wheel-section::before {
+  content: '✦';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--codex-surface);
+  padding: 0 10px;
+  color: var(--codex-rose);
+  font-size: 11px;
+}
+.wheel-section > p {
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--codex-ink-muted);
+  margin-bottom: 16px;
+}
+
+.wheel-prizes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.wheel-prizes article {
+  border: 1px solid var(--codex-border-light);
+  border-radius: 16px;
+  background: var(--codex-card);
+  padding: 20px 18px;
+  overflow-wrap: anywhere;
+  box-shadow: 0 2px 8px rgba(43, 35, 56, 0.03);
+  transition: all 0.2s var(--ease-damped);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.wheel-prizes article:hover {
+  transform: translateY(-2px);
+  border-color: var(--codex-border);
+  box-shadow: 0 8px 24px rgba(43, 35, 56, 0.06);
+}
+.wheel-prizes article[data-gift-skin="revival"] {
+  border-color: rgba(127, 160, 106, 0.45);
+  background: linear-gradient(150deg, #ffffff 0%, #f4f8f2 100%);
+}
+.wheel-prizes article > span {
+  font-size: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: var(--codex-surface-subtle);
+  border: 1px solid var(--codex-border-light);
+  margin-bottom: 10px;
+}
+.wheel-prizes article > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.wheel-prizes article > p {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--codex-ink-muted);
+  margin: 6px 0 10px;
+}
+
+/* 赠礼表单 (Gift Writing Desk) */
+.wheel-gift-form {
+  margin-top: 26px;
+  padding: 24px;
+  border: 1px solid var(--codex-border);
+  outline: 1px solid var(--codex-border-light);
+  outline-offset: -5px;
+  border-radius: 18px;
+  background: linear-gradient(150deg, #fdfbfc 0%, #f6eff8 100%);
+  box-shadow: 0 4px 18px rgba(43, 35, 56, 0.04);
+}
+.wheel-gift-form h3 {
+  font-family: var(--codex-font-mincho);
+  font-size: 17px;
+  letter-spacing: 0.08em;
+  color: var(--codex-ink-main);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wheel-gift-form h3::before {
+  content: '❧';
+  color: var(--codex-rose);
+  font-size: 16px;
+}
+.wheel-gift-form p {
+  font-size: 13.5px;
+  color: var(--codex-ink-muted);
+}
+.wheel-gift-form .wheel-gift-confirm {
+  display: block;
+  width: 100%;
+  margin: 18px 0 10px;
+  background: linear-gradient(135deg, #8a486b 0%, #6b3552 100%);
+  color: #ffffff;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  box-shadow: 0 4px 14px rgba(138, 72, 107, 0.25);
+}
+.wheel-gift-form .wheel-gift-confirm:hover:not(:disabled) {
+  background: linear-gradient(135deg, #9a5379 0%, #7d3f61 100%);
+  box-shadow: 0 6px 20px rgba(138, 72, 107, 0.35);
+  transform: translateY(-1.5px);
+}
+
+.wheel-gift-recipients {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 10px 0 14px;
+}
+.wheel-gift-recipients > span {
+  flex-basis: 100%;
+  font-size: 12.5px;
+  color: var(--codex-ink-muted);
+  letter-spacing: 0.05em;
+}
+.wheel-gift-recipients button {
+  max-width: 100%;
+  border-radius: 999px;
+  padding: 6px 14px;
+  min-height: 36px;
+  font-size: 13px;
+  border: 1px solid var(--codex-border-light);
+  background: #ffffff;
+}
+.wheel-page button[aria-pressed=true] {
+  border: 1px solid var(--codex-rose);
+  background: var(--codex-rose-soft);
+  color: var(--codex-rose);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(138, 72, 107, 0.12);
+}
+
+.wheel-address {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.wheel-address label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--codex-ink-main);
+  letter-spacing: 0.04em;
+}
+.wheel-address input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--codex-border);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--codex-ink-main);
+  font-family: inherit;
+  font-size: 14.5px;
+  transition: all 0.2s ease;
+}
+.wheel-address input:focus {
+  outline: none;
+  border-color: var(--codex-rose);
+  box-shadow: 0 0 0 3px rgba(138, 72, 107, 0.12);
+}
+
+/* 折叠规则与概率 (Classical Accordion Details) */
+.wheel-page summary {
+  cursor: pointer;
+  font-family: var(--codex-font-mincho);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--codex-ink-muted);
+  padding: 10px 0;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+.wheel-page summary:hover {
+  color: var(--codex-rose);
+}
+.wheel-page details[open] summary {
+  color: var(--codex-ink-main);
+  margin-bottom: 8px;
+}
+.wheel-page details > p {
+  padding: 10px 14px;
+  background: rgba(246, 240, 250, 0.55);
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--codex-ink-muted);
+  margin-top: 6px;
+}
+
+/* 提示与未登录面板 */
+.wheel-page > output,
+.wheel-page > p:not(.wheel-preview) {
+  text-align: center;
+  margin: 36px auto;
+  padding: 24px;
+  max-width: 480px;
+  background: var(--codex-card);
+  border: 1px solid var(--codex-border-light);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(43, 35, 56, 0.04);
+  font-size: 14px;
+  color: var(--codex-ink-muted);
+}
+
+/* 重试与警告面板 */
+.wheel-retry {
+  padding: 14px 18px;
+  border: 1px solid var(--codex-border-rose);
+  border-radius: 12px;
+  background: var(--codex-rose-soft);
+  margin: 16px 0;
+}
+.wheel-retry button + button {
+  margin-left: 8px;
+}
+
+/* 动效关键帧 */
+@keyframes wheel-collision {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(0.92); }
+  65% { transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel-board .is-colliding { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .wheel-page {
+    margin: 12px 8px 32px;
+    padding: 24px 16px 36px;
+    border-radius: 16px;
+  }
+  .wheel-page h1 { font-size: 30px; }
+  .wheel-counters { gap: 8px; }
+  .wheel-counters strong { font-size: 22px; }
+  .wheel-board { padding: 14px; gap: 9px; border-radius: 18px; }
+  .wheel-board span { font-size: 32px; }
+  .wheel-prizes { grid-template-columns: 1fr; }
+}

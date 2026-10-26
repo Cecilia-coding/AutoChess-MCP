@@ -1,0 +1,519 @@
+
+    .wheel-reward-dialog {
+      --revival-bg-canvas: #0f1c14;
+      --revival-bg-deep: #162a1e;
+      --revival-surface-card: #1b3325;
+      --revival-surface-parchment: #f4f8f2;
+      --revival-parchment-border: #d4e2cf;
+
+      --revival-olive-light: #96bb81;
+      --revival-olive-core: #7fa06a;
+      --revival-olive-dark: #4b663b;
+      --revival-olive-glow: rgba(127, 160, 106, 0.35);
+
+      --revival-gold-pure: #cca046;
+      --revival-gold-light: #e5be6b;
+      --revival-gold-glow: rgba(204, 160, 70, 0.4);
+
+      --revival-ink-light: #f0f7ee;
+      --revival-ink-muted: #b0c9ac;
+      --revival-ink-deep: #1a2a1f;
+      --revival-ink-subtle: #6b8a66;
+
+      --font-serif-cn: "Huiwen Mincho", "Noto Serif SC", "Songti SC", serif;
+      --font-serif-en: "Cormorant Garamond", Georgia, serif;
+      --font-display-en: "Cinzel", Georgia, serif;
+
+      --ease-damped: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-bounce: cubic-bezier(0.34, 1.45, 0.64, 1);
+      --ease-wings: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+    }
+
+    .wheel-reward-dialog * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wheel-reward-dialog .reward-stage-viewport {
+      perspective: 1200px;
+      width: 100%;
+      max-width: 480px;
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 10;
+    }
+    .wheel-reward-dialog .dove-carrier-actor {
+      position: absolute;
+      top: 15%;
+      width: 140px;
+      height: 110px;
+      pointer-events: none;
+      z-index: 30;
+      opacity: 0;
+      transform: translateY(-80px) scale(0.6);
+      transition: opacity 0.5s ease;
+    }
+
+    .wheel-reward-dialog .dove-carrier-actor.is-flying-in {
+      animation: wheelReward-doveGlideIn 2.2s var(--ease-damped) forwards;
+    }
+
+    @keyframes wheelReward-doveGlideIn {
+      0% {
+        opacity: 0;
+        transform: translate3d(-180px, -140px, 100px) scale(0.4) rotate(15deg);
+      }
+      40% {
+        opacity: 1;
+        transform: translate3d(-30px, 10px, 20px) scale(1.05) rotate(-4deg);
+      }
+      75% {
+        transform: translate3d(0px, 8px, 0px) scale(1) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(140px, -120px, 50px) scale(0.6) rotate(-15deg);
+      }
+    }
+    .wheel-reward-dialog .dove-wing-left {
+      transform-origin: 45px 50px;
+      animation: wheelReward-wingFlapLeft 0.38s ease-in-out infinite alternate;
+    }
+    .wheel-reward-dialog .dove-wing-right {
+      transform-origin: 75px 52px;
+      animation: wheelReward-wingFlapRight 0.38s ease-in-out infinite alternate;
+    }
+
+    @keyframes wheelReward-wingFlapLeft {
+      0% { transform: rotate(0deg) scaleY(1); }
+      100% { transform: rotate(-38deg) scaleY(0.7); }
+    }
+    @keyframes wheelReward-wingFlapRight {
+      0% { transform: rotate(0deg) scaleY(1); }
+      100% { transform: rotate(38deg) scaleY(0.7); }
+    }
+    .wheel-reward-dialog .sealed-revival-parcel {
+      position: absolute;
+      width: 350px;
+      height: 250px;
+      background: linear-gradient(145deg, #1b3325 0%, #13271c 100%);
+      border: 1px solid rgba(127, 160, 106, 0.45);
+      border-radius: 8px;
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.55), 0 0 30px var(--revival-olive-glow);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+      transition: transform 0.4s var(--ease-damped), box-shadow 0.4s var(--ease-damped), opacity 0.5s var(--ease-damped);
+      animation: wheelReward-parcelRevivalFloat 4.6s ease-in-out infinite, wheelReward-parcelArrival 0.9s var(--ease-damped);
+    }
+
+    @keyframes wheelReward-parcelRevivalFloat {
+      0%, 100% {
+        transform: translateY(0px) rotate(-0.5deg);
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.55), 0 0 25px var(--revival-olive-glow);
+      }
+      50% {
+        transform: translateY(-9px) rotate(0.8deg);
+        box-shadow: 0 26px 56px rgba(0, 0, 0, 0.65), 0 0 45px rgba(204, 160, 70, 0.35);
+      }
+    }
+
+    @keyframes wheelReward-parcelArrival {
+      0% {
+        opacity: 0;
+        transform: translateY(80px) scale(0.8) rotate(-4deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(-0.5deg);
+      }
+    }
+    .wheel-reward-dialog .sealed-revival-parcel::before {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border: 1px solid rgba(127, 160, 106, 0.35);
+      border-radius: 5px;
+      pointer-events: none;
+    }
+    .wheel-reward-dialog .parcel-foliage-texture {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.18;
+      background: radial-gradient(circle at 50% 50%, rgba(204, 160, 70, 0.3) 0%, transparent 70%);
+    }
+    .wheel-reward-dialog .revival-seal-core {
+      position: relative;
+      width: 76px;
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      z-index: 5;
+    }
+    .wheel-reward-dialog .olive-wreath-ring {
+      position: absolute;
+      inset: -10px;
+      animation: wheelReward-rotateWreath 24s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes wheelReward-rotateWreath {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .wheel-reward-dialog .seal-wax-disc {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #96bb81 0%, #7fa06a 45%, #3d5530 100%);
+      border: 1.5px solid var(--revival-gold-light);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 5px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.35s var(--ease-bounce), box-shadow 0.35s;
+    }
+
+    .wheel-reward-dialog .seal-dove-icon {
+      width: 44px;
+      height: 44px;
+      filter: drop-shadow(0 2px 5px rgba(20, 36, 24, 0.55));
+      transition: transform 0.3s var(--ease-bounce);
+    }
+
+    .wheel-reward-dialog .sealed-revival-parcel:hover .seal-wax-disc {
+      transform: scale(1.1);
+      box-shadow: 0 6px 24px rgba(204, 160, 70, 0.5);
+    }
+    .wheel-reward-dialog .wheel-draw-tag {
+      position: absolute;
+      top: -13px;
+      background: linear-gradient(90deg, #1b3325, #234231);
+      border: 1px solid var(--revival-gold-pure);
+      padding: 3px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--revival-gold-light);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 6;
+    }
+    .wheel-reward-dialog .parcel-text-block {
+      text-align: center;
+      z-index: 2;
+    }
+
+    .wheel-reward-dialog .parcel-title-text {
+      font-size: 14.5px;
+      letter-spacing: 0.18em;
+      color: var(--revival-ink-light);
+      font-weight: 600;
+    }
+
+    .wheel-reward-dialog .parcel-sub-text {
+      font-family: var(--font-display-en);
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      color: var(--revival-olive-light);
+      margin-top: 3px;
+    }
+
+    .wheel-reward-dialog .parcel-hint-line {
+      margin-top: 14px;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--revival-ink-muted);
+      opacity: 0.9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .wheel-reward-dialog .sealed-revival-parcel.is-blooming {
+      animation: wheelReward-parcelBloomBurst 0.75s var(--ease-damped) forwards !important;
+      pointer-events: none;
+    }
+
+    @keyframes wheelReward-parcelBloomBurst {
+      0% { transform: scale(1) translateY(0); filter: brightness(1); }
+      35% { transform: scale(0.94) translateY(6px); filter: brightness(1.2); }
+      70% { transform: scale(1.08) translateY(-18px); opacity: 0.85; }
+      100% { transform: scale(1.18) translateY(-40px); opacity: 0; visibility: hidden; }
+    }
+    .wheel-reward-dialog .revealed-revival-card {
+      width: 380px;
+      background: linear-gradient(180deg, #1d3627 0%, #14281c 100%);
+      border: 1px solid rgba(127, 160, 106, 0.6);
+      border-radius: 10px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65), 0 0 50px rgba(127, 160, 106, 0.25);
+      padding: 24px 22px 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(44px) scale(0.92);
+      transition: all 0.8s var(--ease-bounce);
+      overflow: hidden;
+    }
+
+    .wheel-reward-dialog .revealed-revival-card.is-active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+    .wheel-reward-dialog .card-border-ornament {
+      position: absolute;
+      inset: 6px;
+      border: 1px solid rgba(127, 160, 106, 0.3);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    .wheel-reward-dialog .fleuron-leaf {
+      position: absolute;
+      font-size: 11px;
+      color: var(--revival-gold-pure);
+      line-height: 1;
+      opacity: 0.8;
+    }
+    .wheel-reward-dialog .fl-tl { top: 4px; left: 4px; }
+    .wheel-reward-dialog .fl-tr { top: 4px; right: 4px; }
+    .wheel-reward-dialog .fl-bl { bottom: 4px; left: 4px; }
+    .wheel-reward-dialog .fl-br { bottom: 4px; right: 4px; }
+    .wheel-reward-dialog .revival-card-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px dashed rgba(127, 160, 106, 0.4);
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+
+    .wheel-reward-dialog .header-season-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      letter-spacing: 0.14em;
+      color: var(--revival-olive-light);
+      font-weight: 600;
+    }
+
+    .wheel-reward-dialog .header-wheel-badge {
+      font-family: var(--font-display-en);
+      font-size: 10.5px;
+      letter-spacing: 0.16em;
+      color: var(--revival-gold-pure);
+      border: 1px solid rgba(204, 160, 70, 0.35);
+      padding: 1px 7px;
+      border-radius: 12px;
+      background: rgba(204, 160, 70, 0.08);
+    }
+    .wheel-reward-dialog .reward-spotlight-box {
+      width: 100%;
+      background: radial-gradient(circle at 50% 35%, #234230 0%, #15291d 85%);
+      border: 1px solid rgba(127, 160, 106, 0.45);
+      border-radius: 8px;
+      padding: 16px 14px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      margin-bottom: 14px;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+    }
+    .wheel-reward-dialog .reward-halo-bg {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(204, 160, 70, 0.3) 0%, rgba(127, 160, 106, 0.15) 50%, transparent 70%);
+      top: 10px;
+      border-radius: 50%;
+      animation: wheelReward-pulseHalo 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes wheelReward-pulseHalo {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.15); opacity: 0.9; }
+    }
+    .wheel-reward-dialog .reward-visual-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2e543e 0%, #183022 100%);
+      border: 1.5px solid var(--revival-gold-pure);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      margin-bottom: 10px;
+    }
+
+    .wheel-reward-dialog .artifact-svg-graphic {
+      width: 38px;
+      height: 38px;
+      fill: var(--revival-gold-light);
+      filter: drop-shadow(0 2px 6px rgba(204, 160, 70, 0.4));
+      animation: wheelReward-floatArtifact 3.5s ease-in-out infinite;
+    }
+
+    @keyframes wheelReward-floatArtifact {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .wheel-reward-dialog .reward-name-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--revival-ink-light);
+      margin-bottom: 4px;
+      z-index: 2;
+    }
+
+    .wheel-reward-dialog .reward-tags-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .wheel-reward-dialog .tag-rarity-pill {
+      font-size: 10px;
+      font-family: var(--font-display-en);
+      letter-spacing: 0.12em;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(204, 160, 70, 0.18);
+      border: 1px solid rgba(204, 160, 70, 0.45);
+      color: var(--revival-gold-light);
+    }
+
+    .wheel-reward-dialog .tag-amount-pill {
+      font-size: 11px;
+      color: var(--revival-ink-muted);
+      letter-spacing: 0.04em;
+    }
+    .wheel-reward-dialog .revival-message-scroll {
+      width: 100%;
+      background: var(--revival-surface-parchment);
+      border: 1px solid var(--revival-parchment-border);
+      border-left: 3px solid var(--revival-olive-core);
+      border-radius: 5px;
+      padding: 12px 16px 12px;
+      margin-bottom: 18px;
+      position: relative;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .wheel-reward-dialog .scroll-quote-mark {
+      font-family: var(--font-serif-en);
+      font-size: 24px;
+      line-height: 1;
+      color: var(--revival-olive-core);
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      opacity: 0.45;
+    }
+
+    .wheel-reward-dialog .revival-quote-text {
+      font-size: 13px;
+      line-height: 1.85;
+      color: var(--revival-ink-deep);
+      letter-spacing: 0.06em;
+      text-indent: 1.4em;
+    }
+
+    .wheel-reward-dialog .revival-sender-credit {
+      width: 100%;
+      text-align: right;
+      font-size: 11.5px;
+      letter-spacing: 0.08em;
+      color: var(--revival-olive-dark);
+      font-weight: 600;
+      margin-top: 6px;
+    }
+    .wheel-reward-dialog .claim-action-btn {
+      width: 100%;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, #7fa06a 0%, #4b663b 100%);
+      color: #ffffff;
+      border: 1px solid var(--revival-gold-light);
+      border-radius: 5px;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-serif-cn);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 16px rgba(127, 160, 106, 0.35);
+      transition: all 0.3s var(--ease-damped);
+    }
+
+    .wheel-reward-dialog .claim-action-btn:hover {
+      background: linear-gradient(135deg, #8eb577 0%, #587845 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55), 0 0 24px rgba(204, 160, 70, 0.5);
+      border-color: #ffffff;
+    }
+
+    .wheel-reward-dialog .claim-action-btn:active {
+      transform: translateY(1px);
+    }
+    .wheel-reward-dialog .revealed-revival-card.is-claimed {
+      animation: wheelReward-cardHarvest 0.75s var(--ease-damped) forwards;
+    }
+
+    @keyframes wheelReward-cardHarvest {
+      0% { transform: scale(1) translateY(0); filter: brightness(1); }
+      40% { transform: scale(1.04) translateY(-10px); filter: brightness(1.25); }
+      100% { transform: scale(0.65) translateY(120px); opacity: 0; visibility: hidden; }
+    }
+    .wheel-reward-dialog .harvest-toast {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: rgba(22, 42, 30, 0.95);
+      color: var(--revival-ink-light);
+      padding: 14px 26px;
+      border-radius: 6px;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      border: 1px solid var(--revival-gold-pure);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s var(--ease-damped);
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.7);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .wheel-reward-dialog .harvest-toast.is-shown {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }

@@ -1,0 +1,163 @@
+/* ==========================================================================
+   对对碰 动态反馈层 (Wheel Feedback & Organic Animations)
+   ========================================================================== */
+
+.wheel-counters > span {
+  position: relative;
+  min-width: 80px;
+}
+
+.wheel-counters em {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+  animation: wheel-credit 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  pointer-events: none;
+}
+
+.wheel-gain {
+  color: var(--codex-gold, #b38848);
+  text-shadow: 0 0 10px rgba(179, 136, 72, 0.35);
+}
+
+.wheel-spend {
+  color: var(--codex-rose, #8a486b);
+  text-shadow: 0 0 10px rgba(138, 72, 107, 0.3);
+}
+
+/* 节拍指示条 (Wheel Beat Status) */
+.wheel-beat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin: 10px auto 14px;
+  padding: 8px 18px;
+  max-width: 440px;
+  border-radius: 999px;
+  border: 1px solid var(--codex-border-light, #e7dcf0);
+  background: rgba(254, 252, 255, 0.85);
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--codex-ink-muted, #6c5e7b);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(43, 35, 56, 0.03);
+}
+
+.wheel-beat.is-collision {
+  background: var(--codex-gold-soft, #faf4e8);
+  border-color: var(--codex-border-gold, rgba(179, 136, 72, 0.45));
+  color: var(--codex-gold, #b38848);
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(179, 136, 72, 0.15);
+}
+
+.wheel-beat.is-refund,
+.wheel-beat.is-prize {
+  background: var(--codex-gold-soft, #faf4e8);
+  border-color: var(--codex-border-gold, rgba(179, 136, 72, 0.45));
+  color: #855b20;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.wheel-beat.is-refund strong,
+.wheel-beat.is-prize strong {
+  animation: wheel-credit 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.wheel-board .is-arriving {
+  animation: wheel-arrive 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.wheel-board .is-colliding {
+  position: relative;
+  z-index: 2;
+  animation: wheel-meet var(--beat-ms, 650ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  box-shadow: 0 0 24px rgba(204, 160, 70, 0.55), inset 0 0 12px rgba(204, 160, 70, 0.35);
+  border-color: var(--codex-gold, #b38848);
+}
+
+@keyframes wheel-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes wheel-meet {
+  0% {
+    transform: scale(1);
+  }
+  22% {
+    transform: scale(1.08);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(var(--hit-x), var(--hit-y)) scale(0.68);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--hit-x), var(--hit-y)) scale(0.15);
+  }
+}
+
+@keyframes wheel-credit {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel-board .is-arriving,
+  .wheel-board .is-colliding,
+  .wheel-counters em,
+  .wheel-beat strong {
+    animation: none;
+  }
+  .wheel-board .is-colliding {
+    outline: 2px solid var(--codex-gold, #b38848);
+  }
+}
+
+.wheel-live {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(254, 252, 255, 0.94);
+  backdrop-filter: blur(12px);
+  padding: 10px 0 12px;
+  border-bottom: 1px solid var(--codex-border-light, rgba(220, 208, 228, 0.5));
+  border-radius: 0 0 16px 16px;
+  margin-bottom: 18px;
+}
+
+.wheel-live .wheel-counters {
+  margin: 0 0 14px;
+  padding-top: 2px;
+}
+
+.wheel-live .wheel-beat {
+  min-height: 40px;
+  margin: 0 auto 4px;
+}

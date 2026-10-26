@@ -1,0 +1,463 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-geist-sans);
+  --font-heading:
+    var(--font-noto-serif), 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  --radius-sm: calc(var(--radius) * 0.65);
+  --radius-md: calc(var(--radius) * 0.82);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  --background: #e8e7df;
+  --foreground: #1f2a28;
+  --card: #f4f1e8;
+  --card-foreground: #1f2a28;
+  --primary: #243b37;
+  --primary-foreground: #fffaf0;
+  --secondary: #dce5df;
+  --secondary-foreground: #243b37;
+  --muted: #ddd9ce;
+  --muted-foreground: #69716d;
+  --accent: #dbe7e0;
+  --accent-foreground: #243b37;
+  --border: #c8c4b8;
+  --input: #c8c4b8;
+  --ring: #315d53;
+  --radius: 0.8rem;
+  --ink: #1f2f2c;
+  --muted-ink: #69716d;
+  --jade: #35675c;
+  --plum: #8d4d5c;
+  --line: #c9c3b5;
+}
+
+* {
+  border-color: var(--border);
+}
+html {
+  min-width: 320px;
+  background: var(--background);
+}
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 14% 8%,
+      rgba(255, 255, 255, 0.72),
+      transparent 28%
+    ),
+    linear-gradient(135deg, #e9e8e1 0%, #dedfd9 52%, #e9e6dc 100%);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), 'Microsoft YaHei UI', sans-serif;
+}
+.font-heading {
+  font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+}
+.paper-panel,
+.story-card {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.08)),
+    #efede5;
+}
+.story-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.62),
+      rgba(237, 235, 225, 0.88)
+    ),
+    #f1eee5;
+}
+.story-card::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  pointer-events: none;
+  border: 1px solid rgba(53, 103, 92, 0.12);
+  border-radius: 16px;
+}
+.story-card > * {
+  position: relative;
+}
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.board-tile {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.48);
+  padding: clamp(8px, 1.25vw, 14px);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.72);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.board-tile strong {
+  overflow: hidden;
+  font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  font-size: clamp(0.8rem, 1.35vw, 1.02rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.board-tile small,
+.tile-number {
+  color: var(--muted-ink);
+  font-size: clamp(0.62rem, 0.9vw, 0.74rem);
+}
+.board-tile.boss {
+  border-color: rgba(141, 77, 92, 0.48);
+  background: rgba(141, 77, 92, 0.08);
+}
+.board-tile.rest {
+  background: rgba(53, 103, 92, 0.07);
+}
+.board-tile.fortune {
+  background: rgba(166, 124, 59, 0.08);
+}
+.board-tile.shop {
+  background: rgba(72, 52, 90, 0.08);
+  border-color: rgba(72, 52, 90, 0.32);
+}
+.board-tile.thursday-haunt {
+  border-color: rgba(196, 92, 42, 0.7);
+  box-shadow:
+    0 0 0 2px rgba(196, 92, 42, 0.18),
+    0 12px 26px rgba(120, 48, 20, 0.12);
+}
+.story-card.thursday {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 236, 220, 0.7),
+      rgba(237, 228, 214, 0.88)
+    ),
+    #f3ebe0;
+}
+.board-tile.active {
+  z-index: 2;
+  border-color: var(--jade);
+  box-shadow:
+    0 0 0 3px rgba(53, 103, 92, 0.14),
+    0 12px 26px rgba(32, 54, 49, 0.13);
+  transform: translateY(-3px);
+}
+.traveler {
+  color: var(--plum);
+  filter: drop-shadow(0 1px 3px rgba(141, 77, 92, 0.35));
+}
+.board-center {
+  grid-column: 2/6;
+  grid-row: 2/5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.7),
+    rgba(238, 235, 224, 0.8)
+  );
+  padding: clamp(16px, 3vw, 36px);
+}
+.seed-lines {
+  display: grid;
+  gap: 8px;
+}
+.seed-lines p {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  align-items: baseline;
+  border-bottom: 1px solid rgba(201, 195, 181, 0.72);
+  padding-bottom: 8px;
+  font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  font-size: clamp(0.86rem, 1.4vw, 1rem);
+}
+.seed-lines span {
+  color: var(--muted-ink);
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+}
+.choice-button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.52);
+  padding: 13px 14px;
+  text-align: left;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+.choice-button:hover {
+  border-color: var(--jade);
+  background: rgba(255, 255, 255, 0.82);
+  transform: translateX(2px);
+}
+.choice-button span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+.choice-button strong {
+  font-size: 0.93rem;
+  font-weight: 560;
+}
+.choice-button small {
+  color: var(--muted-ink);
+  font-size: 0.76rem;
+}
+.board-tile.has-play {
+  box-shadow: inset 0 0 0 1px rgba(141, 77, 92, 0.22);
+}
+.play-banner {
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 12px 14px;
+}
+.play-kicker {
+  color: var(--muted-ink);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+}
+.play-beats,
+.play-pots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.play-beats li,
+.play-pots li {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 10px;
+  font-size: 0.78rem;
+}
+.play-beats li.current {
+  border-color: var(--plum);
+  background: rgba(141, 77, 92, 0.12);
+  font-weight: 600;
+}
+.play-pots li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 12px;
+}
+.play-tell {
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+.play-art {
+  margin-top: 8px;
+  color: var(--muted-ink);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+.ac-hp.enemy-hp i {
+  background: #b44f59;
+}
+.ac-hp.ally-hp i {
+  background: #35675c;
+}
+.ac-hp.dead-hp i {
+  background: #8e8a84;
+}
+.phase-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  opacity: 0.72;
+}
+.phase-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  color: var(--muted-ink);
+  padding: 4px 10px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.phase-chip.current {
+  border-color: var(--jade);
+  background: rgba(53, 103, 92, 0.12);
+  color: var(--ink);
+  font-weight: 600;
+}
+.board-tile.destination {
+  border-color: rgba(166, 124, 59, 0.72);
+  box-shadow: 0 0 0 2px rgba(166, 124, 59, 0.16);
+}
+
+.raid-cell {
+  display: flex;
+  min-height: 72px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 8px;
+  text-align: center;
+  font-size: 0.78rem;
+}
+.raid-cell.empty {
+  color: var(--muted-ink);
+}
+.raid-cell.unit {
+  border-style: solid;
+  border-color: rgba(53, 103, 92, 0.35);
+  background: rgba(232, 239, 233, 0.85);
+}
+.raid-cell.skill {
+  border-style: solid;
+  border-color: rgba(141, 77, 92, 0.35);
+  background: rgba(244, 232, 235, 0.85);
+}
+.raid-cell strong {
+  font-size: 0.82rem;
+}
+.raid-cell small {
+  color: var(--muted-ink);
+  font-size: 0.7rem;
+}
+.ac-hp {
+  display: block;
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(201, 195, 181, 0.7);
+}
+.ac-hp i {
+  display: block;
+  height: 100%;
+  background: var(--jade);
+}
+
+@media (max-width: 760px) {
+  .board-grid {
+    gap: 4px;
+  }
+  .board-tile {
+    border-radius: 9px;
+    padding: 6px;
+  }
+  .board-tile small {
+    display: none;
+  }
+  .board-center {
+    border-radius: 14px;
+    padding: 12px;
+  }
+  .board-center button {
+    height: 42px;
+  }
+}
+
+/* 弹幕：悬浮在棋盘上方的层，不占布局高度。样式令牌 = room-types DANMAKU_STYLES，新增样式只需加 .danmaku.dm-<style> */
+.room-table { position: relative; }
+.danmaku-strip {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  right: 0;
+  height: 34dvh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 80;
+  margin: 0;
+  border: none;
+  background: transparent;
+}
+.danmaku {
+  position: absolute;
+  left: 100%;
+  padding: 2px 12px;
+  white-space: nowrap;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  font-size: 14px;
+  animation: danmaku-drift 11s linear forwards;
+}
+@keyframes danmaku-drift {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(calc(-100vw - 100%)); opacity: 0.75; }
+}
+.danmaku.dm-gold {
+  background: linear-gradient(90deg, #b45309, #f59e0b);
+  color: #fff;
+  font-weight: 700;
+}
+.danmaku-composer {
+  position: fixed;
+  right: 10px;
+  bottom: max(80px, env(safe-area-inset-bottom) + 72px);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  pointer-events: auto;
+  z-index: 90;
+}
+.danmaku-composer input {
+  width: 11rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d4d4d4;
+  background: rgba(255, 255, 255, 0.92);
+}
+.danmaku-composer button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #d4d4d4;
+  background: #fff;
+}

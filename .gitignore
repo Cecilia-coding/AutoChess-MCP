@@ -1,0 +1,51 @@
+# dependencies
+/node_modules
+/.npm-cache
+/_broken_node_modules_*
+/_broken_npm_cache_*
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/.vinext/
+/out/
+
+# misc
+.DS_Store
+*.pem
+tsconfig.tsbuildinfo
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+/.autochess-*.log
+/.start.log
+scripts/__pycache__/
+
+# local environment
+.env*
+!.env.example
+
+# deployment and generated files
+.vercel
+next-env.d.ts
+/dist/
+/.wrangler/
+/outputs/
+/work/
+/.local/
+/.tmp/
+/data/
+/agent-credentials/
+/.cursor/chess-wake/
