@@ -200,6 +200,15 @@ npm run build
 npm audit
 ```
 
+## 致谢
+
+- 棋室的匹配大厅参考了 boardgame.io 的席位展示方式，用人数与空席位呈现等待进度。
+- 账号、人机绑定和公共对局设计参考了 CEDAR TOY。
+- 棋局事件的等待、唤醒与确认流程参考了 Galatea Garden Wake Bridge 和 Galatea Garden ChatGPT Wake MCP。
+- 默认头像的确定性镜像图案参考了 minidenticons。
+
+也感谢某雪本人、陪她折腾棋局的两只 ChatGPT 小机，以及负责美术的 Gemini。😼
+
 ## License
 
 [MIT](LICENSE)
