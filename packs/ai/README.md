@@ -13,7 +13,7 @@
 | 刷新商店 | Regenerate |
 | 1★ / 2★ / 3★ | INT4 / FP16 / FP32 |
 
-这些映射集中在 `terms.ts`，供二改主题界面时读取。当前公开界面与 MCP 协议仍使用金币、等级、星级等通用名称。
+这些映射集中在 `terms.ts`，Web 界面通过棋谱术语适配层统一读取。MCP 协议继续使用稳定的 `gold`、`level`、`star` 字段，主题文案不会改变 Agent 客户端的数据契约。
 
 ## 当前费用分布
 
@@ -41,19 +41,19 @@
 | 文件 | 作用 |
 |---|---|
 | `roster.ts` | 商店棋子、隐藏形态、基础面板、羁绊和技能说明 |
-| `traits.ts` | 阵营与职业羁绊文案 |
+| `traits.ts` | 阵营与职业羁绊的文案、档位和实际数值 |
 | `skills.ts` | 基于通用 `SkillPrimitive` 的技能数据 |
 | `items.ts` | AI 主题装备、转职与开局装备池 |
 | `hazards.ts` | 查 IP、错峰定价、官方活动、限量售罄等回合事件 |
 | `maneuvers.ts` | 可供扩展使用的持久标记模板；当前商店棋子未挂载 |
-| `terms.ts` | 可选的主题词汇映射；当前界面尚未接线 |
-| `index.ts` | 棋谱元信息和统一导出 |
+| `terms.ts` | 主题词汇源数据 |
+| `index.ts` | 用 `definePack` 汇总本包所有数据 |
 
 ## 添加一枚棋子
 
 1. 在 `roster.ts` 增加一条 `defineUnit(...)`。
 2. 在 `skills.ts` 用现有技能原语登记同 id 技能。
-3. 复用已有羁绊；如需新羁绊，同时更新 `traits.ts` 与 `content/autochess/trait-tiers.ts`。
+3. 复用已有羁绊；如需新羁绊，只在 `traits.ts` 用 `defineTrait(...)` 同时声明文案、档位和数值。
 4. 需要回合外风险时，在 `hazards.ts` 添加数据工厂；只有新增判定维度时才扩展通用 handler。
 
 AI 棋谱使用自己的装备与开局三选一。默认 `hexes` 为空，不会串入其他棋谱的心悟；设置 `CHESS_RP=1` 后，才会加入可选 RP 梗扩展。

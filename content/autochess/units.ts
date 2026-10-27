@@ -1,9 +1,7 @@
-import { aiForms, aiRoster } from '../../packs/ai/roster';
-import { jianghuRoster } from '../../packs/jianghu/roster';
-import { activeRoster } from '../../packs/registry';
+import { activeRoster, allPackUnits } from '../../packs/registry';
 import type { UnitDef } from './types';
 
-const allUnits: UnitDef[] = [...aiRoster, ...aiForms, ...jianghuRoster];
+const unitsById = new Map(allPackUnits().map((unit) => [unit.id, unit]));
 
 export function getUnit(id: string): UnitDef {
   const unit = findUnit(id);
@@ -12,7 +10,7 @@ export function getUnit(id: string): UnitDef {
 }
 
 export function findUnit(id: string): UnitDef | null {
-  return allUnits.find((unit) => unit.id === id) ?? null;
+  return unitsById.get(id) ?? null;
 }
 
 export function playableUnits(): UnitDef[] {

@@ -1,7 +1,11 @@
-import { aiRoster } from './roster';
-import { aiSwordTiers } from './items';
+import { definePack } from '../types';
+import { aiItems, aiSwordTiers } from './items';
+import { aiForms, aiRoster } from './roster';
+import { aiUnitSkills } from './skills';
+import { AI_TERMS } from './terms';
+import { aiTraits } from './traits';
 
-export { aiRoster, AI_ROSTER_IDS, AI_BASE_CRIT, aiForms } from './roster';
+export { aiRoster, AI_BASE_CRIT, aiForms } from './roster';
 export { aiTraits } from './traits';
 export { aiUnitSkills } from './skills';
 export { aiItems } from './items';
@@ -9,12 +13,23 @@ export { AI_HAZARD_TUNING, ipBanHazard, offPeakPricing, officialEventStrike, cod
 export { AI_MANEUVER_TUNING, safetyTax } from './maneuvers';
 export { AI_TERMS, quantizationLabel, parameterSizeLabel } from './terms';
 
-export const aiPack = {
+export const aiPack = definePack({
   id: 'ai',
   displayName: 'AI铲铲',
   icon: '🤖',
   description: '模型大乱斗：把模型的本事和怪脾气，搬上同一张棋盘。',
   roster: aiRoster,
+  forms: aiForms,
+  traits: aiTraits,
+  items: aiItems,
+  skills: aiUnitSkills,
+  terms: {
+    gold: { name: AI_TERMS.gold.name, short: AI_TERMS.gold.short },
+    level: { name: AI_TERMS.level.name, xp: '训练进度', shop: '模型市场', upgrade: '扩容', ladder: AI_TERMS.level.ladder },
+    mana: { name: AI_TERMS.mana.name },
+    reroll: { name: AI_TERMS.reroll.name },
+    star: { name: AI_TERMS.star.name, tiers: AI_TERMS.star.tiers },
+  },
   /** 人机包的开局三选一：AI 装备按强度分档。 */
   opening: { label: 'AI 装备', tiers: aiSwordTiers },
   /** 暂未声明心悟池：本包没有心悟三选一。 */
@@ -42,4 +57,4 @@ export const aiPack = {
     { name: '回滚机房', detail: '兜底' },
     { name: '部署上线', detail: '收工' },
   ],
-} as const;
+});

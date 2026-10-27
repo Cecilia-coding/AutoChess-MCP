@@ -1,4 +1,4 @@
-import { packUnitSkill } from '../../packs/skill-registry';
+import { allPackSkills } from '../../packs/registry';
 import type { StatKey, StatOp } from './stats-vocab';
 
 export type SkillScale = { flat?: number; atkPct?: number; armorPct?: number; hpPct?: number; targetMaxHpPct?: number; flatByStar?: readonly [number, number, number]; atkPctByStar?: readonly [number, number, number]; armorPctByStar?: readonly [number, number, number] };
@@ -41,5 +41,5 @@ export type SkillPrimitive =
 
 export type UnitSkill = { name: string; mana: number; passiveStats?: StatOp[]; attack?: SkillScale; passive?: boolean; cast?: SkillPrimitive[]; onAttack?: SkillPrimitive[]; onKill?: SkillPrimitive[]; onBattleStart?: SkillPrimitive[]; onDamaged?: SkillPrimitive[]; onDeath?: SkillPrimitive[]; tick?: { everyMs: number; effects: SkillPrimitive[] } };
 
-export const unitSkills: Record<string, UnitSkill> = {};
-export function unitSkill(id: string): UnitSkill | undefined { return packUnitSkill(id); }
+export const unitSkills: Record<string, UnitSkill> = allPackSkills();
+export function unitSkill(id: string): UnitSkill | undefined { return unitSkills[id]; }

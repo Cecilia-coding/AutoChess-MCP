@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { lootForRoster } from '../content/autochess/items';
+import { lootForPack } from '../content/autochess/items';
 import { aiRoster } from '../packs/ai/roster';
 import { aiItems } from '../packs/ai/items';
-import { jianghuRoster } from '../packs/jianghu/roster';
 import { jianghuItems } from '../packs/jianghu/items';
-import { PACKS, packKitItems, packRoster, parsePackId } from '../packs/registry';
+import { PACK_LIST, PACKS, packKitItems, packRoster, parsePackId } from '../packs/registry';
 import { findUnit } from '../content/autochess/units';
 import { simulateBattle } from '../lib/autochess/combat';
 import { pickDraftItem } from '../lib/autochess/core';
@@ -21,21 +20,31 @@ const fighter = (templateId: string, id: string, row = 3): Combatant => ({
   itemIds: [],
 });
 
-test('the public registry contains only the maintained packs', () => {
-  assert.deepEqual(Object.keys(PACKS), ['ai', 'jianghu']);
+test('the public registry is generated from the maintained pack declarations', () => {
+  assert.deepEqual(Object.keys(PACKS), PACK_LIST.map((pack) => pack.id));
   assert.equal(parsePackId(undefined), 'ai');
   assert.equal(parsePackId('jianghu'), 'jianghu');
   assert.throws(() => parsePackId('unknown-pack'));
 });
 
 test('every public roster entry resolves through the shared unit registry', () => {
-  for (const unit of [...aiRoster, ...jianghuRoster]) assert.equal(findUnit(unit.id)?.id, unit.id);
+  for (const pack of PACK_LIST) {
+    for (const unit of [...pack.roster, ...(pack.forms ?? [])]) assert.equal(findUnit(unit.id)?.id, unit.id);
+  }
   assert.deepEqual(packRoster('ai').map((unit) => unit.id), aiRoster.map((unit) => unit.id));
 });
 
+test('trait thresholds and effects live together in each pack', () => {
+  for (const pack of PACK_LIST) {
+    for (const trait of pack.traits) {
+      assert.deepEqual(trait.tiers, Object.keys(trait.tierEffects ?? {}).map(Number).sort((a, b) => a - b));
+    }
+  }
+});
+
 test('each public pack uses its own complete item pool and kit reward', () => {
-  const aiLoot = lootForRoster(aiRoster);
-  const jianghuLoot = lootForRoster(jianghuRoster);
+  const aiLoot = lootForPack('ai');
+  const jianghuLoot = lootForPack('jianghu');
   const families = ['epic', 'orange', 'purple', 'white'];
 
   assert.ok(aiLoot.every((item) => item.id.startsWith('ai-') || item.id.startsWith('rp-')));

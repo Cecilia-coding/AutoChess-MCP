@@ -17,6 +17,7 @@ import { activeTier, findTrait } from '@/content/autochess/traits';
 import { boardModelFor, itemImage, skinPalette } from '@/lib/meta/cosmetics';
 import { tiles } from '@/lib/game/board';
 import { packDraftTiles, type PackSummary } from '@/packs/registry';
+import { goldAmount, levelLabel, packTerms, starLabel } from '@/packs/terms';
 import type { RoomAction, RoomCredentials, RoomMutation, RoomView, RoomBattle, RoomHazardBan } from '@/lib/autochess/room-types';
 import './room-ui.css';
 import RoomResult from './room-result';
@@ -69,6 +70,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
   },[refreshConfig]);
   const [credentials,setCredentials]=useState<RoomCredentials|null>(initialCredentials??null);
   const [view,setView]=useState<RoomView|null>(null);
+  const terms=packTerms(view?.pack);
   const latestView=useRef<RoomView|null>(null);
   const [movePreview,setMovePreview]=useState<PendingRoomMove|null>(null);
   const [error,setError]=useState(''); const [notice,setNotice]=useState(''); const [busy,setBusy]=useState(false);
@@ -170,7 +172,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
     if(command.kind==='move'){setMovePreview({roomId:state.id,round:state.round,revision:state.self.revision,action:command});setNotice('正在保存站位…');}
     try {const next=await request('action',payload);adopt(next);pending.current=null;setError('');
       if(command.kind==='claim'){setDraftOpen(false);setNotice(next.self?.draftLabel??'奖励已入账');}
-      if(command.kind==='roll')setNotice('骰点已锁定，落点奖励不会因刷新而改变');
+      if(command.kind==='roll')setNotice(`骰点已锁定，落点奖励不会因${terms.reroll.name}而改变`);
       if(command.kind==='move')setNotice('站位已保存');
       if(command.kind==='buy' && next.self) {
         const before=[...state.self.board,...state.self.bench??[]];
@@ -179,7 +181,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
         if(merged.length)setNotice(merged.map(piece=>{
           const consumed=before.filter(old=>old.templateId===piece.templateId && !after.some(current=>current.id===old.id));
           const refs=consumed.map(old=>state.self!.pieceRefs?.[old.id]).filter(Boolean);
-          return `${findUnit(piece.templateId)?.name??piece.templateId} 合成升至 ${piece.star} 星，保留 ${next.self!.pieceRefs?.[piece.id]??'原棋子'}${refs.length?`；${refs.join('、')} 已合入`:''}`;
+          return `${findUnit(piece.templateId)?.name??piece.templateId} 合成升至 ${starLabel(terms, piece.star)}，保留 ${next.self!.pieceRefs?.[piece.id]??'原棋子'}${refs.length?`；${refs.join('、')} 已合入`:''}`;
         }).join('；'));
       }
     } catch(e) {setError((e as Error).message);if(command.kind==='move')setNotice('站位未确认，已恢复已知棋盘，请重试');}
@@ -270,10 +272,10 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
      {hazardAlert?<div className="hazard-dialog-layer"><dialog open className="hazard-dialog" aria-labelledby="hazard-dialog-title">
        <header><span><i/> ACCOUNT CENTER</span><button type="button" aria-label="关闭封号提示" onClick={()=>setHazardAlert(null)}>×</button></header>
        <div className="hazard-dialog-body"><div className="hazard-pet" aria-hidden="true">🤖<span>!</span></div><div className="hazard-speech"><strong id="hazard-dialog-title">Your account has been suspended.</strong><p>{hazardAlert.every(entry=>entry.zone==='bench')?'都没上场，还是被查到了。':'查 IP 命中。账号已从本局阵容中强制下线。'}</p></div></div>
-       <ul>{hazardAlert.map(entry=><li key={entry.pieceId}><b>{entry.name}</b><span>命中率 {Math.round(entry.chancePct)}%{entry.refundGold?` · 返还 ${entry.refundGold} 金`:''}{entry.returnedItems?.length?` · ${entry.returnedItems.length} 件装备已退回背包`:''}</span></li>)}</ul>
+       <ul>{hazardAlert.map(entry=><li key={entry.pieceId}><b>{entry.name}</b><span>命中率 {Math.round(entry.chancePct)}%{entry.refundGold?` · 返还 ${goldAmount(terms, entry.refundGold)}`:''}{entry.returnedItems?.length?` · ${entry.returnedItems.length} 件装备已退回背包`:''}</span></li>)}</ul>
        <footer><button type="button" onClick={()=>{setHazardAlert(null);setRightTab('status');}}>看看发生了什么</button><button type="button" className="hazard-ack" onClick={()=>setHazardAlert(null)}>好的（扶额）</button></footer>
      </dialog></div>:null}
-    {self?.bounty?.bank?<p className="px-2">连败赏金 {self.bounty.bank} 金 · 取胜领取，淘汰清零</p>:null}
+    {self?.bounty?.bank?<p className="px-2">连败赏金 {goldAmount(terms, self.bounty.bank)} · 取胜领取，淘汰清零</p>:null}
     {playback?<output>正在回放第 {playback.battle.round} 轮 · 棋友可同时准备下一轮</output>:null}
     {self?.result?<RoomResult key={view.id} result={self.result} finished={view.phase==='finished'} show={!playback} onReturn={backToLobby}/>:view.phase==='finished'&&!playback?<p className="p-3 font-bold" role="status">{view.winner==='draw'?'平局':`${view.seats[view.winner??0]?.name??'对方'} 获胜`} · 棋局已保存</p>:null}
     {draftOpen&&draft&&!self?.result&&!playback?<section className="room-draft" aria-label="旅途选秀">
@@ -298,7 +300,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
     </div>:null}
       <div className={`room-board-layout ${shopOpen?'is-shop-open':''} ${panelsOpen?'show-panels':''}`}><button type="button" className="room-panel-toggle" aria-expanded={panelsOpen} onClick={()=>setPanelsOpen(value=>!value)}>{panelsOpen?'收起信息':'对局信息'}</button>
      <aside className="room-ranking" aria-label="当前排名"><strong><span className="fleuron">✦</span> 弈者名录 <span className="fleuron">✦</span></strong>{ranking.map((seat,rank)=><div className={`room-ranking-row rank-${rank+1} ${seat.index===index?'is-self':''}`} key={seat.id}><span className="room-ranking-place">{rank===0?'✦ 1':rank===1?'❖ 2':rank===2?'✧ 3':`${rank+1}`}</span><span className="room-ranking-name">{seat.name}</span><span className="room-ranking-hp"><i style={{width:`${Math.max(0,Math.min(100,seat.hp/(view.maxHp??modePack(view.mode).rules.startHp)*100))}%`}}/><b>{seat.hp}</b></span></div>)}
-       {self?<div className="room-ranking-self" aria-label="我的等级与商店"><span>Lv{self.level??START_LEVEL}</span><span>经验 {self.xp??0}/{xpToNext(self.level??START_LEVEL)}</span><span>商店 {shopMaxCostForLevel(self.level??START_LEVEL)}费</span><span>升级 {XP_BUY_COST}金</span></div>:null}
+       {self?<div className="room-ranking-self" aria-label={`我的${terms.level.name}与${terms.level.shop}`}><span>{terms.level.name} {levelLabel(terms, self.level??START_LEVEL)}</span><span>{terms.level.xp} {self.xp??0}/{xpToNext(self.level??START_LEVEL)??'MAX'}</span><span>{terms.level.shop} {shopMaxCostForLevel(self.level??START_LEVEL)}费</span><span>{terms.level.upgrade} {goldAmount(terms, XP_BUY_COST)}</span></div>:null}
      </aside>
      <div className="room-board-main">
       <div className="room-versus-hud" aria-label="当前交手双方">
@@ -332,7 +334,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
      <Arena3D board={board} bench={bench} enemyBoard={playback?playback.battle.boards[playbackEnemy??0]!:enemy?.board??[]} enemyBench={playback?playback.battle.benches[playbackEnemy??0]!:enemy?.bench??[]}
       opponentName={shownEnemy?.name??(view.phase==='waiting'?'等待棋友入座':'本轮轮空')} skinId={equippedBoard} visiting={!!view.venue?.visiting} battle={replay?.output??null} timeMs={playback?.time??0} running={!!playback} editable={editable}
       homePalette={skinPalette(own?.skinId)} awayPalette={skinPalette(shownEnemy?.skinId)}
-      boardModel={boardModelFor(equippedBoard)}
+      boardModel={boardModelFor(equippedBoard)} terms={terms}
       selectedId={selected} onCell={(row,col)=>{if(!editable)return;if(selected)move(selected,row,col);else setSelected(board.find(p=>p.localRow===row&&p.localCol===col)?.id);}}
       onBench={id=>{if(editable)setSelected(id);}} onWithdraw={()=>{if(editable&&selected)void action({kind:'withdraw',piece:selected});}}
       onDrop={(source,target)=>{if(!editable)return;if(target.kind==='cell')move(source.id,target.row,target.col);else void action({kind:target.kind==='sell'?'sell':'withdraw',piece:source.id});}}
@@ -340,7 +342,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
       controls={playback?<button onClick={finish}>跳过战斗</button>:watching?<><span>实时观战</span><button onClick={backToLobby}>返回大厅</button></>:view.phase==='finished'||self?.hp===0?<><button onClick={backToLobby}>新建一局</button><button onClick={()=>void leaveRoom()}>返回大厅</button></>:view.phase==='waiting'?<>{view.seatIndex===0?<button disabled={busy} onClick={()=>void startSolo()}>补路人机，直接开局</button>:<span>等待房主开局</span>}</>:<>{draft?<button onClick={()=>{setDraftOpen(true);setShopOpen(false);}}>前往旅途选秀</button>:null}<button disabled={busy||!!playback||view.phase!=='prepare'||(!self.ready&&(!editable||!self.board.length||!!draft||!!self.swordOffer||!!self.hexOffer||!!self.itemOffer))} onClick={()=>action({kind:self.ready?'unready':'ready'})}>{self.swordOffer?`先选${self.swordOffer.label}`:self.hexOffer?'先选心悟':self.itemOffer?'先选宝箱':self.ready?'已就绪 · 撤回调整':'就绪开战'}</button></>}
       inventory={<><strong>装备背包 · {self?.inventory?.length??0}</strong>{self?.inventory?.map((id,i)=><button key={`${id}-${i}`} title={itemHint(id)} disabled={!editable||!selected} onClick={()=>selected&&action({kind:'equip',piece:selected,item:id})}><img className="peach-card-art" src={itemImage(id,{label:equipment(id)})} alt=""/>{equipment(id)}</button>)}{!self?.inventory?.length?<p>{watching?'仅棋手可见':'暂无待装配装备'}</p>:null}</>}
       inspectorActions={piece=>editable&&[...self!.board,...self!.bench!].some(p=>p.id===piece.id)?<><button onClick={()=>setSelected(piece.id)}>选中棋子</button>{self!.board.some(p=>p.id===piece.id)?<button onClick={()=>action({kind:'withdraw',piece:piece.id})}>下场</button>:null}{self!.inventory!.map((id,i)=><button key={`${id}-${i}`} disabled={piece.itemIds.length>=2||piece.itemIds.includes(id)} onClick={()=>action({kind:'equip',piece:piece.id,item:id})}>装上 {equipment(id)}</button>)}{self!.inventory!.map((id,i)=>consumeLabel(id)?<button key={`use-${id}-${i}`} onClick={()=>action({kind:'consume',piece:piece.id,item:id})}>{consumeLabel(id)} {equipment(id)}</button>:null)}{piece.itemIds.map(id=><button key={id} onClick={()=>action({kind:'unequip',piece:piece.id,item:id})}>卸下 {equipment(id)}</button>)}<button onClick={()=>action({kind:'sell',piece:piece.id})}>出售</button></>:null}
-       topPanel={shopOpen&&self&&!playback&&view.phase!=='finished'?<div className="peach-shop" role="dialog" aria-label="房间战后商店"><header><strong>战后商店 · 金币 {self.gold}{self.shopBanUntil&&self.shopBanUntil>=view.round?' · 养精蓄锐，不能买棋':''}</strong><span><button disabled={!editable||self.gold!<XP_BUY_COST||xpToNext(self.level??START_LEVEL)===null} onClick={()=>action({kind:'buy_xp'})}>买经验 · {XP_BUY_COST} 金</button><button disabled={!editable||self.gold!<refreshPrice||!self.shop.length} onClick={()=>action({kind:'refresh'})}>刷新 · {refreshPrice} 金</button><button onClick={closeShop}>收起商店</button></span></header><div className="peach-shop-cards">{self.shop.map((id,i)=>{if(!id)return null;const unit=findUnit(id);if(!unit)return <span key={`${view.round}-${i}`}>{id}</span>;const locked=!!self.shopBanUntil&&self.shopBanUntil>=view.round;return <button key={`${view.round}-${i}`} disabled={!editable||locked||self.gold!<roomShopPrice(self,unit)} onClick={()=>action({kind:'buy',index:i})}><img className="peach-card-art" src={itemImage(unit.id,{label:unit.name})} alt=""/><span>{roomShopPrice(self,unit)} 金</span><strong>{unit.name}</strong><p className="peach-card-tag">{unitSkill(unit.id)?.name ?? ''}</p></button>;})}{!self.shop.length?<p>第一轮战斗结束后开店。</p>:null}</div></div>:null}/>
+       topPanel={shopOpen&&self&&!playback&&view.phase!=='finished'?<div className="peach-shop" role="dialog" aria-label={`房间战后${terms.level.shop}`}><header><strong>战后{terms.level.shop} · {terms.gold.name} {self.gold}{self.shopBanUntil&&self.shopBanUntil>=view.round?' · 养精蓄锐，不能买棋':''}</strong><span><button disabled={!editable||self.gold!<XP_BUY_COST||xpToNext(self.level??START_LEVEL)===null} onClick={()=>action({kind:'buy_xp'})}>{terms.level.upgrade} · {goldAmount(terms, XP_BUY_COST)}</button><button disabled={!editable||self.gold!<refreshPrice||!self.shop.length} onClick={()=>action({kind:'refresh'})}>{terms.reroll.name} · {goldAmount(terms, refreshPrice)}</button><button onClick={closeShop}>收起{terms.level.shop}</button></span></header><div className="peach-shop-cards">{self.shop.map((id,i)=>{if(!id)return null;const unit=findUnit(id);if(!unit)return <span key={`${view.round}-${i}`}>{id}</span>;const locked=!!self.shopBanUntil&&self.shopBanUntil>=view.round;return <button key={`${view.round}-${i}`} disabled={!editable||locked||self.gold!<roomShopPrice(self,unit)} onClick={()=>action({kind:'buy',index:i})}><img className="peach-card-art" src={itemImage(unit.id,{label:unit.name})} alt=""/><span>{goldAmount(terms, roomShopPrice(self,unit))}</span><strong>{unit.name}</strong><p className="peach-card-tag">{unitSkill(unit.id)?.name ?? ''}</p></button>;})}{!self.shop.length?<p>第一轮战斗结束后开放{terms.level.shop}。</p>:null}</div></div>:null}/>
      </div>
       <aside className="room-sidepanel" aria-label="棋局信息">
        <div className="room-side-tabs"><button className={rightTab==='battle'?'is-active':''} onClick={()=>setRightTab('battle')}>战况</button><button className={rightTab==='traits'?'is-active':''} onClick={()=>setRightTab('traits')}>羁绊</button><button className={rightTab==='items'?'is-active':''} onClick={()=>setRightTab('items')}>装备</button><button className={rightTab==='status'?'is-active':''} onClick={()=>setRightTab('status')}>状态{statusEntries.length?` ${statusEntries.length}`:''}</button></div>

@@ -1,21 +1,12 @@
 import type { Rng } from '../../lib/autochess/rng';
-import { aiItems } from '../../packs/ai/items';
-import { AI_ROSTER_IDS } from '../../packs/ai/roster';
-import { jianghuItems } from '../../packs/jianghu/items';
-import { JIANGHU_ROSTER_IDS } from '../../packs/jianghu/roster';
-import { rpItems } from '../../packs/rp/items';
+import { allPackItems, packItems } from '../../packs/registry';
 import type { ItemDef } from './types';
 
-const RP_ENABLED = process.env.CHESS_RP === '1';
-
-export const items: ItemDef[] = [...aiItems, ...jianghuItems, ...(RP_ENABLED ? rpItems : [])];
+export const items: ItemDef[] = allPackItems();
 export const orbItems: ItemDef[] = [];
 
-export function lootForRoster(roster: readonly { id: string }[]): ItemDef[] {
-  const aiMatches = roster.filter((unit) => AI_ROSTER_IDS.has(unit.id)).length;
-  const jianghuMatches = roster.filter((unit) => JIANGHU_ROSTER_IDS.has(unit.id)).length;
-  const packItems = jianghuMatches > aiMatches ? jianghuItems : aiItems;
-  return [...packItems, ...(RP_ENABLED ? rpItems : [])];
+export function lootForPack(packId?: string): ItemDef[] {
+  return packItems(packId);
 }
 
 function describeItem(item: ItemDef): string {

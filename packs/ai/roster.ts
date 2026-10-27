@@ -238,8 +238,6 @@ export const aiRoster: UnitDef[] = rawAiRoster.map((unit) => {
   };
 });
 
-export const AI_ROSTER_IDS = new Set(aiRoster.map((unit) => unit.id));
-
 /**
  * 隐藏形态：由技能 `reskin` 换形而来，**不进商店**（cost 0 + summon）。
  * 只作为 `getUnit(...)` 的面板、名称与羁绊来源，不参与刷棋与公开棋子计数。

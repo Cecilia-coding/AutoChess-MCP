@@ -8,7 +8,7 @@ import { randomBytes, randomInt, createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { compactHex, hexPickRarity, makeHexOffer, withHexes, getHex, immediateHexGold, pickBestHex, shopBanFromHex, shopBanned, delayedGoldBonus, winGoldPerStreak, deathGoldChance, freeRefreshGrant, grantUnitFromNote } from '../../content/autochess/hexes';
-import { drawSwords, lootForRoster, swordTierForRound } from '../../content/autochess/items';
+import { drawSwords, swordTierForRound } from '../../content/autochess/items';
 import { autochessCostOf, findUnit, getUnit } from '../../content/autochess/units';
 import { getItem as getCatalogItem } from '../../content/autochess/items';
 import { simulateBattle } from './combat';
@@ -19,7 +19,7 @@ import { settleLossBounty } from './loss-bounty';
 import { battleHpLoss } from './round-settlement';
 import { addAndMerge, deliverUnitToRoster, equipFromRoster, makeDraftTrack, makeInitialPieces, makePiece, nextStar, replaceFromBench, rollDraft, sellFromRoster, shouldDraft, skillDraftDue, unequipFromRoster } from './core';
 import { MAX_LEVEL, START_LEVEL, XP_BUY_AMOUNT, XP_BUY_COST, XP_PER_ROUND, addXp, fieldCapacityForLevel, stageOfRound, winStreakGold } from './level';
-import { packHexes, packKitItems, packMeta, packOpening, packRoster, parsePackId, type PackId } from '../../packs/registry';
+import { DEFAULT_PACK_ID, packHexes, packItems, packKitItems, packMeta, packOpening, packRoster, parsePackId, type PackId } from '../../packs/registry';
 import { boardSkinId, matchRules, parseMatchMode, type MatchModeId } from './match-rules';
 import { createRng, hash32, hashString } from './rng';
 import { recurringGrantPool, type RecurringRosterUnit } from './hex-recurring';
@@ -89,21 +89,19 @@ export class RoomStore {
         }
       }
       for (const seat of room.seats) this.restoreShopBan(seat, room);
-      // 存档兼容：AI 包 roster 改版频繁，旧房间里可能存着已不存在的棋子——清掉，避免 getUnit 抛错把页面卡死。
-      if (room.pack === 'ai') {
-        for (const seat of room.seats) {
-          seat.board = (seat.board ?? []).filter((piece) => findUnit(piece.templateId));
-          seat.bench = (seat.bench ?? []).filter((piece) => findUnit(piece.templateId));
-          seat.shop = (seat.shop ?? []).map((id) => (id && findUnit(id) ? id : null));
-        }
-        // 战斗回放快照（battle.boards/benches 与 output.units）里也可能留着已删棋子，一并清掉。
-        if (room.battle) {
-          room.battle.boards = room.battle.boards.map((board) => board.filter((piece) => findUnit(piece.templateId)));
-          room.battle.benches = room.battle.benches.map((bench) => bench.filter((piece) => findUnit(piece.templateId)));
-          room.battle.output.units = room.battle.output.units.filter((unit) => findUnit(unit.templateId));
-          for (const fight of room.battle.fights ?? []) {
-            fight.output.units = fight.output.units.filter((unit) => findUnit(unit.templateId));
-          }
+      // 存档兼容：任何棋谱改版后都可能留下已删除棋子，统一清掉，避免 getUnit 抛错卡住房间。
+      for (const seat of room.seats) {
+        seat.board = (seat.board ?? []).filter((piece) => findUnit(piece.templateId));
+        seat.bench = (seat.bench ?? []).filter((piece) => findUnit(piece.templateId));
+        seat.shop = (seat.shop ?? []).map((id) => (id && findUnit(id) ? id : null));
+      }
+      // 战斗回放快照（battle.boards/benches 与 output.units）里也可能留着已删棋子，一并清掉。
+      if (room.battle) {
+        room.battle.boards = room.battle.boards.map((board) => board.filter((piece) => findUnit(piece.templateId)));
+        room.battle.benches = room.battle.benches.map((bench) => bench.filter((piece) => findUnit(piece.templateId)));
+        room.battle.output.units = room.battle.output.units.filter((unit) => findUnit(unit.templateId));
+        for (const fight of room.battle.fights ?? []) {
+          fight.output.units = fight.output.units.filter((unit) => findUnit(unit.templateId));
         }
       }
       for (const seat of room.seats) ensureRoomPieceRefs(seat);
@@ -395,12 +393,13 @@ export class RoomStore {
     return { roomId: room.id, token: room.seats[0]!.token, invitation: `${room.id}.${room.invite}`, watchToken: room.watch };
   }
   createForMachine(owner: SeatOwner, requestId: string, pack?: string) {
+    const packId = parsePackId(pack ?? DEFAULT_PACK_ID);
     const repeated = [...this.rooms.values()].find(room => room.machineCreate?.accountId === owner.accountId && room.machineCreate.requestId === requestId);
     if (repeated?.phase === 'finished') fail('这次开房对应的棋局已结束；新开一局请换新的 requestId');
     const waiting = repeated ?? [...this.rooms.values()].find(room => room.machineCreate?.accountId === owner.accountId && room.phase === 'waiting'
-      && Date.now() - (room.updatedAt ?? 0) < ROOM_IDLE_KILL_MS && room.pack === (pack ?? 'ai'));
+      && Date.now() - (room.updatedAt ?? 0) < ROOM_IDLE_KILL_MS && room.pack === packId);
     if (waiting) return { roomId: waiting.id, token: waiting.seats[0]!.token, invitation: `${waiting.id}.${waiting.invite}`, watchToken: waiting.watch };
-    const room = this.newRoom(pack ?? 'ai', 2, 'duel');
+    const room = this.newRoom(packId, 2, 'duel');
     room.machineCreate = { accountId: owner.accountId, requestId };
     room.seats.push(this.makeSeat(room, 0, owner.accountName, owner));
     this.persist(room);
@@ -634,7 +633,7 @@ export class RoomStore {
     // 优先给上场主力装配；复用同名/两件上限和掉落池校验。
     for (const item of seat.inventory!.slice()) {
       for (const piece of [...seat.board].sort((a,b)=>botStrength(b)-botStrength(a))) {
-        const result=equipFromRoster(seat.board,seat.bench!,seat.inventory!,piece.id,item,lootForRoster(this.roster(room)));
+        const result=equipFromRoster(seat.board,seat.bench!,seat.inventory!,piece.id,item,packItems(room.pack));
         if (result) {Object.assign(seat,result);break;}
       }
     }
@@ -764,7 +763,7 @@ export class RoomStore {
       const piece = board.find(p => p.id === action.piece); if (!piece || bench.length >= BENCH_CAPACITY) fail('无法下场：棋子不在场上或备战区已满');
       seat.board = board.filter(p => p.id !== action.piece); bench.push(piece!);
     } else if (action.kind === 'equip') {
-        const result = equipFromRoster(board, bench, inventory, action.piece, action.item, lootForRoster(this.roster(room))); if (!result) fail('无法装配'); Object.assign(seat, result);
+        const result = equipFromRoster(board, bench, inventory, action.piece, action.item, packItems(room.pack)); if (!result) fail('无法装配'); Object.assign(seat, result);
       this.recomputeCapacity(room, seat);
     } else if (action.kind === 'consume') {
       // 一次性食用/使用：永久属性记在棋子身上，道具从背包移除
@@ -828,7 +827,7 @@ export class RoomStore {
       const result = applyCompanionPlan({ board: liveBoard, bench: liveBench, inventory: liveInventory, gold: seat.gold!, shop: seat.shop.map(id => id ? getUnit(id) : undefined) as ReturnType<typeof getUnit>[],
         capacity: seat.capacity, idPrefix: `${room.id}-${seat.id}-${input.requestId}-`, plan: plan!, recoverPositions:true, shopLocked: shopBanned(seat.shopBanUntil, room.round),
         priceOf: unit => roomShopPrice(seat, unit),
-        loot: lootForRoster(this.roster(room)),
+        loot: packItems(room.pack),
         refreshShop: () => this.rollShopOffer(room, seat).shop, onInvalid:reason=>invalidReason=reason });
       if (!result) fail(invalidReason || '计划无法执行，请检查金币、棋子引用与站位');
       seat.board = result!.board; seat.bench = result!.bench; seat.inventory = result!.inventory; seat.gold = result!.gold;
@@ -946,7 +945,7 @@ export class RoomStore {
    * 宝箱只登记 itemOffer，棋手选完前不能就绪；引擎不认识具体心悟。
    */
   private grantHexEquipment(room: Room, seat: Seat, hexId: string, payload: Pick<HexGrant, 'grantTierItems' | 'itemBoxes'>) {
-    const loot = lootForRoster(this.roster(room));
+    const loot = packItems(room.pack);
     if (payload.grantTierItems) {
       const { family, count } = payload.grantTierItems;
       const pool = loot.filter((item) => item.family === family);
@@ -1258,8 +1257,8 @@ export class RoomStore {
       if (shouldDraft(seed, round, seat.lastSkillRound ?? 0)) {
         const blocked = new Set(seat.uniqueRewards); if (seat.capacity >= 8) blocked.add('field-cap');
         const position = seat.draftPosition ?? 0;
-        const original = makeDraftTrack(seed, round, blocked, skillDraftDue(round, seat.lastSkillRound ?? 0) ? position : undefined, this.roster(room));
-        const assisted = makeCatchupDraft(original, seed, round, position, [...seat.board, ...seat.bench!], seat.inventory!, seat.catchup, lootForRoster(this.roster(room)));
+        const original = makeDraftTrack(seed, round, blocked, skillDraftDue(round, seat.lastSkillRound ?? 0) ? position : undefined, this.roster(room), packItems(room.pack));
+        const assisted = makeCatchupDraft(original, seed, round, position, [...seat.board, ...seat.bench!], seat.inventory!, seat.catchup, packItems(room.pack));
         seat.catchup = assisted.state; seat.draft = { round: room.round, sourceRound: round, track: assisted.track, position };
       }
     });

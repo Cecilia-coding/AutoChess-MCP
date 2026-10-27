@@ -2,7 +2,7 @@
  * AI 包的棋子技能数据（按棋子 id 索引）。
  *
  * 和 `content/autochess/unit-skills.ts` 是同一套 `SkillPrimitive` 原语，只是拆到包里，
- * 由 `packs/skill-registry.ts` 汇总。换/加棋子只动本文件 + `roster.ts`，引擎不认任何具体 id。
+ * 由本包的 `PackDefinition.skills` 暴露。换/加棋子只动本文件 + `roster.ts`，引擎不认任何具体 id。
  */
 import type { UnitSkill } from '../../content/autochess/unit-skills';
 
@@ -177,14 +177,6 @@ export const aiUnitSkills: Record<string, UnitSkill> = {
       { op: 'buff', at: 'allies', stat: 'atkPct', value: 15, ms: 5000 },
     ],
   },
-  'ai-perplexity': {
-    name: '引用狂魔', mana: 45,
-    cast: [
-      { op: 'damage', at: 'current', type: 'magic', scale: { flat: 40, atkPct: 200 } },
-      { op: 'damage', at: 'current', type: 'true', scale: { flat: 12, atkPct: 60 } },
-    ],
-    onAttack: [{ op: 'damage', at: 'current', type: 'true', scale: { flat: 3, atkPct: 15 } }],
-  },
   'ai-ernie': {
     name: '中文语料', mana: 50,
     cast: [
@@ -239,78 +231,7 @@ export const aiUnitSkills: Record<string, UnitSkill> = {
       { op: 'buff', at: 'allies', stat: 'atkPct', value: 12, ms: 5000 },
     ],
   },
-  'ai-nvidia': {
-    name: '一卡难求', mana: 50,
-    cast: [
-      { op: 'buff', at: 'allies', stat: 'aspdPct', value: 15, valueByStar: [15, 22, 30], ms: 6000 },
-      { op: 'shield', at: 'self', ms: 5000, scale: { flat: 90, armorPct: 150 } },
-    ],
-  },
-  'ai-tsmc': {
-    name: '代工', mana: 50,
-    cast: [
-      { op: 'shield', at: 'alliesNearSelf', radius: 1, ms: 5000, scale: { flat: 60, armorPct: 90 } },
-      { op: 'buff', at: 'self', stat: 'atkPct', value: 20, ms: 5000 },
-    ],
-  },
-  'ai-redteam': {
-    name: '越狱', mana: 40,
-    cast: [
-      { op: 'status', at: 'target', status: 'silence', ms: 2500 },
-      { op: 'damage', at: 'target', type: 'true', scale: { flat: 30, atkPct: 150 } },
-    ],
-  },
-  'ai-regulator': {
-    name: '合规审查', mana: 45,
-    cast: [
-      { op: 'damage', at: 'nearestFoes', count: 1, type: 'magic', scale: { flat: 32, atkPct: 180 } },
-      { op: 'debuff', at: 'nearestFoes', count: 1, stat: 'atkPct', value: 20, ms: 4000 },
-      { op: 'debuff', at: 'nearestFoes', count: 1, stat: 'aspdPct', value: 20, ms: 4000 },
-    ],
-  },
-  'ai-prompt': {
-    name: '提示注入', mana: 40,
-    cast: [
-      { op: 'status', at: 'target', status: 'disarm', ms: 2500, msByStar: [2500, 3000, 3500] },
-      { op: 'damage', at: 'target', type: 'magic', scale: { flat: 34, atkPct: 200 } },
-    ],
-  },
-  'ai-ratelimit': {
-    name: '429限流', mana: 60,
-    cast: [
-      { op: 'status', at: 'nearestFoes', status: 'silence', ms: 1500 },
-      { op: 'debuff', at: 'nearestFoes', count: 2, stat: 'aspdPct', value: 25, ms: 4000 },
-      { op: 'gainMana', amount: 20 },
-    ],
-  },
-  'ai-rag': {
-    name: '外挂知识库', mana: 50,
-    onBattleStart: [{
-      op: 'randomPick', options: [
-        [{ op: 'buff', at: 'self', stat: 'atkPct', value: 25, ms: 999_999 }],
-        [{ op: 'buff', at: 'self', stat: 'aspdPct', value: 25, ms: 999_999 }],
-        [{ op: 'buff', at: 'self', stat: 'skillPct', value: 25, ms: 999_999 }],
-      ],
-    }],
-    cast: [{ op: 'damage', at: 'target', type: 'magic', scale: { flat: 40, atkPct: 220 } }],
-  },
-
   // ── 新加模型（第一版技能，待精修） ──────────────────────
-  'ai-nemotron': {
-    name: '开源推理', mana: 50,
-    cast: [{ op: 'damage', at: 'current', segments: 3, type: 'phys', scale: { flat: 40, atkPct: 220 } }],
-  },
-  'ai-omni': {
-    name: '全模态', mana: 50,
-    cast: [{ op: 'damage', at: 'target', radius: 1, share: true, type: 'magic', scale: { flat: 44, atkPct: 240 } }],
-  },
-  'ai-ling': {
-    name: '灵动', mana: 45,
-    cast: [
-      { op: 'damage', at: 'current', type: 'magic', scale: { flat: 40, atkPct: 200 } },
-      { op: 'buff', at: 'self', stat: 'aspdPct', value: 20, ms: 4000 },
-    ],
-  },
   'ai-nai': {
     name: '画出来', mana: 45,
     cast: [{ op: 'damage', at: 'current', type: 'magic', scale: { flat: 44, atkPct: 220 } }],
@@ -319,21 +240,6 @@ export const aiUnitSkills: Record<string, UnitSkill> = {
     name: '生成模型', mana: 50,
     cast: [{ op: 'damage', at: 'randomFoes', count: 2, type: 'magic', scale: { flat: 36, atkPct: 220 } }],
   },
-  'ai-longcat': {
-    name: '长猫暴冲', mana: 45,
-    cast: [
-      { op: 'damage', at: 'current', type: 'phys', scale: { flat: 40, atkPct: 220 } },
-      { op: 'buff', at: 'self', stat: 'aspdPct', value: 20, ms: 4000 },
-    ],
-  },
-  'ai-bigpickle': {
-    name: '腌黄瓜', mana: 40,
-    cast: [
-      { op: 'damage', at: 'current', type: 'phys', scale: { flat: 34, atkPct: 180 } },
-      { op: 'heal', at: 'self', scale: { flat: 16, hpPct: 10 } },
-    ],
-  },
-
   // ── 本轮新增模型（第一版技能，待精修） ──────────────────
   'ai-manus': {
     name: '连续干活', mana: 40,

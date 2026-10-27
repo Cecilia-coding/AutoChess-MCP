@@ -214,5 +214,3 @@ export const jianghuRoster: UnitDef[] = [
     manaByStar: [50, 50, 30], skillNote: fallbackSkillNote.bolt,
   }),
 ];
-
-export const JIANGHU_ROSTER_IDS = new Set(jianghuRoster.map((unit) => unit.id));

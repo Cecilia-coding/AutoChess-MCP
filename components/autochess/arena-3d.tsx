@@ -10,6 +10,7 @@ import './arena-3d.css';
 import './artwork-arena.css';
 import { boardSceneFor } from '@/lib/meta/cosmetics';
 import { BENCH_CAPACITY } from '@/lib/autochess/constants';
+import { starLabel, type PackTerms } from '@/packs/terms';
 
 type Props = {
   board: Combatant[]; bench: Combatant[]; enemyBoard: Combatant[]; enemyBench: Combatant[];
@@ -19,6 +20,7 @@ type Props = {
   awayPalette?: { inner: string; outer: string; sky: string };
   /** 本视角玩家的棋盘 3D 模型（有就用真模型，没有落回程序化庭院 + palette）。 */
   boardModel?: BoardModelRef;
+  terms: PackTerms;
   selectedId?: string;
   onCell: (row:number,col:number)=>void; onBench:(id:string)=>void; onWithdraw:()=>void;
   onDrop:(source:{kind:'board'|'bench';id:string},target:{kind:'cell';row:number;col:number}|{kind:'bench'|'sell'})=>void;
@@ -86,18 +88,18 @@ export default function Arena3D(props: Props) {
             <button type="button" aria-label="放大棋盘" title="放大（手机也可双指捏合）" onClick={()=>api.current?.zoomBy(1/1.2)}>＋</button>
             <button type="button" aria-label="缩小棋盘" title="缩小（手机也可双指捏合）" onClick={()=>api.current?.zoomBy(1.2)}>－</button>
        </div>
-      {selectedScene.artwork?<details className="peach-enemy-bench"><summary>对面备战 {props.enemyBench.length}/{BENCH_CAPACITY}</summary><div>{props.enemyBench.length?props.enemyBench.map(piece=><button key={piece.id} type="button" onClick={()=>{setInspectedId(piece.id);props.onInspect();}}>{findUnit(piece.templateId)?.name??piece.templateId} {piece.star}★</button>):<span>备战区为空</span>}</div></details>:null}
+      {selectedScene.artwork?<details className="peach-enemy-bench"><summary>对面备战 {props.enemyBench.length}/{BENCH_CAPACITY}</summary><div>{props.enemyBench.length?props.enemyBench.map(piece=><button key={piece.id} type="button" onClick={()=>{setInspectedId(piece.id);props.onInspect();}}>{findUnit(piece.templateId)?.name??piece.templateId} {starLabel(props.terms, piece.star)}</button>):<span>备战区为空</span>}</div></details>:null}
       {error?<div className="peach-popover" role="alert"><p>{error}</p><button type="button" onClick={()=>{const url=new URL(window.location.href);url.searchParams.set('_recover',String(Date.now()));window.location.replace(url.href)}}>重新加载棋盘</button></div>:null}
       {props.topPanel?<div className="peach-popover">{props.topPanel}</div>:inspected?<UnitInspector piece={inspected}
         board={props.board.some(p=>p.id===inspected.id)||props.bench.some(p=>p.id===inspected.id)?props.board:props.enemyBoard}
         side={props.board.some(p=>p.id===inspected.id)||props.bench.some(p=>p.id===inspected.id)?'left':'right'}
         owner={props.board.some(p=>p.id===inspected.id)||props.bench.some(p=>p.id===inspected.id)?'己方':props.opponentName}
-        replaying={props.running} onClose={()=>setInspectedId(null)} actions={props.inspectorActions(inspected)}/>:null}
+        replaying={props.running} onClose={()=>setInspectedId(null)} actions={props.inspectorActions(inspected)} terms={props.terms}/>:null}
       {toast?<div className="peach-toast" role="status"><DiamondFleuron className="mr-1.5" />{toast}</div>:null}
       <div className="peach-dock">
         <div ref={trash} className={`peach-trash ${!props.editable?'disabled':''}`} aria-label="拖入出售棋子" title="拖入出售，装备退回库存"><Trash2 size={24}/><span>出售</span></div>
         <div className="peach-round-controls">{props.controls}</div>
-        <button className="peach-shop-toggle" disabled={!props.shopEnabled} aria-label="商店" aria-expanded={props.shopOpen} onClick={()=>{setInspectedId(null);props.onShopToggle()}}><Store size={24}/><span>商店</span></button>
+        <button className="peach-shop-toggle" disabled={!props.shopEnabled} aria-label={props.terms.level.shop} aria-expanded={props.shopOpen} onClick={()=>{setInspectedId(null);props.onShopToggle()}}><Store size={24}/><span>{props.terms.level.shop}</span></button>
       </div>
       <div className="peach-inventory">{props.inventory}</div>
     </div>

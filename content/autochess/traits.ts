@@ -1,22 +1,7 @@
-import { aiTraits } from '../../packs/ai/traits';
-import { jianghuTraits } from '../../packs/jianghu/traits';
-import { traitsWithData } from './trait-tiers';
-import type { FactionId, TraitDef } from './types';
+import { allPackTraits } from '../../packs/registry';
+import type { TraitDef } from './types';
 
-export const TRAIT_PACKS: Record<string, readonly TraitDef[]> = {
-  ai: aiTraits,
-  jianghu: jianghuTraits,
-};
-
-export const traits: TraitDef[] = traitsWithData([...aiTraits, ...jianghuTraits]);
-
-export function packTraits(packId: string | undefined | null): readonly TraitDef[] {
-  return TRAIT_PACKS[packId ?? 'ai'] ?? aiTraits;
-}
-
-export const sliceFactions: FactionId[] = aiTraits
-  .filter((trait) => trait.kind === 'faction')
-  .map((trait) => trait.id);
+export const traits: TraitDef[] = allPackTraits();
 
 export function getTrait(id: string): TraitDef {
   const trait = findTrait(id);

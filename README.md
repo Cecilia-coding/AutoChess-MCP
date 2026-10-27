@@ -40,7 +40,7 @@ AutoChess MCP 是一套可运行、可换棋谱、适合继续二改的多人自
 - 刷新商店 → **Regenerate**
 - 1★ / 2★ / 3★ → **INT4 / FP16 / FP32**
 
-当前公开界面和 MCP 协议仍使用金币、等级、星级等通用名称；这份映射是二改接主题界面时的单一数据源。
+Web 界面会按棋谱读取这份映射：AI 棋谱显示 Token、参数规模与 INT4 / FP16 / FP32，其他棋谱保留通用称呼。MCP 协议继续使用稳定的 `gold`、`level`、`star` 字段，避免主题文案破坏 Agent 客户端。
 
 另有两套可选内容：
 
@@ -96,10 +96,10 @@ packs/
 ├─ jianghu/            # 原创江湖棋谱
 ├─ rp/                 # 可选梗扩展
 ├─ modes/              # standard / duel / frenzy
-├─ registry.ts         # 棋谱注册
-└─ skill-registry.ts   # 技能注册
+├─ types.ts            # 棋谱声明契约
+└─ registry.ts         # 唯一棋谱注册表
 
-content/autochess/     # 战斗数据结构、通用技能原语、羁绊档位
+content/autochess/     # 战斗数据结构与通用技能原语
 lib/autochess/         # 房间、回合、经济、战斗与 MCP
 app/ + components/     # Web 大厅、棋盘、回放与社交界面
 ```
@@ -107,12 +107,12 @@ app/ + components/     # Web 大厅、棋盘、回放与社交界面
 一套新棋谱通常只需要提供：
 
 - `roster.ts`：棋子与基础面板
-- `traits.ts`：羁绊与文案
+- `traits.ts`：羁绊文案、档位和实际数值
 - `skills.ts`：由通用技能原语拼出的技能
 - `items.ts`：装备与掉落池
-- `index.ts`：棋谱元信息和导出
+- `index.ts`：用 `definePack` 一次声明棋子、形态、羁绊、装备、技能、术语与扩展数据
 
-当前公开版需要在 `packs/registry.ts` 登记棋谱，并把棋子、羁绊与装备池分别接入 `content/autochess/units.ts`、`traits.ts` 和 `items.ts`；有专属技能时再更新 `packs/skill-registry.ts`。玩法模式单独放在 `packs/modes/`，可以给多套棋谱共用；新增棋谱时无需复制房间服务。
+新增棋谱只需在 `packs/registry.ts` 的 `indexPacks(...)` 登记一次。公共 `content`、技能注册、装备掉落和界面术语都会从这份声明自动汇总，不再逐层补名单。玩法模式单独放在 `packs/modes/`，可以给多套棋谱共用；新增棋谱时无需复制房间服务。
 
 ## 本地启动
 

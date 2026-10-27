@@ -6,12 +6,13 @@ import { hazardLabels } from '@/lib/autochess/hazard-display';
 import { inspectUnit } from '@/lib/autochess/unit-inspection';
 import { itemImage } from '@/lib/meta/cosmetics';
 import type { Combatant, TeamId } from '@/lib/autochess/types';
+import { starLabel, type PackTerms } from '@/packs/terms';
 import './unit-inspector.css';
 
 const ROLES = { tank: '坦克', melee: '近战', ranged: '远程', caster: '法师', support: '辅助' };
-export default function UnitInspector({ piece, board, side, owner, replaying, onClose, actions }: {
+export default function UnitInspector({ piece, board, side, owner, replaying, onClose, actions, terms }: {
   piece: Combatant; board: Combatant[]; side: TeamId; owner: string; replaying: boolean;
-  onClose: () => void; actions: ReactNode;
+  onClose: () => void; actions: ReactNode; terms: PackTerms;
 }) {
   const { unit, cost, fielded, stats, skill, traits, counts, notes } = inspectUnit(piece, board, side);
   const cells = [['生命', stats.maxHp], ['攻击', stats.atk], ['护甲', stats.armor],
@@ -22,7 +23,7 @@ export default function UnitInspector({ piece, board, side, owner, replaying, on
     <div className="dossier-eyebrow"><span>✦ 棋子详情</span><span>{owner} · {fielded ? '场上' : '备战'}</span></div>
     <header className="dossier-head">
       <Image unoptimized width={48} height={48} className="dossier-portrait" src={itemImage(unit.id, { label: unit.name })} alt=""/>
-      <div className="dossier-identity"><strong>{unit.name}</strong><div><span className="dossier-stars" aria-label={`${piece.star} 星`}>{'★'.repeat(piece.star)}</span><span className="dossier-role">{ROLES[unit.role]}</span></div></div>
+      <div className="dossier-identity"><strong>{unit.name}</strong><div><span className="dossier-stars" aria-label={`${terms.star.name} ${starLabel(terms, piece.star)}`}>{starLabel(terms, piece.star)}</span><span className="dossier-role">{ROLES[unit.role]}</span></div></div>
       <b className="dossier-cost">{cost} 费 <span aria-hidden="true">✦</span></b>
       <button type="button" className="dossier-close" aria-label="关闭棋子详情" onClick={onClose}>×</button>
     </header>
@@ -35,7 +36,7 @@ export default function UnitInspector({ piece, board, side, owner, replaying, on
     <div className="dossier-section-label">{replaying ? '开战面板' : fielded ? '阵容面板' : '备战面板'}<span>✧</span></div>
     <dl className="dossier-stats">{cells.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
     <section className="dossier-skill">
-      <div className="dossier-section-label"><strong>{skill?.name ?? '技能'}</strong>{skill ? <span>{skill.passive || !skill.mana ? '被动' : `基础内力 ${skill.mana}`}</span> : null}</div>
+      <div className="dossier-section-label"><strong>{skill?.name ?? '技能'}</strong>{skill ? <span>{skill.passive || !skill.mana ? '被动' : `${terms.mana.name} ${skill.mana}`}</span> : null}</div>
       {hazardLabels(piece, fielded).map(label => <p className="dossier-risk" key={label}><strong>{label}</strong></p>)}
       {notes.map((note, i) => <p key={i}>{note}</p>)}
     </section>

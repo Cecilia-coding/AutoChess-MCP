@@ -1,5 +1,5 @@
 import { BENCH_CAPACITY } from './constants';
-import { items, lootForRoster } from '../../content/autochess/items';
+import { items, lootForPack } from '../../content/autochess/items';
 import { autochessCostOf, getUnit, poolUnits } from '../../content/autochess/units';
 import type { ItemDef, UnitDef } from '../../content/autochess/types';
 import type { Combatant, Star } from './types';
@@ -172,10 +172,9 @@ export function pickDraftItem(loot: readonly ItemDef[], round: number, rng: Rng)
   return pool[rng.int(pool.length)]!;
 }
 
-export function makeDraftTrack(seed: number, round: number, ownedUnique: ReadonlySet<string>, pityPosition?: number, roster: UnitDef[] = poolUnits()): DraftReward[] {
+export function makeDraftTrack(seed: number, round: number, ownedUnique: ReadonlySet<string>, pityPosition?: number, roster: UnitDef[] = poolUnits(), loot: readonly ItemDef[] = lootForPack()): DraftReward[] {
   const rng = createRng(hash32(seed, round, 1601));
   const maxCost = unlockedMaxCost(round);
-  const loot = lootForRoster(roster);
   const bag = '装备背包';
   const takeItem = () => pickDraftItem(loot, round, rng);
   const fieldCap = { id: 'unique-field-cap', kind: 'unique' as const, uniqueId: 'field-cap' as const, label: '扩编令', detail: '上场上限永久 +1；整局唯一' };

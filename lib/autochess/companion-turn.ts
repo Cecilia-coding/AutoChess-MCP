@@ -3,7 +3,7 @@ import { autochessCostOf, getUnit } from '../../content/autochess/units';
 import { immediateHexGold, makeHexOffer, pickBestHex } from '../../content/autochess/hexes';
 import type { HexDef } from '../../content/autochess/types';
 import { makeCatchupShop, makeCatchupDraft } from './catchup';
-import { lootForRoster } from '../../content/autochess/items';
+import { lootForPack } from '../../content/autochess/items';
 import { DEFAULT_PACK_ID, packKitItems, packRoster } from '../../packs/registry';
 import { addAndMerge, draftChoices, fieldCapacity, AUTOCHESS_INCOME, AUTOCHESS_START_GOLD, AUTOCHESS_START_HP, makeDraftTrack, makePiece, nextStar, rollDraft, shouldDraft, skillDraftDue, type AutochessOpponent } from './core';
 
@@ -19,8 +19,8 @@ export function settleCompanionRound(opponent: AutochessOpponent, seed: number, 
   if (fieldCapacity(round + 1, next.bonusCap ?? 0) >= 8) blocked.add('field-cap');
   const position = next.draftPosition ?? 0;
   const roster = packRoster(DEFAULT_PACK_ID);
-  const loot = lootForRoster(roster);
-  const originalTrack = makeDraftTrack(seed, round, blocked, skillDraftDue(round, next.lastSkillRound ?? 0) ? position : undefined, roster);
+  const loot = lootForPack(DEFAULT_PACK_ID);
+  const originalTrack = makeDraftTrack(seed, round, blocked, skillDraftDue(round, next.lastSkillRound ?? 0) ? position : undefined, roster, loot);
   const assisted = makeCatchupDraft(originalTrack, seed, round, position, [...next.board, ...next.bench!], next.inventory!, next.catchup, loot);
   const track = assisted.track;
   next.catchup = assisted.state;
