@@ -32,6 +32,10 @@ for (const pack of PACK_LIST) {
 export const DEFAULT_PACK_ID: PackId = parsePackId(process.env.CHESS_PACK);
 export const ACTIVE_PACK_ID = DEFAULT_PACK_ID;
 
+export function isPackId(value: unknown): value is PackId {
+  return typeof value === 'string' && Object.hasOwn(PACKS, value);
+}
+
 export function parsePackId(value: string | undefined | null): PackId {
   if (!value) return BUILTIN_DEFAULT_PACK_ID;
   if (Object.hasOwn(PACKS, value)) return value as PackId;

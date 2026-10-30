@@ -19,7 +19,7 @@ import { settleLossBounty } from './loss-bounty';
 import { battleHpLoss } from './round-settlement';
 import { addAndMerge, deliverUnitToRoster, equipFromRoster, makeDraftTrack, makeInitialPieces, makePiece, nextStar, replaceFromBench, rollDraft, sellFromRoster, shouldDraft, skillDraftDue, unequipFromRoster } from './core';
 import { MAX_LEVEL, START_LEVEL, XP_BUY_AMOUNT, XP_BUY_COST, XP_PER_ROUND, addXp, fieldCapacityForLevel, stageOfRound, winStreakGold } from './level';
-import { DEFAULT_PACK_ID, packHexes, packItems, packKitItems, packMeta, packOpening, packRoster, parsePackId, type PackId } from '../../packs/registry';
+import { DEFAULT_PACK_ID, isPackId, packHexes, packItems, packKitItems, packMeta, packOpening, packRoster, parsePackId, type PackId } from '../../packs/registry';
 import { boardSkinId, matchRules, parseMatchMode, type MatchModeId } from './match-rules';
 import { createRng, hash32, hashString } from './rng';
 import { recurringGrantPool, type RecurringRosterUnit } from './hex-recurring';
@@ -69,6 +69,9 @@ export class RoomStore {
       const room = JSON.parse(readFileSync(join(directory, file), 'utf8')) as Room;
       if (!room.updatedAt) { try { room.updatedAt = statSync(join(directory, file)).mtimeMs; } catch { room.updatedAt = 0; } }
       if (room.version !== 1) throw new Error('ROOM_VERSION_UNSUPPORTED');
+      // Removed content may leave historical rooms behind. Keep their files intact,
+      // but do not let one unavailable pack prevent every current room from loading.
+      if (room.pack && !isPackId(room.pack)) continue;
       room.pack = parsePackId(room.pack);
       room.mode = parseMatchMode(room.mode);
       room.seatCount = matchRules(room.mode, room.seatCount).seatCount;
