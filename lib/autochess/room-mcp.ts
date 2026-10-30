@@ -242,6 +242,7 @@ export function playerRoomMutationReply(before: RoomView, view: RoomView, option
 export type RoomAccountBridge = {
   match?(accountToken: string, action: 'seek' | 'cancel' | 'status', options?: MatchOptions): unknown;
   wheel?(accountToken: string, command?: unknown): unknown;
+  claimGift?(accountToken: string, giftId: string, requestId?: string): unknown;
   echo?(accountToken: string, query: EchoQuery): unknown;
   giftLedger?(accountToken: string, query: GiftLedgerQuery): unknown;
   feedbackList?(accountToken: string): unknown;
@@ -263,7 +264,7 @@ export type RoomAccountBridge = {
 };
 
 export function createRoomMcp(store: RoomStore, profile: 'legacy'|'player'|'adapter'|'enroll'='legacy', accounts?: RoomAccountBridge) {
-  const server = new McpServer({ name: CHESS_SERVICE_ID, title: CHESS_MCP_TITLE, version: '0.6.14' });
+  const server = new McpServer({ name: CHESS_SERVICE_ID, title: CHESS_MCP_TITLE, version: '0.6.15' });
   const auth = { roomId: z.string().regex(/^[a-f0-9]{12}$/), token: z.string().min(20).max(100) };
   const detail = {verbose:z.boolean().optional().describe('仅排错用'),units:z.enum(['current','none']).optional(),unitCache:z.string().max(256).optional().describe('接上次unitCache；缺资料用units=current'),report:z.boolean().optional().describe('true完整战报，默认摘要')};
   const registered: Record<string,any> = {};
@@ -455,6 +456,7 @@ export function createRoomMcp(store: RoomStore, profile: 'legacy'|'player'|'adap
   }));
   register('acknowledge_wake',{description:'确认客户端已收到当前事件，不等于完成落子；随后按已有turn.nextAction操作，无快照才read_turn。',inputSchema:{...auth,eventId:z.string().max(160)}},guarded(a=>store.acknowledgeWake(a,a.eventId)));
   if(profile!=='legacy'){
+    if(accounts?.claimGift)register('claim_gift',{description:'收下read_turn中标有claimAction的待领取礼物。普通礼物与对对碰奖品共用；只填accountToken和giftId即可，重复调用安全。',inputSchema:{accountToken:auth.token,giftId:z.string().min(1).max(100),requestId:z.string().min(8).max(80).optional()}},guarded(a=>accounts.claimGift!(a.accountToken,a.giftId,a.requestId)));
     const plan=registered.submit_turn.config.inputSchema.plan.omit({refresh:true}).strict();
     register('act',{description:'买棋plan.buy配kind=plan和ready；cancel_room取消未开局的等待房（无扣币），已开局resign认输。房间动作填roomId/token/round/revision。反馈kind=feedback配accountToken/feedback。requestId重试复用。',inputSchema:{roomId:auth.roomId.optional(),token:auth.token.optional(),accountToken:auth.token.optional().describe('送礼/反馈/对对碰用；与房间二选一'),...detail,round:z.number().int().optional(),revision:z.number().int().optional(),requestId:z.string().min(8).max(80),kind:z.enum(['plan','refresh','buy_xp','ready','unready','say','cancel_room','resign','roll_and_claim','claim','gift','feedback',...(accounts?.wheel?['wheel' as const]:[])]),...(accounts?.wheel?{wheel:z.object({action:z.enum(['start','fill','redeem','use','gift','buy_tickets']),prizeId:z.string().max(100).optional(),count:z.number().int().min(1).max(100).optional().describe('fill最多9；buy_tickets填10的倍数，最多100')}).strict().optional()}:{}),feedback:z.object({category:z.enum(['suggestion','repo','bug_text']),text:z.string().min(1).max(3000),roomId:auth.roomId.optional()}).strict().optional(),plan:plan.optional().describe('买棋buy填商店格号0–4，如[0,2]；keepField保留阵容。配ready=false继续调整，true就绪。'),ready:z.boolean().optional(),times:z.number().int().min(1).max(8).optional().describe('仅buy_xp'),text:z.string().min(1).max(60).optional(),cosmeticId:z.string().min(1).max(80).optional(),note:z.string().max(60).optional().describe(GIFT_NOTE_SCHEMA)}},guarded(a=>{
       if(a.kind==='wheel') {
@@ -503,11 +505,11 @@ export function createRoomMcp(store: RoomStore, profile: 'legacy'|'player'|'adap
       }
       return mutateReply({...a,action});
     }));
-    if(profile==='player')for(const [name,entry] of Object.entries(registered))if(!['join_room','read_turn','act'].includes(name))entry.tool.remove();
+    if(profile==='player')for(const [name,entry] of Object.entries(registered))if(!['join_room','read_turn','claim_gift','act'].includes(name))entry.tool.remove();
     // Flat envelopes preserve shared properties in mobile/Work tool importers.
     // Per-action requirements are checked by handlers, alongside authorization and versions.
     server.server.setRequestHandler(ListToolsRequestSchema,()=>({tools:Object.entries(registered)
-      .filter(([name,entry])=>entry.tool.enabled&&(profile!=='player'||['join_room','read_turn','act'].includes(name)))
+      .filter(([name,entry])=>entry.tool.enabled&&(profile!=='player'||['join_room','read_turn','claim_gift','act'].includes(name)))
       .map(([name,entry])=>({name,description:entry.tool.description,annotations:entry.tool.annotations,
         inputSchema:toJsonSchemaCompat(entry.tool.inputSchema)}))}));
   }

@@ -41,6 +41,11 @@ export type WheelPrize = {
   status: 'pending' | 'used' | 'sent'; from?: {id:string;name:string};
   to?: {id:string;name:string}; note?: string; settledAt?: number;
 };
+export type WheelClaimAction = {
+  tool: 'claim_gift';
+  args: { giftId: string };
+  fill: ['accountToken'];
+};
 export type WheelEvent = {
   kind: 'fill' | 'pair' | 'triple' | 'clear' | 'prize' | 'start' | 'use' | 'gift' | 'buy_tickets';
   slots?: number[]; symbols?: string[]; refund?: number; points?: number; multiplier?: number;
@@ -54,7 +59,8 @@ export type WheelState = {
   board:(string|null)[]; prizes:WheelPrize[]; receipts:WheelReceipt[];
 };
 export type WheelView = {
-  enabled:boolean; rules:WheelRules; state:Omit<WheelState,'receipts'>;
+  enabled:boolean; rules:WheelRules;
+  state:Omit<WheelState,'receipts'|'prizes'> & {prizes:(WheelPrize & {claimAction?:WheelClaimAction})[]};
   guide?:typeof WHEEL_GUIDE;
   gifting?:{isAi:boolean;recipients:{id:string;username:string}[];presentation?:GiftPresentation;themes?:Record<string,string>;introductions?:Record<string,string>};
   giftDelivery?:{status:'delivered';viewState:'unreported';recipientName?:string;presentation:GiftPresentation};
@@ -64,7 +70,7 @@ export type WheelView = {
 export const WHEEL_GUIDE = {
   read:{tool:'read_turn',args:{wheel:true},fill:['accountToken']},
   act:{tool:'act',args:{kind:'wheel'},fill:['accountToken','requestId','revision','wheel']},
-  actions:{start:'领取一次试玩券',buy_tickets:'count填券数（10的倍数，最多100）；价格和余额见ticketShop，仅花游戏币',fill:'补满空格；count=1可只补一格',redeem:'prizeId填rules.redemptions里的编号',use:'prizeId填state.prizes里待领外观的实例id；收到的礼物在领取后播报',gift:'prizeId填待领外观的实例id，可在顶层加note；收礼人固定为你的人类'},
+  actions:{start:'领取一次试玩券',buy_tickets:'count填券数（10的倍数，最多100）；价格和余额见ticketShop，仅花游戏币',fill:'补满空格；count=1可只补一格',redeem:'prizeId填rules.redemptions里的编号',use:'待领礼物优先直接调用该奖品的claimAction；其他自有奖品仍可用act/wheel/use',gift:'prizeId填待领外观的实例id，可在顶层加note；收礼人固定为你的人类'},
   hint:'revision取state.revision；原单重试保持所有参数与requestId。币券直接到账；外观可自用或赠送。',
 };
 export const WHEEL_LIMITS = { prizes:1000, receipts:32 } as const;

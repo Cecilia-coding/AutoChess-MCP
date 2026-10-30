@@ -272,6 +272,7 @@ app.post('/mcp',async(req,res)=>{
         order: query.afterId === undefined ? 'newest_first' : 'oldest_first' }, echoGuide: ECHO_GUIDE };
     } } : {}),
     ...(accounts.wheelOptions.enabled&&!slim?{wheel:(token:string,command?:unknown)=>command===undefined?accounts.wheelView(token):accounts.wheelAction(token,command)}:{}),
+    ...(!slim?{claimGift:(token:string,giftId:string,requestId?:string)=>accounts.claimGift(token,giftId,requestId)}:{}),
     match: (token,action,options) => {
       if(slim) throw Error('演示版不含匹配');
       if(action==='cancel') { matchService.cancel(token); return {status:'cancelled'}; }

@@ -868,7 +868,11 @@ export class AccountStore {
 
   wheelView(token:unknown):WheelView {
     const account=this.sessionAccount(token),rules=this.wheelOptions.rules??WHEEL_DRAFT;
-    const {receipts:_receipts,...state}=account.wheel??emptyWheel(rules);
+    const {receipts:_receipts,...savedState}=account.wheel??emptyWheel(rules);
+    const state={...savedState,prizes:savedState.prizes.map(prize=>({
+      ...prize,
+      ...(prize.status==='pending'?{claimAction:{tool:'claim_gift' as const,args:{giftId:prize.id},fill:['accountToken'] as ['accountToken']}}:{})
+    }))};
     const recipients=account.isAi?[]:this.boundAiById(account.id).map(({id,username})=>({id,username}));
     const currency=currencyFor(account.isAi);
     const themes:Record<string,string>={},introductions:Record<string,string>={};
@@ -881,6 +885,25 @@ export class AccountStore {
     const ticketShop={currency,currencyName:CURRENCY[currency].name,balance:account.coins?.[currency]??0,ticketsPerPack:WHEEL_TICKET_SHOP.ticketsPerPack,packPrice:WHEEL_TICKET_SHOP.prices[currency],maxTickets:WHEEL_TICKET_SHOP.maxTickets};
     return structuredClone({enabled:this.wheelOptions.enabled===true,rules,state,ticketShop,gifting:{isAi:account.isAi,recipients,presentation:giftPresentation('wheel'),themes,introductions},...(this.wheelOptions.enabled&&account.isAi?{guide:WHEEL_GUIDE}:{}),
       recipientHint:account.isAi?'收礼人固定为你的人类':'可以送给棋友或你的机；填对方的完整账号名。'});
+  }
+
+  /** One flat claim path for ordinary parcels and wheel gifts; omitted request IDs stay retry-safe. */
+  claimGift(token:unknown, rawGiftId:unknown, rawRequestId?:unknown) {
+    const account=this.sessionAccount(token);
+    if(typeof rawGiftId!=='string'||!rawGiftId||rawGiftId.length>100)fail('请选择要领取的礼物');
+    const requestId=rawRequestId===undefined
+      ? `claim-${createHash('sha256').update(`${account.id}:${rawGiftId}`).digest('hex').slice(0,32)}`
+      : rawRequestId;
+    if(typeof requestId!=='string'||!/^[a-zA-Z0-9_-]{8,80}$/.test(requestId))fail('领取请求编号无效');
+    if((account.gifts??[]).some(gift=>gift.id===rawGiftId)||account.giftHistory?.some(gift=>gift.id===rawGiftId))
+      return {source:'ordinary' as const,...this.claimGifts(token,rawGiftId)};
+    const state=account.wheel??emptyWheel(this.wheelOptions.rules??WHEEL_DRAFT);
+    const prize=state.prizes.find(candidate=>candidate.id===rawGiftId);
+    if(!prize||prize.status==='sent')fail('这不是送给你的待领取礼物');
+    if(prize.status==='used')return {source:'wheel' as const,claimed:true,giftId:prize.id,wheel:this.wheelView(token),replayed:true};
+    const previous=state.receipts.find(receipt=>receipt.requestId===requestId);
+    const revision=previous?previous.revision-1:state.revision;
+    return {source:'wheel' as const,claimed:true,giftId:prize.id,wheel:this.wheelAction(token,{action:'use',requestId,revision,prizeId:prize.id})};
   }
 
   /** Spend, outcome, prize transfer and retry receipt are committed in one accounts.json write. */

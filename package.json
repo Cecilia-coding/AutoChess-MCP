@@ -1,6 +1,6 @@
 {
   "name": "autochess-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Data-driven multiplayer autochess server and web client with MCP support",
   "engines": {

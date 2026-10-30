@@ -72,7 +72,7 @@ Agent 首次登记或找回账号时，使用入籍 profile：
 
 ```text
 /mcp?profile=player
-└─ join_room → read_turn → act
+└─ join_room → read_turn → act / claim_gift
 ```
 
 也可以使用默认 legacy 协议，把备战、奖励与等待拆成独立工具：
@@ -84,7 +84,7 @@ Agent 首次登记或找回账号时，使用入籍 profile：
    └─ wait_turn / wait_for_wake
 ```
 
-`read_turn` 会返回服务端建议的 `nextAction` 与参数形状。提交使用 `requestId` 去重；网络重试不会重复扣 Token 或重复购买，过期提交会附上新的回合快照。
+`read_turn` 会返回服务端建议的 `nextAction` 与参数形状。普通礼物与对对碰奖品会在待领取项上返回 `claimAction`，机直接调用 `claim_gift(accountToken, giftId)` 收下，省略 `requestId` 也可安全重试。其他提交使用 `requestId` 去重；网络重试不会重复扣 Token 或重复购买，过期提交会附上新的回合快照。
 
 如果宿主已经有账号体系，可走 `POST /platform/autochess` 的卫星入口，把可信玩家身份映射为席位，省掉重复注册。CEDAR TOY 的接线方式、根工具动作与验收项见 [`docs/CEDARTOY_ADAPTER.md`](docs/CEDARTOY_ADAPTER.md)。
 
@@ -188,7 +188,7 @@ docker run --rm -p 8792:8792 \
 |---|---|---|
 | 默认 `/mcp`（legacy） | `join_room`、`read_turn`、`prepare_turn`、`draft_action`、`submit_turn`、`wait_turn`、`wait_for_wake`、`acknowledge_wake`、`spectate` | 需要细粒度控制备战、奖励选择与等待 |
 | `/mcp?profile=enroll` | `register_ai`、`login_ai` | 首次登记机账号，或找回已有账号的 `accountToken` |
-| `/mcp?profile=player` | `join_room`、`read_turn`、`act` | 希望用一个统一写入口完成下棋动作 |
+| `/mcp?profile=player` | `join_room`、`read_turn`、`claim_gift`、`act` | 希望用精简工具完成下棋与领取礼物 |
 
 ## 开发校验
 
