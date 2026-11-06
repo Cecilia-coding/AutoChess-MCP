@@ -1,0 +1,947 @@
+{
+  "version": 1,
+  "created": "2026-11-06",
+  "pixelGrid": 24,
+  "frame": {
+    "width": 64,
+    "height": 64,
+    "columns": 8,
+    "rows": 17,
+    "anchor": {
+      "x": 32,
+      "y": 40
+    }
+  },
+  "atlas": {
+    "width": 512,
+    "height": 1088
+  },
+  "thresholds": {
+    "happy": "hp > 50",
+    "serious": "20 < hp <= 50",
+    "cry": "0 < hp <= 20",
+    "dead": "hp <= 0",
+    "shock": "650 ms on crossing from >50 to 21..50; explicit reaction may override living moods"
+  },
+  "clips": {
+    "happy/idle": {
+      "row": 0,
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ],
+      "loop": true
+    },
+    "happy/walk": {
+      "row": 1,
+      "frames": [
+        {
+          "x": 0,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ],
+      "loop": true
+    },
+    "happy/attack": {
+      "row": 2,
+      "frames": [
+        {
+          "x": 0,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 64,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 128,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 192,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 256,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 10
+        },
+        {
+          "x": 320,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 384,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 448,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        }
+      ],
+      "loop": false
+    },
+    "happy/hurt": {
+      "row": 3,
+      "frames": [
+        {
+          "x": 0,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ],
+      "loop": false
+    },
+    "serious/idle": {
+      "row": 4,
+      "frames": [
+        {
+          "x": 0,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ],
+      "loop": true
+    },
+    "serious/walk": {
+      "row": 5,
+      "frames": [
+        {
+          "x": 0,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ],
+      "loop": true
+    },
+    "serious/attack": {
+      "row": 6,
+      "frames": [
+        {
+          "x": 0,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 64,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 128,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 192,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 256,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 10
+        },
+        {
+          "x": 320,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 384,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 448,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        }
+      ],
+      "loop": false
+    },
+    "serious/hurt": {
+      "row": 7,
+      "frames": [
+        {
+          "x": 0,
+          "y": 448,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 448,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 448,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ],
+      "loop": false
+    },
+    "cry/idle": {
+      "row": 8,
+      "frames": [
+        {
+          "x": 0,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ],
+      "loop": true
+    },
+    "cry/walk": {
+      "row": 9,
+      "frames": [
+        {
+          "x": 0,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ],
+      "loop": true
+    },
+    "cry/attack": {
+      "row": 10,
+      "frames": [
+        {
+          "x": 0,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 64,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 128,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 192,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 256,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 10
+        },
+        {
+          "x": 320,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 384,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 448,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        }
+      ],
+      "loop": false
+    },
+    "cry/hurt": {
+      "row": 11,
+      "frames": [
+        {
+          "x": 0,
+          "y": 704,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 704,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 704,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ],
+      "loop": false
+    },
+    "shock/idle": {
+      "row": 12,
+      "frames": [
+        {
+          "x": 0,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ],
+      "loop": true
+    },
+    "shock/walk": {
+      "row": 13,
+      "frames": [
+        {
+          "x": 0,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ],
+      "loop": true
+    },
+    "shock/attack": {
+      "row": 14,
+      "frames": [
+        {
+          "x": 0,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 64,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 128,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 192,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 256,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 10
+        },
+        {
+          "x": 320,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 384,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 448,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        }
+      ],
+      "loop": false
+    },
+    "shock/hurt": {
+      "row": 15,
+      "frames": [
+        {
+          "x": 0,
+          "y": 960,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 960,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 960,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ],
+      "loop": false
+    },
+    "dead": {
+      "row": 16,
+      "frames": [
+        {
+          "x": 0,
+          "y": 1024,
+          "w": 64,
+          "h": 64,
+          "durationMs": 1000
+        }
+      ],
+      "loop": false
+    }
+  },
+  "units": [
+    {
+      "id": "ai-claude",
+      "spriteId": "claude",
+      "name": "Claude",
+      "atlas": "atlases/ai-claude.png",
+      "portrait": "portraits/ai-claude.png",
+      "previewRole": "melee",
+      "color": "#e88743"
+    },
+    {
+      "id": "ai-gpt",
+      "spriteId": "gpt",
+      "name": "GPT",
+      "atlas": "atlases/ai-gpt.png",
+      "portrait": "portraits/ai-gpt.png",
+      "previewRole": "support",
+      "color": "#d9e0db"
+    },
+    {
+      "id": "ai-codex",
+      "spriteId": "codex",
+      "name": "Codex",
+      "atlas": "atlases/ai-codex.png",
+      "portrait": "portraits/ai-codex.png",
+      "previewRole": "ranged",
+      "color": "#f4f4ef"
+    },
+    {
+      "id": "ai-deepseek",
+      "spriteId": "deepseek",
+      "name": "DeepSeek",
+      "atlas": "atlases/ai-deepseek.png",
+      "portrait": "portraits/ai-deepseek.png",
+      "previewRole": "caster",
+      "color": "#527cff"
+    },
+    {
+      "id": "ai-gemini",
+      "spriteId": "gemini",
+      "name": "Gemini",
+      "atlas": "atlases/ai-gemini.png",
+      "portrait": "portraits/ai-gemini.png",
+      "previewRole": "caster",
+      "color": "#9970f4"
+    },
+    {
+      "id": "ai-grok",
+      "spriteId": "grok",
+      "name": "Grok",
+      "atlas": "atlases/ai-grok.png",
+      "portrait": "portraits/ai-grok.png",
+      "previewRole": "melee",
+      "color": "#747d88"
+    },
+    {
+      "id": "ai-kimi",
+      "spriteId": "kimi",
+      "name": "Kimi",
+      "atlas": "atlases/ai-kimi.png",
+      "portrait": "portraits/ai-kimi.png",
+      "previewRole": "ranged",
+      "color": "#487fff"
+    },
+    {
+      "id": "ai-qwen",
+      "spriteId": "qwen",
+      "name": "Qwen",
+      "atlas": "atlases/ai-qwen.png",
+      "portrait": "portraits/ai-qwen.png",
+      "previewRole": "caster",
+      "color": "#ad70e8"
+    },
+    {
+      "id": "ai-glm",
+      "spriteId": "glm",
+      "name": "GLM",
+      "atlas": "atlases/ai-glm.png",
+      "portrait": "portraits/ai-glm.png",
+      "previewRole": "melee",
+      "color": "#4785ff"
+    },
+    {
+      "id": "ai-minimax",
+      "spriteId": "minimax",
+      "name": "MiniMax",
+      "atlas": "atlases/ai-minimax.png",
+      "portrait": "portraits/ai-minimax.png",
+      "previewRole": "caster",
+      "color": "#ff8d55"
+    },
+    {
+      "id": "ai-characterai",
+      "spriteId": "characterai",
+      "name": "Character.AI",
+      "atlas": "atlases/ai-characterai.png",
+      "portrait": "portraits/ai-characterai.png",
+      "previewRole": "support",
+      "color": "#d6d3cd"
+    },
+    {
+      "id": "ai-replika",
+      "spriteId": "replika",
+      "name": "Replika",
+      "atlas": "atlases/ai-replika.png",
+      "portrait": "portraits/ai-replika.png",
+      "previewRole": "support",
+      "color": "#d7a9e9"
+    },
+    {
+      "id": "ai-talkie",
+      "spriteId": "talkie",
+      "name": "Talkie",
+      "atlas": "atlases/ai-talkie.png",
+      "portrait": "portraits/ai-talkie.png",
+      "previewRole": "ranged",
+      "color": "#ffc247"
+    },
+    {
+      "id": "ai-xiaoice",
+      "spriteId": "xiaoice",
+      "name": "Xiaoice",
+      "atlas": "atlases/ai-xiaoice.png",
+      "portrait": "portraits/ai-xiaoice.png",
+      "previewRole": "support",
+      "color": "#9ae9ee"
+    },
+    {
+      "id": "ai-doubao",
+      "spriteId": "doubao",
+      "name": "豆包",
+      "atlas": "atlases/ai-doubao.png",
+      "portrait": "portraits/ai-doubao.png",
+      "previewRole": "caster",
+      "color": "#f04a45"
+    },
+    {
+      "id": "ai-llama",
+      "spriteId": "llama",
+      "name": "Llama",
+      "atlas": "atlases/ai-llama.png",
+      "portrait": "portraits/ai-llama.png",
+      "previewRole": "ranged",
+      "color": "#a68af3"
+    },
+    {
+      "id": "ai-mistral",
+      "spriteId": "mistral",
+      "name": "Mistral",
+      "atlas": "atlases/ai-mistral.png",
+      "portrait": "portraits/ai-mistral.png",
+      "previewRole": "ranged",
+      "color": "#f69532"
+    },
+    {
+      "id": "ai-copilot",
+      "spriteId": "copilot",
+      "name": "Copilot",
+      "atlas": "atlases/ai-copilot.png",
+      "portrait": "portraits/ai-copilot.png",
+      "previewRole": "support",
+      "color": "#5ac9e8"
+    },
+    {
+      "id": "ai-ernie",
+      "spriteId": "ernie",
+      "name": "ERNIE",
+      "atlas": "atlases/ai-ernie.png",
+      "portrait": "portraits/ai-ernie.png",
+      "previewRole": "caster",
+      "color": "#8d7cf3"
+    },
+    {
+      "id": "ai-hunyuan",
+      "spriteId": "hunyuan",
+      "name": "Hunyuan",
+      "atlas": "atlases/ai-hunyuan.png",
+      "portrait": "portraits/ai-hunyuan.png",
+      "previewRole": "caster",
+      "color": "#71e2a4"
+    },
+    {
+      "id": "ai-musespark",
+      "spriteId": "musespark",
+      "name": "Muse",
+      "atlas": "atlases/ai-musespark.png",
+      "portrait": "portraits/ai-musespark.png",
+      "previewRole": "ranged",
+      "color": "#e2ccaa"
+    },
+    {
+      "id": "ai-nai",
+      "spriteId": "nai",
+      "name": "Nai",
+      "atlas": "atlases/ai-nai.png",
+      "portrait": "portraits/ai-nai.png",
+      "previewRole": "caster",
+      "color": "#a56ae0"
+    },
+    {
+      "id": "ai-tripo",
+      "spriteId": "tripo",
+      "name": "Tripo",
+      "atlas": "atlases/ai-tripo.png",
+      "portrait": "portraits/ai-tripo.png",
+      "previewRole": "caster",
+      "color": "#67dfc4"
+    },
+    {
+      "id": "ai-manus",
+      "spriteId": "manus",
+      "name": "Manus",
+      "atlas": "atlases/ai-manus.png",
+      "portrait": "portraits/ai-manus.png",
+      "previewRole": "melee",
+      "color": "#faf0d9"
+    },
+    {
+      "id": "ai-kiro",
+      "spriteId": "kiro",
+      "name": "Kiro",
+      "atlas": "atlases/ai-kiro.png",
+      "portrait": "portraits/ai-kiro.png",
+      "previewRole": "melee",
+      "color": "#ba81ec"
+    },
+    {
+      "id": "ai-jimeng",
+      "spriteId": "jimeng",
+      "name": "即梦",
+      "atlas": "atlases/ai-jimeng.png",
+      "portrait": "portraits/ai-jimeng.png",
+      "previewRole": "caster",
+      "color": "#ee60c7"
+    },
+    {
+      "id": "ai-gemma",
+      "spriteId": "gemma",
+      "name": "Gemma",
+      "atlas": "atlases/ai-gemma.png",
+      "portrait": "portraits/ai-gemma.png",
+      "previewRole": "caster",
+      "color": "#75cce4"
+    },
+    {
+      "id": "ai-kling",
+      "spriteId": "kling",
+      "name": "Kling",
+      "atlas": "atlases/ai-kling.png",
+      "portrait": "portraits/ai-kling.png",
+      "previewRole": "caster",
+      "color": "#b9f43f"
+    },
+    {
+      "id": "ai-ollama",
+      "spriteId": "ollama",
+      "name": "Ollama",
+      "atlas": "atlases/ai-ollama.png",
+      "portrait": "portraits/ai-ollama.png",
+      "previewRole": "support",
+      "color": "#f4e6ce"
+    }
+  ],
+  "effects": {
+    "bubble": {
+      "file": "effects/bubble.png",
+      "anchor": {
+        "x": 32,
+        "y": 40
+      }
+    },
+    "shock": "Included in shock rows; renderer.draw can disable effects."
+  },
+  "muse": {
+    "stableId": "ai-musespark",
+    "displayName": "Muse",
+    "reference": "User-provided beige plush character; empty hands, no heart or props."
+  }
+}

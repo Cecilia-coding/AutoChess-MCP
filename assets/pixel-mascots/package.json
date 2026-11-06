@@ -1,0 +1,13 @@
+{
+  "name": "autochess-pixel-mascots",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "export": "node scripts/export.cjs",
+    "validate": "node scripts/validate.cjs",
+    "check": "node scripts/check.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}
