@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "export": "node scripts/export.cjs && node scripts/export-effects.cjs",
+    "export": "node scripts/export.cjs && node scripts/export-effects.cjs && node scripts/export-events.cjs",
     "validate": "node scripts/validate.cjs",
-    "check": "node scripts/check.cjs && node scripts/check-effects.cjs",
-    "export:fx": "node scripts/export-effects.cjs"
+    "check": "node scripts/check.cjs && node scripts/check-effects.cjs && node scripts/check-events.cjs",
+    "export:fx": "node scripts/export-effects.cjs",
+    "export:events": "node scripts/export-events.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

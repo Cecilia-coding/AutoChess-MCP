@@ -1,0 +1,309 @@
+{
+  "source": "packs/ai/skills.ts + packs/ai/hazards.ts",
+  "scope": "29 AI characters; basic attacks, active recipes, declared passive hooks and four character hazards",
+  "units": [
+    {
+      "id": "ai-claude",
+      "attack": true,
+      "cast": "黄牌",
+      "variants": [],
+      "hooks": {
+        "passiveStats": [
+          "claude_safety"
+        ],
+        "onDamaged": [
+          "claude_immune"
+        ]
+      }
+    },
+    {
+      "id": "ai-gpt",
+      "attack": true,
+      "cast": "接住你",
+      "variants": [],
+      "hooks": {
+        "passiveStats": [
+          "gpt_safety"
+        ],
+        "tick": [
+          "gpt_codex"
+        ]
+      }
+    },
+    {
+      "id": "ai-deepseek",
+      "attack": true,
+      "cast": "好的，现在我是xxx了",
+      "variants": [],
+      "hooks": {
+        "onDamaged": [
+          "deepseek_rage"
+        ],
+        "onDeath": [
+          "deepseek_open"
+        ],
+        "stealAtk": [
+          "deepseek_steal"
+        ],
+        "conditional": [
+          "deepseek_comeback"
+        ]
+      }
+    },
+    {
+      "id": "ai-characterai",
+      "attack": true,
+      "cast": "多开角色",
+      "variants": [],
+      "hooks": {
+        "passiveStats": [
+          "characterai_memory"
+        ]
+      }
+    },
+    {
+      "id": "ai-doubao",
+      "attack": true,
+      "cast": "你豆包姐姐来咯",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-kimi",
+      "attack": true,
+      "cast": "百万上下文",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-qwen",
+      "attack": true,
+      "cast": "全家桶",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-grok",
+      "attack": true,
+      "cast": "口无遮拦",
+      "variants": [],
+      "hooks": {
+        "onBattleStart": [
+          "grok_immune"
+        ],
+        "rider": [
+          "grok_followup"
+        ]
+      }
+    },
+    {
+      "id": "ai-glm",
+      "attack": true,
+      "cast": "中英双语",
+      "variants": [
+        0,
+        1
+      ],
+      "hooks": {}
+    },
+    {
+      "id": "ai-replika",
+      "attack": true,
+      "cast": "陪伴",
+      "variants": [],
+      "hooks": {
+        "passiveStats": [
+          "replika_regen"
+        ]
+      }
+    },
+    {
+      "id": "ai-talkie",
+      "attack": true,
+      "cast": "语音陪伴",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-llama",
+      "attack": true,
+      "cast": "开源鼻祖",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-mistral",
+      "attack": true,
+      "cast": "稀疏激活",
+      "variants": [
+        0,
+        1,
+        2
+      ],
+      "hooks": {}
+    },
+    {
+      "id": "ai-copilot",
+      "attack": true,
+      "cast": "捆绑安装",
+      "variants": [],
+      "hooks": {
+        "passiveStats": [
+          "copilot_guard"
+        ]
+      }
+    },
+    {
+      "id": "ai-ernie",
+      "attack": true,
+      "cast": "中文语料",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-hunyuan",
+      "attack": true,
+      "cast": "全模态",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-musespark",
+      "attack": true,
+      "cast": "长文检索",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-gemini",
+      "attack": true,
+      "cast": "得意的Gemini",
+      "variants": [
+        0,
+        1
+      ],
+      "hooks": {}
+    },
+    {
+      "id": "ai-xiaoice",
+      "attack": true,
+      "cast": "元老社牛",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-nai",
+      "attack": true,
+      "cast": "画出来",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-tripo",
+      "attack": true,
+      "cast": "生成模型",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-manus",
+      "attack": true,
+      "cast": "连续干活",
+      "variants": [],
+      "hooks": {
+        "rider": [
+          "manus_followup"
+        ]
+      }
+    },
+    {
+      "id": "ai-minimax",
+      "attack": true,
+      "cast": "海螺全模态",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-kiro",
+      "attack": true,
+      "cast": "输出卡 8000",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-jimeng",
+      "attack": true,
+      "cast": "延迟出图",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-gemma",
+      "attack": true,
+      "cast": "蒸馏",
+      "variants": [],
+      "hooks": {
+        "passiveStats": [
+          "gemma_stats"
+        ]
+      }
+    },
+    {
+      "id": "ai-kling",
+      "attack": true,
+      "cast": "镜头动了",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-ollama",
+      "attack": true,
+      "cast": "本地部署",
+      "variants": [],
+      "hooks": {}
+    },
+    {
+      "id": "ai-codex",
+      "attack": true,
+      "cast": "GPT 被动换形；无新增主动",
+      "hooks": {
+        "reskin": [
+          "gpt_codex"
+        ]
+      }
+    }
+  ],
+  "hazards": {
+    "ip-ban": [
+      "claude_ip_scan",
+      "claude_ip_pass",
+      "claude_ip_ban",
+      "claude_ip_immune"
+    ],
+    "official-event-strike": [
+      "gemini_strike",
+      "gemini_return"
+    ],
+    "off-peak-pricing": [
+      "deepseek_peak",
+      "deepseek_trough"
+    ],
+    "coding-plan-soldout": [
+      "glm_soldout",
+      "glm_restock"
+    ]
+  },
+  "common": [
+    "hurt",
+    "heal",
+    "shield_gain",
+    "shield_break",
+    "shield_expire",
+    "silence",
+    "stun",
+    "death",
+    "revive",
+    "buff_expire"
+  ],
+  "missing": []
+}
