@@ -745,7 +745,7 @@
       "name": "GLM",
       "atlas": "atlases/ai-glm.png",
       "portrait": "portraits/ai-glm.png",
-      "previewRole": "melee",
+      "previewRole": "caster",
       "color": "#4785ff"
     },
     {

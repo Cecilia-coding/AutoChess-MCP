@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "export": "node scripts/export.cjs",
+    "export": "node scripts/export.cjs && node scripts/export-effects.cjs",
     "validate": "node scripts/validate.cjs",
-    "check": "node scripts/check.cjs"
+    "check": "node scripts/check.cjs && node scripts/check-effects.cjs",
+    "export:fx": "node scripts/export-effects.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

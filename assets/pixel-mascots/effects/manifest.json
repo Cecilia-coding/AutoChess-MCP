@@ -1,0 +1,1249 @@
+{
+  "version": 2,
+  "skillSource": "packs/ai/skills.ts",
+  "frame": {
+    "width": 96,
+    "height": 96,
+    "anchor": {
+      "x": 48,
+      "y": 48
+    }
+  },
+  "atlas": {
+    "width": 768,
+    "height": 384
+  },
+  "phases": {
+    "charge": {
+      "row": 0,
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "progress": 0
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "progress": 0.125
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "progress": 0.25
+        },
+        {
+          "x": 288,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "progress": 0.375
+        },
+        {
+          "x": 384,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "progress": 0.5
+        },
+        {
+          "x": 480,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "progress": 0.625
+        },
+        {
+          "x": 576,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "progress": 0.75
+        },
+        {
+          "x": 672,
+          "y": 0,
+          "w": 96,
+          "h": 96,
+          "progress": 0.875
+        }
+      ]
+    },
+    "flight": {
+      "row": 1,
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "progress": 0
+        },
+        {
+          "x": 96,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "progress": 0.125
+        },
+        {
+          "x": 192,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "progress": 0.25
+        },
+        {
+          "x": 288,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "progress": 0.375
+        },
+        {
+          "x": 384,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "progress": 0.5
+        },
+        {
+          "x": 480,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "progress": 0.625
+        },
+        {
+          "x": 576,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "progress": 0.75
+        },
+        {
+          "x": 672,
+          "y": 96,
+          "w": 96,
+          "h": 96,
+          "progress": 0.875
+        }
+      ]
+    },
+    "impact": {
+      "row": 2,
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "progress": 0
+        },
+        {
+          "x": 96,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "progress": 0.125
+        },
+        {
+          "x": 192,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "progress": 0.25
+        },
+        {
+          "x": 288,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "progress": 0.375
+        },
+        {
+          "x": 384,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "progress": 0.5
+        },
+        {
+          "x": 480,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "progress": 0.625
+        },
+        {
+          "x": 576,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "progress": 0.75
+        },
+        {
+          "x": 672,
+          "y": 192,
+          "w": 96,
+          "h": 96,
+          "progress": 0.875
+        }
+      ]
+    },
+    "aura": {
+      "row": 3,
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "progress": 0
+        },
+        {
+          "x": 96,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "progress": 0.125
+        },
+        {
+          "x": 192,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "progress": 0.25
+        },
+        {
+          "x": 288,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "progress": 0.375
+        },
+        {
+          "x": 384,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "progress": 0.5
+        },
+        {
+          "x": 480,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "progress": 0.625
+        },
+        {
+          "x": 576,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "progress": 0.75
+        },
+        {
+          "x": 672,
+          "y": 288,
+          "w": 96,
+          "h": 96,
+          "progress": 0.875
+        }
+      ]
+    }
+  },
+  "attackAtlas": {
+    "width": 768,
+    "height": 288,
+    "phases": [
+      "charge",
+      "flight",
+      "impact"
+    ],
+    "frame": 96,
+    "columns": 8,
+    "anchor": {
+      "x": 48,
+      "y": 48
+    }
+  },
+  "symbols": {
+    "shield": {
+      "x": 0,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "heal": {
+      "x": 64,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "attack": {
+      "x": 128,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "speed": {
+      "x": 192,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "range": {
+      "x": 256,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "card": {
+      "x": 320,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "silence": {
+      "x": 384,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "armor": {
+      "x": 448,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "slow": {
+      "x": 512,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "disarm": {
+      "x": 576,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "cube": {
+      "x": 640,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "page": {
+      "x": 704,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "frame": {
+      "x": 768,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    },
+    "immune": {
+      "x": 832,
+      "y": 0,
+      "w": 64,
+      "h": 64,
+      "anchor": {
+        "x": 32,
+        "y": 32
+      }
+    }
+  },
+  "timings": {
+    "attack": {
+      "durationMs": 850,
+      "launchMs": 220,
+      "impactMs": 420,
+      "endMs": 780
+    },
+    "skill": {
+      "durationMs": 1200,
+      "launchMs": 360,
+      "impactMs": 600,
+      "endMs": 1140
+    }
+  },
+  "units": [
+    {
+      "id": "ai-claude",
+      "name": "橘色花火",
+      "motif": "flower",
+      "main": "#f48738",
+      "light": "#ffd19a",
+      "dark": "#8b3d1e",
+      "file": "effects/ai-claude.png",
+      "symbolsFile": "effects/symbols/ai-claude.png",
+      "attackFile": "effects/attacks/ai-claude.png",
+      "attackStyle": "melee",
+      "skill": {
+        "id": "claude",
+        "name": "黄牌",
+        "recipe": "guard",
+        "description": "举牌 → 自身橘色护盾 → 免控亮边",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-gpt",
+      "name": "黑白泡泡反击",
+      "motif": "bubble",
+      "main": "#ffffff",
+      "light": "#ffffff",
+      "dark": "#101010",
+      "file": "effects/ai-gpt.png",
+      "symbolsFile": "effects/symbols/ai-gpt.png",
+      "attackFile": "effects/attacks/ai-gpt.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "gpt",
+        "name": "接住你",
+        "recipe": "protect",
+        "description": "黑白护盾包住自己和附近友军",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-codex",
+      "name": "黑白终端脉冲",
+      "motif": "terminal",
+      "main": "#ffffff",
+      "light": "#ffffff",
+      "dark": "#101010",
+      "file": "effects/ai-codex.png",
+      "symbolsFile": "effects/symbols/ai-codex.png",
+      "attackFile": "effects/attacks/ai-codex.png",
+      "attackStyle": "projectile",
+      "skill": {
+        "id": "codex",
+        "name": "双生 · Codex 形态",
+        "recipe": "transform",
+        "description": "GPT 半血后的换形、攻速和破甲强化；无独立主动技能",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-deepseek",
+      "name": "蓝色鲸浪",
+      "motif": "wave",
+      "main": "#527cff",
+      "light": "#c6e4ff",
+      "dark": "#193a9d",
+      "file": "effects/ai-deepseek.png",
+      "symbolsFile": "effects/symbols/ai-deepseek.png",
+      "attackFile": "effects/attacks/ai-deepseek.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "deepseek",
+        "name": "好的，现在我是xxx了",
+        "recipe": "meditate",
+        "description": "沉思隐去 → 偷攻击连线 → 1.2 秒后自身周围爆发",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 1200,
+        "durationMs": 2100
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-gemini",
+      "name": "紫蓝星芒",
+      "motif": "star",
+      "main": "#aa72ff",
+      "light": "#cceaff",
+      "dark": "#4b3599",
+      "file": "effects/ai-gemini.png",
+      "symbolsFile": "effects/symbols/ai-gemini.png",
+      "attackFile": "effects/attacks/ai-gemini.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "gemini",
+        "name": "得意的Gemini",
+        "recipe": "gamble",
+        "description": "普通星爆 / 超常大星爆、破防与自身加速",
+        "damage": true,
+        "variant": 0,
+        "variants": [
+          "一般发挥",
+          "超常发挥"
+        ],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": [
+        {
+          "id": "gemini",
+          "name": "得意的Gemini",
+          "recipe": "gamble",
+          "description": "普通星爆 / 超常大星爆、破防与自身加速",
+          "damage": true,
+          "variant": 0,
+          "variants": [
+            "一般发挥",
+            "超常发挥"
+          ],
+          "impactMs": 600,
+          "durationMs": 1800
+        },
+        {
+          "id": "gemini",
+          "name": "得意的Gemini",
+          "recipe": "gamble",
+          "description": "普通星爆 / 超常大星爆、破防与自身加速",
+          "damage": true,
+          "variant": 1,
+          "variants": [
+            "一般发挥",
+            "超常发挥"
+          ],
+          "impactMs": 600,
+          "durationMs": 1800
+        }
+      ]
+    },
+    {
+      "id": "ai-grok",
+      "name": "灰银斩击",
+      "motif": "slash",
+      "main": "#a5acb6",
+      "light": "#f5f5f5",
+      "dark": "#30343e",
+      "file": "effects/ai-grok.png",
+      "symbolsFile": "effects/symbols/ai-grok.png",
+      "attackFile": "effects/attacks/ai-grok.png",
+      "attackStyle": "melee",
+      "skill": {
+        "id": "grok",
+        "name": "口无遮拦",
+        "recipe": "rider",
+        "description": "加速、缴械；普攻附加追击与随机真伤",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-kimi",
+      "name": "蓝色月弧",
+      "motif": "slash",
+      "main": "#4c89ff",
+      "light": "#c7e5ff",
+      "dark": "#20387e",
+      "file": "effects/ai-kimi.png",
+      "symbolsFile": "effects/symbols/ai-kimi.png",
+      "attackFile": "effects/attacks/ai-kimi.png",
+      "attackStyle": "projectile",
+      "skill": {
+        "id": "kimi",
+        "name": "百万上下文",
+        "recipe": "pierce",
+        "description": "长蓝弹贯穿两敌；全队射程标记",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-qwen",
+      "name": "紫色三环",
+      "motif": "orbit",
+      "main": "#b378f2",
+      "light": "#efcfff",
+      "dark": "#60309b",
+      "file": "effects/ai-qwen.png",
+      "symbolsFile": "effects/symbols/ai-qwen.png",
+      "attackFile": "effects/attacks/ai-qwen.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "qwen",
+        "name": "全家桶",
+        "recipe": "multi",
+        "description": "三发紫弹分头命中三敌；自身加速",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-glm",
+      "name": "蓝色折光",
+      "motif": "terminal",
+      "main": "#4285ff",
+      "light": "#c6e5ff",
+      "dark": "#244d9b",
+      "file": "effects/ai-glm.png",
+      "symbolsFile": "effects/symbols/ai-glm.png",
+      "attackFile": "effects/attacks/ai-glm.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "glm",
+        "name": "中英双语",
+        "recipe": "bilingual",
+        "description": "英文：三斩破防；中文：附近治疗、自身护盾",
+        "damage": true,
+        "variant": 0,
+        "variants": [
+          "英文 · 三斩破防",
+          "中文 · 治疗护盾"
+        ],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": [
+        {
+          "id": "glm",
+          "name": "中英双语",
+          "recipe": "bilingual",
+          "description": "英文：三斩破防；中文：附近治疗、自身护盾",
+          "damage": true,
+          "variant": 0,
+          "variants": [
+            "英文 · 三斩破防",
+            "中文 · 治疗护盾"
+          ],
+          "impactMs": 600,
+          "durationMs": 1800
+        },
+        {
+          "id": "glm",
+          "name": "中英双语",
+          "recipe": "bilingual",
+          "description": "英文：三斩破防；中文：附近治疗、自身护盾",
+          "damage": false,
+          "variant": 1,
+          "variants": [
+            "英文 · 三斩破防",
+            "中文 · 治疗护盾"
+          ],
+          "impactMs": 600,
+          "durationMs": 1800
+        }
+      ]
+    },
+    {
+      "id": "ai-minimax",
+      "name": "橙红声波",
+      "motif": "wave",
+      "main": "#ff8854",
+      "light": "#ffd0a1",
+      "dark": "#a13f35",
+      "file": "effects/ai-minimax.png",
+      "symbolsFile": "effects/symbols/ai-minimax.png",
+      "attackFile": "effects/attacks/ai-minimax.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "minimax",
+        "name": "海螺全模态",
+        "recipe": "area",
+        "description": "橙红声纹在目标处扩散，范围命中、两敌破防",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-characterai",
+      "name": "灰白对话泡",
+      "motif": "bubble",
+      "main": "#e0ded9",
+      "light": "#ffffff",
+      "dark": "#38363d",
+      "file": "effects/ai-characterai.png",
+      "symbolsFile": "effects/symbols/ai-characterai.png",
+      "attackFile": "effects/attacks/ai-characterai.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "characterai",
+        "name": "多开角色",
+        "recipe": "multiHeal",
+        "description": "三张角色气泡分别命中三敌，自身回血",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-replika",
+      "name": "粉紫守护",
+      "motif": "bubble",
+      "main": "#d79dea",
+      "light": "#ffe3fb",
+      "dark": "#835693",
+      "file": "effects/ai-replika.png",
+      "symbolsFile": "effects/symbols/ai-replika.png",
+      "attackFile": "effects/attacks/ai-replika.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "replika",
+        "name": "陪伴",
+        "recipe": "healShield",
+        "description": "附近治疗、自身粉紫护盾",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-talkie",
+      "name": "金黄音浪",
+      "motif": "wave",
+      "main": "#ffc247",
+      "light": "#fff0b0",
+      "dark": "#97621e",
+      "file": "effects/ai-talkie.png",
+      "symbolsFile": "effects/symbols/ai-talkie.png",
+      "attackFile": "effects/attacks/ai-talkie.png",
+      "attackStyle": "projectile",
+      "skill": {
+        "id": "talkie",
+        "name": "语音陪伴",
+        "recipe": "voice",
+        "description": "金色音波治疗附近友军、全队生命增益",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-xiaoice",
+      "name": "冰蓝雪晶",
+      "motif": "star",
+      "main": "#9ae9ee",
+      "light": "#edffff",
+      "dark": "#3c7f9e",
+      "file": "effects/ai-xiaoice.png",
+      "symbolsFile": "effects/symbols/ai-xiaoice.png",
+      "attackFile": "effects/attacks/ai-xiaoice.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "xiaoice",
+        "name": "元老社牛",
+        "recipe": "install",
+        "description": "冰蓝护盾保护附近友军、全队加攻",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-doubao",
+      "name": "红围巾旋风",
+      "motif": "ribbon",
+      "main": "#f04a45",
+      "light": "#ffd3c2",
+      "dark": "#992b33",
+      "file": "effects/ai-doubao.png",
+      "symbolsFile": "effects/symbols/ai-doubao.png",
+      "attackFile": "effects/attacks/ai-doubao.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "doubao",
+        "name": "你豆包姐姐来咯",
+        "recipe": "replace",
+        "description": "一名敌人换成豆包、沉默；自己回血和加攻",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-llama",
+      "name": "淡紫双环",
+      "motif": "orbit",
+      "main": "#a68af3",
+      "light": "#e4d8ff",
+      "dark": "#57549f",
+      "file": "effects/ai-llama.png",
+      "symbolsFile": "effects/symbols/ai-llama.png",
+      "attackFile": "effects/attacks/ai-llama.png",
+      "attackStyle": "projectile",
+      "skill": {
+        "id": "llama",
+        "name": "开源鼻祖",
+        "recipe": "rangeShield",
+        "description": "全队射程和生命增益；自身淡紫护盾",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-mistral",
+      "name": "橘黄疾风",
+      "motif": "ribbon",
+      "main": "#f69532",
+      "light": "#ffe39a",
+      "dark": "#9c4126",
+      "file": "effects/ai-mistral.png",
+      "symbolsFile": "effects/symbols/ai-mistral.png",
+      "attackFile": "effects/attacks/ai-mistral.png",
+      "attackStyle": "projectile",
+      "skill": {
+        "id": "mistral",
+        "name": "稀疏激活",
+        "recipe": "pick",
+        "description": "仅点亮攻击、攻速、减伤中的一项",
+        "damage": false,
+        "variant": 0,
+        "variants": [
+          "攻击激活",
+          "攻速激活",
+          "减伤激活"
+        ],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": [
+        {
+          "id": "mistral",
+          "name": "稀疏激活",
+          "recipe": "pick",
+          "description": "仅点亮攻击、攻速、减伤中的一项",
+          "damage": false,
+          "variant": 0,
+          "variants": [
+            "攻击激活",
+            "攻速激活",
+            "减伤激活"
+          ],
+          "impactMs": 600,
+          "durationMs": 1800
+        },
+        {
+          "id": "mistral",
+          "name": "稀疏激活",
+          "recipe": "pick",
+          "description": "仅点亮攻击、攻速、减伤中的一项",
+          "damage": false,
+          "variant": 1,
+          "variants": [
+            "攻击激活",
+            "攻速激活",
+            "减伤激活"
+          ],
+          "impactMs": 600,
+          "durationMs": 1800
+        },
+        {
+          "id": "mistral",
+          "name": "稀疏激活",
+          "recipe": "pick",
+          "description": "仅点亮攻击、攻速、减伤中的一项",
+          "damage": false,
+          "variant": 2,
+          "variants": [
+            "攻击激活",
+            "攻速激活",
+            "减伤激活"
+          ],
+          "impactMs": 600,
+          "durationMs": 1800
+        }
+      ]
+    },
+    {
+      "id": "ai-copilot",
+      "name": "青色护航",
+      "motif": "bubble",
+      "main": "#5ac9e8",
+      "light": "#d7faff",
+      "dark": "#346d9e",
+      "file": "effects/ai-copilot.png",
+      "symbolsFile": "effects/symbols/ai-copilot.png",
+      "attackFile": "effects/attacks/ai-copilot.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "copilot",
+        "name": "捆绑安装",
+        "recipe": "install",
+        "description": "附近友军青色护盾、全队加攻",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-ernie",
+      "name": "紫色书页",
+      "motif": "terminal",
+      "main": "#8d7cf3",
+      "light": "#e0dcff",
+      "dark": "#51419e",
+      "file": "effects/ai-ernie.png",
+      "symbolsFile": "effects/symbols/ai-ernie.png",
+      "attackFile": "effects/attacks/ai-ernie.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "ernie",
+        "name": "中文语料",
+        "recipe": "area",
+        "description": "紫色书页在目标处展开，范围命中、两敌破防",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-hunyuan",
+      "name": "玉绿元宝光",
+      "motif": "orbit",
+      "main": "#71e2a4",
+      "light": "#d0ffe3",
+      "dark": "#1f805a",
+      "file": "effects/ai-hunyuan.png",
+      "symbolsFile": "effects/symbols/ai-hunyuan.png",
+      "attackFile": "effects/attacks/ai-hunyuan.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "hunyuan",
+        "name": "全模态",
+        "recipe": "doubleSlow",
+        "description": "两束玉绿光分别命中两敌，挂减速钟",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-musespark",
+      "name": "奶油色暖光",
+      "motif": "bubble",
+      "main": "#e2ccaa",
+      "light": "#fff4dc",
+      "dark": "#a38a66",
+      "file": "effects/ai-musespark.png",
+      "symbolsFile": "effects/symbols/ai-musespark.png",
+      "attackFile": "effects/attacks/ai-musespark.png",
+      "attackStyle": "projectile",
+      "skill": {
+        "id": "musespark",
+        "name": "长文检索",
+        "recipe": "search",
+        "description": "米色检索框锁住最远敌人；全队射程增益",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-nai",
+      "name": "紫色墨迹",
+      "motif": "ribbon",
+      "main": "#a56ae0",
+      "light": "#e7c9ff",
+      "dark": "#693695",
+      "file": "effects/ai-nai.png",
+      "symbolsFile": "effects/symbols/ai-nai.png",
+      "attackFile": "effects/attacks/ai-nai.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "nai",
+        "name": "画出来",
+        "recipe": "paint",
+        "description": "紫色笔迹画向当前目标，墨花命中",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-tripo",
+      "name": "薄荷方晶",
+      "motif": "star",
+      "main": "#67dfc4",
+      "light": "#d7fff1",
+      "dark": "#278e7e",
+      "file": "effects/ai-tripo.png",
+      "symbolsFile": "effects/symbols/ai-tripo.png",
+      "attackFile": "effects/attacks/ai-tripo.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "tripo",
+        "name": "生成模型",
+        "recipe": "doubleCube",
+        "description": "薄荷线框方块分别生成在两名敌人身上",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-manus",
+      "name": "米白掌风",
+      "motif": "slash",
+      "main": "#faf0d9",
+      "light": "#ffffff",
+      "dark": "#9c8f77",
+      "file": "effects/ai-manus.png",
+      "symbolsFile": "effects/symbols/ai-manus.png",
+      "attackFile": "effects/attacks/ai-manus.png",
+      "attackStyle": "melee",
+      "skill": {
+        "id": "manus",
+        "name": "连续干活",
+        "recipe": "work",
+        "description": "获得持续追加攻击；普攻后冲向下一个目标",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-kiro",
+      "name": "紫色幽灵焰",
+      "motif": "flower",
+      "main": "#ba81ec",
+      "light": "#f2d9ff",
+      "dark": "#7145a0",
+      "file": "effects/ai-kiro.png",
+      "symbolsFile": "effects/symbols/ai-kiro.png",
+      "attackFile": "effects/attacks/ai-kiro.png",
+      "attackStyle": "melee",
+      "skill": {
+        "id": "kiro",
+        "name": "输出卡 8000",
+        "recipe": "eight",
+        "description": "八个独立紫色命中节拍",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-jimeng",
+      "name": "玫粉梦光",
+      "motif": "orbit",
+      "main": "#ee60c7",
+      "light": "#ffd5f5",
+      "dark": "#963879",
+      "file": "effects/ai-jimeng.png",
+      "symbolsFile": "effects/symbols/ai-jimeng.png",
+      "attackFile": "effects/attacks/ai-jimeng.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "jimeng",
+        "name": "延迟出图",
+        "recipe": "delayed",
+        "description": "画框加载 2 秒后，在自身周围爆开",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 2000,
+        "durationMs": 2900
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-gemma",
+      "name": "天蓝星点",
+      "motif": "star",
+      "main": "#75cce4",
+      "light": "#e0faff",
+      "dark": "#397fa7",
+      "file": "effects/ai-gemma.png",
+      "symbolsFile": "effects/symbols/ai-gemma.png",
+      "attackFile": "effects/attacks/ai-gemma.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "gemma",
+        "name": "蒸馏",
+        "recipe": "distill",
+        "description": "自身加攻，再将凝聚的小星弹打向当前目标",
+        "damage": true,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-kling",
+      "name": "荧绿快斩",
+      "motif": "slash",
+      "main": "#b9f43f",
+      "light": "#efffb3",
+      "dark": "#638827",
+      "file": "effects/ai-kling.png",
+      "symbolsFile": "effects/symbols/ai-kling.png",
+      "attackFile": "effects/attacks/ai-kling.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "kling",
+        "name": "镜头动了",
+        "recipe": "pull",
+        "description": "荧绿镜头框拉近最远敌人，再向外击退；眩晕标记",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    },
+    {
+      "id": "ai-ollama",
+      "name": "米白小云",
+      "motif": "bubble",
+      "main": "#f4e6ce",
+      "light": "#fffaf0",
+      "dark": "#a39277",
+      "file": "effects/ai-ollama.png",
+      "symbolsFile": "effects/symbols/ai-ollama.png",
+      "attackFile": "effects/attacks/ai-ollama.png",
+      "attackStyle": "magic",
+      "skill": {
+        "id": "ollama",
+        "name": "本地部署",
+        "recipe": "local",
+        "description": "自身米白护盾，全队攻速箭头",
+        "damage": false,
+        "variant": 0,
+        "variants": [],
+        "impactMs": 600,
+        "durationMs": 1800
+      },
+      "skillVariants": []
+    }
+  ]
+}
