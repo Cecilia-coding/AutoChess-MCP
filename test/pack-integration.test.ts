@@ -10,7 +10,8 @@ import { simulateBattle } from '../lib/autochess/combat';
 import { RoomStore } from '../lib/autochess/room-store';
 import type { Combatant, Star } from '../lib/autochess/types';
 import { LOBBY_MODES } from '../packs/modes/registry';
-import { PACK_LIST } from '../packs/registry';
+import { TILE_COUNT, resolveTiles, tiles as skeletonTiles } from '../lib/game/board';
+import { PACK_LIST, packDraftIntro, packDraftTiles } from '../packs/registry';
 
 const directory = mkdtempSync(join(tmpdir(), 'autochess-pack-integration-'));
 after(() => rmSync(directory, { recursive: true, force: true }));
@@ -113,6 +114,37 @@ test('every public pack and mode can start, battle, persist and reload', () => {
       const restored = new RoomStore(roomDirectory).view(credentials);
       assert.equal(restored.pack, pack.id);
       assert.ok(restored.round >= view.round);
+    }
+  }
+});
+test('every pack supplies decoupled draft tiles and neutral skeleton fallback avoids pack lore', () => {
+  const aiKeywords = ['开机自检', '训练集群', '算力', 'Token', '回滚机房', '部署上线'];
+  for (const tile of skeletonTiles) {
+    for (const kw of aiKeywords) {
+      assert.ok(!tile.name.includes(kw), `shared skeleton tile "${tile.name}" must not contain AI lore "${kw}"`);
+    }
+  }
+
+  for (const pack of PACK_LIST) {
+    const stops = packDraftTiles(pack.id);
+    assert.ok(stops, `${pack.id} must declare its own draftTiles`);
+    assert.equal(stops.length, TILE_COUNT, `${pack.id} draftTiles count matches TILE_COUNT`);
+    assert.equal(new Set(stops.map((stop) => stop.name)).size, TILE_COUNT, `${pack.id} draftTiles names are unique`);
+    for (const stop of stops) {
+      assert.ok(stop.name.trim().length > 0 && stop.detail.trim().length > 0);
+    }
+    const resolved = resolveTiles(stops);
+    assert.deepEqual(resolved.map((tile) => tile.name), stops.map((stop) => stop.name));
+    assert.ok(packDraftIntro(pack.id)?.trim().length, `${pack.id} declares pack-specific draftIntro`);
+
+    if (pack.id !== 'ai') {
+      assert.ok(!packDraftIntro(pack.id)?.includes('AI 装备'));
+      assert.ok(!packDraftIntro(pack.id)?.includes('Token'));
+      for (const tile of resolved) {
+        for (const kw of aiKeywords) {
+          assert.ok(!tile.name.includes(kw), `${pack.id} draft tile "${tile.name}" leaked AI term "${kw}"`);
+        }
+      }
     }
   }
 });

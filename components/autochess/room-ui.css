@@ -4,14 +4,11 @@
 
 @import './theme-revival.css';
 
-.lobby-quick-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;padding:10px 16px}
-.lobby .lobby-wheel-entry{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 18px;border:1px solid #bfa7bf;border-radius:999px;background:linear-gradient(135deg,#fffaf7,#eee2f0);box-shadow:0 3px 10px #80608018;color:#654565;font-weight:600;text-decoration:none;cursor:pointer;transition:background .15s,box-shadow .15s,transform .15s}
-.lobby-wheel-tag{font-size:11px;font-weight:400;padding:2px 6px;border-radius:999px;background:#fff9;color:#806880}
-.lobby .lobby-wheel-entry:hover{box-shadow:0 5px 15px #80608030;border-color:#997499}
-.lobby .lobby-wheel-entry:focus-visible{outline:3px solid #997499;outline-offset:3px}
-.lobby .lobby-wheel-entry:active{transform:translateY(2px);box-shadow:inset 0 2px 5px #80608024}
-.lobby-quick-actions .feedback-launch{min-height:44px}
-@media(prefers-reduced-motion:reduce){.lobby .lobby-wheel-entry{transition:none}.lobby .lobby-wheel-entry:active{transform:none}}
+.lobby .lobby-wheel-entry{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:5px 12px;border:1px solid #d4c5de;border-radius:999px;background:linear-gradient(135deg,#fffaf7,#f1e6f4);color:#654565;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,box-shadow .15s}
+.lobby-wheel-tag{font-size:10px;font-weight:500;padding:1px 5px;border-radius:999px;background:#fffc;color:#806880}
+.lobby .lobby-wheel-entry:hover{box-shadow:0 3px 10px #80608022;border-color:#8a486b;color:#8a486b}
+.lobby .lobby-wheel-entry:focus-visible{outline:2px solid #997499;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.lobby .lobby-wheel-entry{transition:none}}
 
 /* ==========================================================================
    大厅容器与布局 (Muted Codex Aesthetics · 古籍典藏体系)
@@ -40,6 +37,8 @@
 .lobby-viewport {
   min-height: 100vh;
   min-height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background-color: var(--codex-bg);
   background-image:
     radial-gradient(ellipse at 50% 0%, rgba(220, 208, 228, 0.45) 0%, transparent 75%),
@@ -188,7 +187,8 @@
 .lobby-wallet {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .lobby-coin-pill {
@@ -261,7 +261,8 @@
 .lobby-avatar img {
   width: 100%;
   height: 100%;
-  border-radius: 22%;
+  border-radius: 0;
+  image-rendering: pixelated;
   display: block;
 }
 
@@ -369,12 +370,28 @@
   color: var(--codex-rose);
 }
 
-.lobby-packs button.is-active {
+.lobby-packs button:not(.pack-tome).is-active {
   background: var(--codex-rose);
   border-color: var(--codex-rose);
   color: #ffffff;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(138, 72, 107, 0.22);
+}
+.lobby-packs .pack-tome {
+  border-radius: 16px;
+  padding: 10px 18px;
+}
+.lobby-packs .pack-tome.is-active {
+  background: var(--codex-rose-soft);
+  border-color: var(--codex-rose);
+  color: var(--codex-ink-main);
+  box-shadow: 0 4px 16px rgba(138, 72, 107, 0.16), inset 0 0 0 1px var(--codex-rose);
+}
+.lobby-packs .pack-tome.is-active .pack-tome-meta strong {
+  color: #5b2643;
+}
+.lobby-packs .pack-tome.is-active .pack-tome-meta small {
+  color: #6d475d;
 }
 
 /* 表单行与古典按钮 */
@@ -562,6 +579,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  image-rendering: pixelated;
   display: block;
 }
 
@@ -962,7 +980,20 @@
 }
 
 /* 全屏无挤压布局 */
-.room-table.autochess-table {
+html:has(.room-table.autochess-table:not(.pixel-game)),
+body:has(.room-table.autochess-table:not(.pixel-game)) {
+  margin: 0;
+  padding: 0;
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background-color: var(--skin-bg-canvas);
+  background-image: none;
+}
+
+.room-table.autochess-table:not(.pixel-game) {
   padding: 0 !important;
   margin: 0 !important;
   max-width: none !important;
@@ -1175,7 +1206,7 @@
 
 .room-versus-hud {
   position: absolute;
-  top: 14px;
+  top: calc(14px + env(safe-area-inset-top, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 32;
@@ -1413,14 +1444,14 @@
 .room-offer-overlay {
   position: absolute;
   left: 50%;
-  top: 24px;
+  top: calc(24px + env(safe-area-inset-top, 0px));
   transform: translateX(-50%);
   z-index: 48;
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: min(840px, calc(100vw - 24px));
-  max-height: calc(100dvh - 28px);
+  max-height: calc(100dvh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   pointer-events: none;
 }
@@ -1433,7 +1464,7 @@
 
 @media (max-width: 640px) {
   .room-offer-overlay {
-    top: 8px;
+    top: calc(8px + env(safe-area-inset-top, 0px));
     width: calc(100vw - 16px);
   }
 }

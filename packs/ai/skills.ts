@@ -36,8 +36,8 @@ export const aiUnitSkills: Record<string, UnitSkill> = {
           { op: 'buff', at: 'self', stat: 'aspdPct', value: 35, ms: 999_999 },
           { op: 'buff', at: 'self', stat: 'penetrationFlat', value: 40, ms: 999_999 },
           { op: 'heal', at: 'self', scale: { flat: 40, hpPct: 10 } },
+          { op: 'stack', key: 'codexForm', add: 1, max: 1 },
         ] },
-        { op: 'stack', key: 'codexForm', add: 1, max: 1 },
       ],
     },
   },
@@ -192,10 +192,10 @@ export const aiUnitSkills: Record<string, UnitSkill> = {
     ],
   },
   'ai-musespark': {
-    name: '长文检索', mana: 45,
+    name: '填个邀请码', mana: 45,
     cast: [
-      { op: 'damage', at: 'farthestFoes', count: 1, type: 'magic', scale: { flat: 40, atkPct: 200 } },
-      { op: 'buff', at: 'allies', stat: 'range', value: 1, ms: 6000 },
+      { op: 'gainMana', at: 'lowestManaAllies', count: 2, amount: 10, amountByStar: [10, 20, 30] },
+      { op: 'gainMana', amount: 5, amountByStar: [5, 10, 15] },
     ],
   },
 

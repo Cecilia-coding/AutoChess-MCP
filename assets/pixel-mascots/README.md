@@ -2,15 +2,13 @@
 
 29 个角色（含隐藏 Codex），24×24 基础像素网格，透明 PNG。Muse 已改为用户参考图中的米色毛绒豆子：浅奶油脸、两条短脚、双手空着，没有红心或道具。保留内部 ID `ai-musespark`。
 
-新增：按角色主色绘制的普攻和按棋谱技能设计的特效，详见 [普攻与技能接入说明](EFFECTS.md)。Claude 为橘色，GPT / Codex 为黑白；技能名称与 `packs/ai/skills.ts` 对齐。
-
-已补齐当前 AI 技能表的被动钩子、受击触发、条件救场、阵亡传火、追加攻击及四类角色风控事件，另有全角色共用状态动画。见 [被动与事件接入说明](EVENTS.md)。预览新增事件选择、循环和全角色轮播。
-
 ![角色总览](contact-sheet.png)
 
 ## 给接入端的说明
 
-这次提交只增加素材包，没有修改棋谱、战斗结算、技能或现有 Web 客户端。直接读取 [manifest.json](manifest.json) 的 ID、帧坐标和时长即可；也可以加载两个独立绘制脚本。`preview/motion.js` 的木桩伤害和时间轴只是演示，不能作为正式战斗逻辑。
+素材已接入人机棋的 Canvas 2D 棋盘与角色头像。运行时读取 [manifest.json](manifest.json) 的 ID、帧坐标和时长；`lib/autochess/pixel-arena.ts` 使用真实战斗事件驱动动画。也可以独立使用两个绘制脚本。`preview/motion.js` 的木桩伤害和时间轴只用于素材演示。
+
+从项目根目录运行 `npm run prepare:assets` 会按 manifest 将运行文件复制到生成目录 `public/pixel-mascots`；开发启动和构建自动执行此步骤。修改源素材后重新运行即可，无需手改生成目录。`npm run preview:pixels` 提供真实引擎的棋盘预览。
 
 | 文件 | 用途 |
 | --- | --- |
@@ -21,9 +19,7 @@
 | `preview/mascots.js` | 24×24 身体绘制源码、颜色与脸部位置 |
 | `preview/renderer.js` | 不依赖预览页面或战斗状态的绘制 API |
 | `preview/index.html` | 可直接打开的完整动作演示 |
-| `preview/effects.js` | 独立普攻、像素弹道、斩击、冲击与主色配置 |
-| `preview/skills.js` | 28 个主动技能的视觉编排及 Codex 被动换形展示 |
-| `preview/motion.js` | 预览控制器；技能分支与辅助木桩场景 |
+| `preview/motion.js` | 演示控制器，以及弹道、斩击、命中碎屑的参考画法 |
 
 ## 最小接入
 
@@ -33,13 +29,13 @@
 4. 每帧为 64×64；落脚点锚点为 `(32,40)`。角色的逻辑网格位于帧内 `(20,16)`，留白用于倾斜、倒下和漫画惊讶特效。使用整数倍缩放与 nearest-neighbor，关闭平滑采样。图集每段一行，未使用的尾部格子为空，不属于动画。
 5. `shock/*` 帧已经包括局部漫画放射线、叹号和汗滴。GPT 泡泡壳独立叠加，以正式护盾状态驱动；图集没有烘焙护盾，避免它一直存在。
 
-角色 PNG 的攻击帧包含蓄力、前冲和收回；独立普攻特效位于 `effects/attacks/`，技能基础特效和状态标记位于 `effects/` 与 `effects/symbols/`，坐标由正式战斗事件提供。角色 `previewRole` 只供演示，不替代棋谱的实际职责和技能。
+PNG 的攻击帧包含蓄力、前冲和收回；飞行弹道与命中碎屑需接入端根据目标坐标绘制，可参考演示控制器。角色 `previewRole` 只供演示选特效，不替代棋谱的实际职责和技能。
 
 ## Muse 替换约定
 
 - 显示名和形象：`Muse`，米色毛绒豆子，空手。
 - 素材文件和内部键：继续使用 `ai-musespark` / `musespark`，不新增单位、不迁移存档、不改技能键。
-- 接入游戏时，修改 `packs/ai/roster.ts` 该棋子的两处展示文案 `Muse Spark` → `Muse`；保留所有 `ai-musespark` 字符串和数值。同步 `packs/ai/README.md` 的展示名即可。本提交尚未改这些游戏文件。
+- 游戏展示名已同步为 `Muse`，内部 `ai-musespark` ID 保留。棋子改为 3 费辅助，技能「填个邀请码」向低上下文队友发放战斗 Token，并给自己邀请奖励；具体星级数值见 `packs/ai/README.md`。
 - 查询了 [Muse 官方介绍](https://muse.ai/blog/how-we-designed-muse) 和 [Meta 发布说明](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/)。官方蓝色手写 m 是产品标志；本素材按用户提供的内部角色参考图绘制，**没有采用蓝色标志，也没有参考图手中的红心**。
 
 ## 直接用绘制源码
@@ -75,9 +71,17 @@ npm run validate
 npm run check
 ```
 
+根目录先运行 `npm run preview:pixels` 后，在本素材目录运行 `npm run check:game` 可检查真实棋盘的素材加载、暂停回放、拖动上场、敌方落点限制、撤回、出售及桌面/手机尺寸。支持 `CHROMIUM_PATH` 指定浏览器、`PIXEL_PREVIEW_URL` 指定预览地址、`PIXEL_CHECK_OUTPUT` 指定截图目录，默认截图写入根目录 `.tmp/pixel-check`。
+
 导出器只加载画图源码，没有启动游戏或模拟结算。检查覆盖 roster ID、透明图集大小、帧边界和动画内容，以及预览里的血量表情切换、单次攻击打点、阵亡复活、走路、手机布局。
 
 ## 已定稿的外观细节
+
+- Qwen 按[官方仓库标志](https://github.com/QwenLM/Qwen)重绘像素轮廓，保留紫色三向折带、中央三角形与交织留白，加上表情和两只短脚；头像与动作图集从同一源码导出。像素描摹参照[标志矢量图](https://commons.wikimedia.org/wiki/File:Qwen_Logo.svg)。
+
+`effects/manifest.json` 包含 29 套专属颜色普攻、技能阶段图集和符号；`effects/events/manifest.json` 包含 36 类、317 段状态与被动演示。`npm run export` 同时重导出角色、技能和事件素材。Muse 的技能演示已同步为“填个邀请码”。
+
+游戏接入由 `packs/ai/presentation` 管理。演示图鉴用于查看素材，实际游戏只按真实结算事件触发对应效果。`check:game` 还覆盖缩放、平移、双指手势、购买、刷新与固定面板布局。
 
 - 所有角色两条短脚。Claude 为橙色放射花形；GPT 黑白编织体、无外圈白边，泡泡壳独立；Codex 黑色终端、白色提示符。
 - 豆包红围巾、棕色头发和棕色脚，无发卡、无蓝脚。

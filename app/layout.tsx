@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono, Noto_Serif_SC } from 'next/font/google';
 import './globals.css';
 
@@ -17,6 +17,12 @@ const notoSerif = Noto_Serif_SC({
   subsets: ['latin'],
   weight: ['600', '700'],
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   title: 'AutoChess MCP',

@@ -38,10 +38,13 @@
 .unit-dossier .dossier-skill { border-left:2px solid var(--dossier-accent);padding:1px 12px 5px;background:linear-gradient(90deg,#eee4ef66,transparent); }
 .unit-dossier p { font-size:12px;line-height:1.75;color:#6c5b72;margin:6px 0;overflow-wrap:anywhere; }
 .unit-dossier .dossier-equipment { margin-top:14px;border-top:1px solid #e4dae5;padding-top:2px; }
-.unit-dossier .dossier-item { display:flex;gap:10px;padding:8px 0; }
-.unit-dossier .dossier-item>img { width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid #e4dae5; }
+.unit-dossier .dossier-item { display:flex;align-items:flex-start;gap:10px;padding:8px 0; }
+.unit-dossier .dossier-item>img { width:34px;height:34px;flex:none;border-radius:6px;object-fit:cover;border:1px solid #e4dae5; }
+.unit-dossier .dossier-item-body { flex:1;min-width:0; }
 .unit-dossier .dossier-item strong { font-size:12px;color:#5b405e; }
 .unit-dossier .dossier-item p { margin:2px 0 0;font-size:11px; }
+.unit-dossier .dossier-unequip { flex:none;align-self:center;padding:3px 9px;font-size:11px;border-radius:5px;border:1px solid #d5c5d8;background:#fff;color:#6b446c;cursor:pointer;white-space:nowrap; }
+.unit-dossier .dossier-unequip:hover { border-color:var(--dossier-accent);background:#faf3fa;color:#4a2652; }
 .unit-dossier .dossier-consumed { font-size:12px;color:#80697d; }
 .unit-dossier .dossier-consumed summary { cursor:pointer; }
 .unit-dossier .peach-inspect-actions { gap:6px; }

@@ -13,7 +13,7 @@ import { MatchQueue } from '../lib/accounts/matchmaking';
 import { MachineInviteService } from '../lib/autochess/machine-invite';
 import { SocialInvitations } from '../lib/autochess/social-invitations';
 import { humanInvitationGuide, machineInvite, playerMcpUrl } from '../lib/autochess/invite-copy';
-import { listedCosmetics, DEFAULT_BOARD_SKIN } from '../lib/meta/cosmetics';
+import { COSMETICS, listedCosmetics, DEFAULT_BOARD_SKIN } from '../lib/meta/cosmetics';
 import { CURRENCY, EXCHANGE_BOT_PER_HUMAN, MATCH_REWARD } from '../lib/meta/economy';
 import { EchoTreeStore } from '../lib/accounts/echo-tree-store';
 import { ECHO_GUIDE, type EchoQuery } from '../lib/meta/echo-tree';
@@ -43,6 +43,7 @@ function publicUrl(pathname = '', endpoint: PublicEndpoint = 'web'): string {
 }
 const publicOrigin = publicUrl();
 const cursorEnabled = process.env.CHESS_DISABLE_CURSOR !== '1';
+const cosmeticsSandbox = process.env.CHESS_COSMETICS_SANDBOX === '1';
 const accountDir = resolve(process.env.CHESS_ACCOUNT_DATA ?? '.local/accounts');
 /** 回音树：全站公共展示流，与私人赠礼簿分开。 */
 const echoTree = new EchoTreeStore(accountDir);
@@ -101,7 +102,7 @@ app.post('/platform/autochess', async(req,res)=>{
 app.post('/room', async(req,res)=>{
   try {
     const {op,...args}=req.body;
-    if(op==='config') res.json({cursorEnabled,slim,mcpUrl:publicUrl('/mcp','mcp'),packs:packAvailability.enabledPacks()});
+    if(op==='config') res.json({cursorEnabled,slim,mcpUrl:publicUrl('/mcp','mcp'),packs:packAvailability.enabledPacks(),cosmeticsSandbox});
     else if(op==='pack_flags'||op==='set_pack_enabled') {
       if (slim || !accounts.authenticate(args.token)?.isAdmin) { res.status(403).json({error:'只有管理员可以管理棋谱'}); return; }
       const packs = op==='set_pack_enabled' ? packAvailability.setEnabled(args.packId,args.enabled) : packAvailability.allPacks();
@@ -200,7 +201,7 @@ app.post('/meta', async (req, res) => {
     if (op === 'catalog') {
       res.json(slim
         ? { cosmetics: [], currencies: CURRENCY, exchange: EXCHANGE_BOT_PER_HUMAN, reward: MATCH_REWARD, defaultSkin: DEFAULT_BOARD_SKIN, slim }
-        : { cosmetics: listedCosmetics(), currencies: CURRENCY, exchange: EXCHANGE_BOT_PER_HUMAN, reward: MATCH_REWARD, defaultSkin: DEFAULT_BOARD_SKIN, wheelEnabled: accounts.wheelOptions.enabled === true }
+        : { cosmetics: cosmeticsSandbox ? COSMETICS : listedCosmetics(), currencies: CURRENCY, exchange: EXCHANGE_BOT_PER_HUMAN, reward: MATCH_REWARD, defaultSkin: DEFAULT_BOARD_SKIN, wheelEnabled: accounts.wheelOptions.enabled === true, sandbox: cosmeticsSandbox }
       );
     }
     else if (op === 'leaderboard') {

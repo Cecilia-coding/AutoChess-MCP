@@ -20,9 +20,11 @@ export type PackDefinition = {
   items: ItemDef[];
   skills?: Record<string, UnitSkill>;
   terms: PackTerms;
+  presentation?: { renderer: 'pixel-2d' | '3d'; appearanceId?: string; soundId?: string };
   opening?: { readonly label: string; readonly tiers: readonly (readonly string[])[] };
   hexes?: readonly HexDef[];
   kitItems?: readonly string[];
+  draftIntro?: string;
   draftTiles?: readonly { name: string; detail: string }[];
 };
 

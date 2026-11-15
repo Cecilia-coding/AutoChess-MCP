@@ -15,7 +15,8 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@autochess/chess-engine": ["./packages/chess-engine/src/index.ts"]
     }
   },
   "include": [

@@ -6,13 +6,14 @@ export type Tile = {
   coordinate: [number, number];
 };
 
+/** 公共棋盘只提供中性旅途拓扑与兜底地名；各扩展包通过 `draftTiles` 覆盖专属地名。 */
 const stops: readonly [string, string, Tile['type']][] = [
-  ['开机自检', '启程', 'rest'], ['训练集群', '预热', 'encounter'], ['数据集', '清洗', 'fortune'],
-  ['推理服务', '上线', 'encounter'], ['模型市场', '逛摊', 'shop'], ['开源社区', '协作', 'rest'],
-  ['微调工坊', '炼丹', 'fortune'], ['算力荒原', '抢卡', 'boss'], ['长文本深海', '翻书', 'encounter'],
-  ['Token 集市', '买量', 'shop'], ['缓存池', '歇脚', 'rest'], ['提示词夜市', '套话', 'encounter'],
-  ['多模态广场', '看图', 'fortune'], ['对齐实验室', '考核', 'boss'], ['限流峡谷', '排队', 'encounter'],
-  ['幻觉迷宫', '试错', 'encounter'], ['回滚机房', '兜底', 'rest'], ['部署上线', '收工', 'fortune'],
+  ['启程点', '启程', 'rest'], ['前路驿站', '相遇', 'encounter'], ['奇缘石碑', '探秘', 'fortune'],
+  ['林间岔道', '同行', 'encounter'], ['行商早摊', '淘货', 'shop'], ['清泉歇脚', '休整', 'rest'],
+  ['藏宝古龛', '寻珍', 'fortune'], ['险关渡口', '试炼', 'boss'], ['长桥风口', '问路', 'encounter'],
+  ['百货集市', '拾遗', 'shop'], ['避风草亭', '调息', 'rest'], ['晚钟长亭', '听闻', 'encounter'],
+  ['星灯祈愿', '求缘', 'fortune'], ['关隘重门', '考较', 'boss'], ['乱石险坡', '涉险', 'encounter'],
+  ['迷雾幽谷', '试错', 'encounter'], ['安营宿夜', '养神', 'rest'], ['晨光终点', '收官', 'fortune'],
 ];
 
 const coordinates: readonly [number, number][] = [
@@ -26,6 +27,16 @@ export const TILE_COUNT = tiles.length;
 export const typeLabel: Record<Tile['type'], string> = {
   encounter: '对局', rest: '休整', fortune: '机缘', boss: '关隘', shop: '商店',
 };
+
+/** 将扩展包声明的选秀地名覆写到公共旅途拓扑骨架上。 */
+export function resolveTiles(packTiles?: readonly { name: string; detail: string }[]): Tile[] {
+  if (!packTiles?.length) return tiles;
+  return tiles.map((tile, index) => ({
+    ...tile,
+    name: packTiles[index]?.name ?? tile.name,
+    detail: packTiles[index]?.detail ?? tile.detail,
+  }));
+}
 
 export function getTile(position: number): Tile {
   return tiles[position] ?? tiles[0]!;

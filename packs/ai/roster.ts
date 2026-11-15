@@ -129,11 +129,11 @@ const rawAiRoster: UnitDef[] = [
     manaByStar: [50, 50, 50],
     skillNote: '主动「全模态」：对随机2名敌人造成魔法伤害并降攻速。腾讯混元，微信生态，元宝随身。',
   }),
-  defineUnit('ai-musespark', 'Muse Spark', 3, 'ranged', 'ai-musespark', ['indie'], ['longcontext', 'reasoning'], 'Muse Spark', {
+  defineUnit('ai-musespark', 'Muse', 3, 'support', 'ai-musespark', ['indie'], ['longcontext', 'agent'], 'Muse', {
     autochessOnly: true, autochessSkillId: 'ai-musespark', source: 'ai',
     statTemplate: { hp: 820, atk: 50, armor: 75, mr: 75, aspd: 0.78, range: 3 },
     manaByStar: [45, 45, 45],
-    skillNote: 'Meta 的长上下文模型。主动「长文检索」：对最远敌人造成魔法伤害，并提升全队射程。',
+    skillNote: '会记住你的事、主动帮忙的个人智能体，米色小人正忙着发邀请码。主动「填个邀请码」：为上下文比例最低的两名其他队友各回复 10/20/30 点上下文，自己获得 5/10/15 点邀请奖励；回复不超过各自上限。Token 奖励仅用于本场战斗。',
   }),
 
   // ── 多模态模型 ──────────────────────────────────────────

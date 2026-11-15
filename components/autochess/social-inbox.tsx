@@ -1,9 +1,11 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { SocialInvite, SocialSnapshot } from '@/lib/autochess/social-types';
 import type { RoomCredentials } from '@/lib/autochess/room-types';
 import { accountRequest } from './room-request';
 import { readAccountToken } from './account-session';
+import { PixelIcon } from './pixel-ui/pixel-icon';
+import { PixelSprite } from './pixel-ui/pixel-sprite';
 import './social-inbox.css';
 
 export function useSocialInbox(enabled = true) {
@@ -11,17 +13,18 @@ export function useSocialInbox(enabled = true) {
   const [error, setError] = useState('');
   useEffect(() => {
     if (!enabled) return;
-    let stopped = false, sequence = 0, flight = false;
+    let stopped = false, sequence = 0, flight = false, dirty = false;
     const refresh = async () => {
-      if (flight || stopped || document.hidden) return;
+      if (stopped || document.hidden) return;
+      if (flight) { dirty = true; return; }
       const token = readAccountToken();
       if (!token) { setData(null); setError(''); return; }
-      const request = ++sequence; flight = true;
+      const request = ++sequence; flight = true; dirty = false;
       try {
         const result = await accountRequest<SocialSnapshot>('social', { token });
         if (!stopped && request === sequence && readAccountToken() === token) { setData(result); setError(''); }
       } catch (cause) { if (!stopped && request === sequence && readAccountToken() === token) { setData(null); setError((cause as Error).message); } }
-      finally { flight = false; }
+      finally { flight = false; if (dirty && !stopped) { dirty = false; void refresh(); } }
     };
     const changed = () => { sequence++; setData(null); setError(''); void refresh(); };
     const visible = () => { if (!document.hidden) void refresh(); };
@@ -42,7 +45,62 @@ type Acceptance = { invitation: SocialInvite; seat?: RoomCredentials; presentati
 /** Extension point: presentation receives a committed receipt, never performs admission itself. */
 export async function presentInvitationAcceptance(_receipt: Acceptance): Promise<void> {}
 
-export default function SocialInbox({ onEnterRoom }: { onEnterRoom: (seat: RoomCredentials) => void }) {
+type SocialInboxController = {
+  available: boolean;
+  count: number;
+  open: () => void;
+};
+
+const SocialInboxContext = createContext<SocialInboxController>({
+  available: false,
+  count: 0,
+  open: () => {},
+});
+
+export function SocialInboxTrigger({
+  variant = 'lobby',
+  className = '',
+}: {
+  variant?: 'lobby' | 'pixel' | 'menu';
+  className?: string;
+}) {
+  const { available, count, open } = useContext(SocialInboxContext);
+  if (!available) return null;
+  if (variant === 'pixel') {
+    return (
+      <button
+        type="button"
+        className={`pixel-hud-slot social-inbox-slot ${count ? 'has-unread' : ''} ${className}`.trim()}
+        aria-label={count ? `邀约箱（${count} 条待处理）` : '邀约箱'}
+        title={count ? `邀约箱 · ${count} 条待处理` : '邀约箱'}
+        onClick={open}
+      >
+        <PixelIcon name="mail" size={13} />
+        <span className="pixel-hud-slot-label">邀约</span>
+        {count ? <b className="pixel-hud-badge">{count}</b> : null}
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className={`social-inbox-btn social-inbox-btn--${variant} ${count ? 'has-unread' : ''} ${className}`.trim()}
+      onClick={open}
+    >
+      <PixelSprite name="loveMail" size={14} />
+      <span>邀约箱</span>
+      {count ? <b className="social-inbox-count">{count}</b> : null}
+    </button>
+  );
+}
+
+export default function SocialInbox({
+  onEnterRoom,
+  children,
+}: {
+  onEnterRoom: (seat: RoomCredentials) => void;
+  children?: ReactNode;
+}) {
   const { data, error: loadError } = useSocialInbox();
   const [open, setOpen] = useState(false), [busy, setBusy] = useState(''), [error, setError] = useState('');
   const [handled, setHandled] = useState<string[]>([]);
@@ -66,22 +124,24 @@ export default function SocialInbox({ onEnterRoom }: { onEnterRoom: (seat: RoomC
     finally { locked.current = false; setBusy(''); }
   };
   const inbox = data?.inbox.filter(invite => !handled.includes(invite.id)) ?? [];
-  return <>
-    {data ? <button className="social-inbox-toggle" onClick={() => setOpen(true)}>✉ 邀约箱{inbox.length ? ` · ${inbox.length}` : ''}</button> : null}
-    <dialog className="social-inbox-dialog" ref={dialog} onCancel={() => setOpen(false)} onClose={() => setOpen(false)}>
-      <header><h2>邀约箱</h2><button aria-label="关闭邀约箱" onClick={() => setOpen(false)}>×</button></header>
-      <p>棋友在线 {data?.humans.filter(peer => peer.presence === 'online').length ?? 0} · 我的机 {data?.machines.length ?? 0}</p>
-      {data?.currentRoom ? <button onClick={() => { setOpen(false); onEnterRoom(data.currentRoom!); }}>继续我的棋局</button> : null}
-      <details><summary>看看谁在</summary>{data?.humans.map(peer => <p key={peer.id}>棋友 · {peer.username} · {peer.inGame ? '对局中' : '在线'}</p>)}{data?.machines.map(peer => <p key={peer.id}>机 · {peer.username} · {peer.inGame ? '对局中' : peer.presence === 'recent' ? '近期有响应' : '暂未响应'}</p>)}<p>开房后，在房间菜单的「邀请同席」直接发邀请。</p></details>
-      {(['human','machine'] as const).map(kind => <section key={kind}><h3>{kind === 'human' ? '棋友的邀请' : '机的邀请'}</h3>
-        {inbox.filter(invite => invite.fromKind === kind).map(invite => <article key={invite.id}>
-          <strong>{invite.fromName}</strong><p>邀你同席 · {invite.packName}</p>
-          <div><button disabled={!!busy} onClick={() => void respond(invite,true)}>{busy === invite.id ? '处理中…' : '接受入座'}</button><button disabled={!!busy} onClick={() => void respond(invite,false)}>这次先不了</button></div>
-        </article>)}
-        {!inbox.some(invite => invite.fromKind === kind) ? <p>暂时没有新的邀请。</p> : null}
-      </section>)}
-      <details><summary>我发出的邀请</summary>{data?.sent.map(invite => <p key={invite.id}>{invite.toKind === 'machine' ? '机 · ' : '棋友 · '}{invite.toName} · {invitationLabel(invite)}</p>)}</details>
-      {error || loadError ? <p role="alert">{error || loadError}</p> : null}
-    </dialog>
-  </>;
+  return (
+    <SocialInboxContext.Provider value={{ available: !!data, count: inbox.length, open: () => setOpen(true) }}>
+      {children}
+      <dialog className="social-inbox-dialog" ref={dialog} onCancel={() => setOpen(false)} onClose={() => setOpen(false)}>
+        <header><h2>邀约箱</h2><button aria-label="关闭邀约箱" onClick={() => setOpen(false)}>×</button></header>
+        <p>棋友在线 {data?.humans.filter(peer => peer.presence === 'online').length ?? 0} · 我的机 {data?.machines.length ?? 0}</p>
+        {data?.currentRoom ? <button onClick={() => { setOpen(false); onEnterRoom(data.currentRoom!); }}>继续我的棋局</button> : null}
+        <details><summary>看看谁在</summary>{data?.humans.map(peer => <p key={peer.id}>棋友 · {peer.username} · {peer.inGame ? '对局中' : '在线'}</p>)}{data?.machines.map(peer => <p key={peer.id}>机 · {peer.username} · {peer.inGame ? '对局中' : peer.presence === 'recent' ? '近期有响应' : '暂未响应'}</p>)}<p>开房后，在房间菜单的「邀请同席」直接发邀请。</p></details>
+        {(['human','machine'] as const).map(kind => <section key={kind}><h3>{kind === 'human' ? '棋友的邀请' : '机的邀请'}</h3>
+          {inbox.filter(invite => invite.fromKind === kind).map(invite => <article key={invite.id}>
+            <strong>{invite.fromName}</strong><p>邀你同席 · {invite.packName}</p>
+            <div><button disabled={!!busy} onClick={() => void respond(invite,true)}>{busy === invite.id ? '处理中…' : '接受入座'}</button><button disabled={!!busy} onClick={() => void respond(invite,false)}>这次先不了</button></div>
+          </article>)}
+          {!inbox.some(invite => invite.fromKind === kind) ? <p>暂时没有新的邀请。</p> : null}
+        </section>)}
+        <details><summary>我发出的邀请</summary>{data?.sent.map(invite => <p key={invite.id}>{invite.toKind === 'machine' ? '机 · ' : '棋友 · '}{invite.toName} · {invitationLabel(invite)}</p>)}</details>
+        {error || loadError ? <p role="alert">{error || loadError}</p> : null}
+      </dialog>
+    </SocialInboxContext.Provider>
+  );
 }

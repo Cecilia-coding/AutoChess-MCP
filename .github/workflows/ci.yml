@@ -38,6 +38,14 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Build shared engine and test authoring trials
+        run: |
+          npm ci --prefix packages/chess-engine --no-audit --no-fund
+          npm run build --prefix packages/chess-engine
+          npm ci --prefix packages/chess-authoring --no-audit --no-fund
+          npm run build --prefix packages/chess-authoring
+          npm test --prefix packages/chess-authoring
+
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 

@@ -19,7 +19,7 @@ const defs={
  copilot:['捆绑安装','install','附近友军青色护盾、全队加攻',0],
  ernie:['中文语料','area','紫色书页在目标处展开，范围命中、两敌破防',1],
  hunyuan:['全模态','doubleSlow','两束玉绿光分别命中两敌，挂减速钟',1],
- musespark:['长文检索','search','米色检索框锁住最远敌人；全队射程增益',1],
+ musespark:['填个邀请码','invite','米色邀请码送给两名友军，自己与收件者获得 Token 奖励',0],
  gemini:['得意的Gemini','gamble','普通星爆 / 超常大星爆、破防与自身加速',1],
  xiaoice:['元老社牛','install','冰蓝护盾保护附近友军、全队加攻',0],
  nai:['画出来','paint','紫色笔迹画向当前目标，墨花命中',1],
@@ -79,7 +79,7 @@ function draw(g,id,{ageMs=0,source={x:180,y:150},allies=[],foes=[{x:420,y:150}],
   case 'install':if(started){friends.forEach(aura);buff(friends,'attack');}break;
   case 'area':rays([target]);if(started){burst(target,1.5);enemies.slice(0,2).forEach(pt=>token(pt,'armor'));}if(id==='ernie')token(target,'page',0);break;
   case 'doubleSlow':rays(enemies.slice(0,2));if(started)buff(enemies.slice(0,2),'slow');break;
-  case 'search':token(far,'frame',0);rays([far]);if(started)buff(friends,'range');break;
+  case 'invite':if(started)friends.slice(0,3).forEach(pt=>token(pt,'page'));break;
   case 'gamble':rays([target]);if(started){burst(target,variant===1?1.8:.9);if(variant===1){buff(enemies.slice(0,2),'armor');token(source,'speed');}else token(target,'slow');}break;
   case 'paint':if(age>=280){line(g,source,target,t.main,2);token(target,'page',0);}if(started)burst(target);break;
   case 'doubleCube':rays(enemies.slice(0,2));enemies.slice(0,2).forEach(pt=>token(pt,'cube',0));break;

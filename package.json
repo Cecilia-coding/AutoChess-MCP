@@ -7,6 +7,11 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "prepare:assets": "tsx scripts/prepare-pixel-assets.ts",
+    "preview:pixels": "npm run prepare:assets && vite --config vite.pixels.config.ts",
+    "predev": "npm run prepare:assets",
+    "prebuild": "npm run prepare:assets",
+    "prebuild:local": "npm run prepare:assets",
     "dev": "vinext dev",
     "build": "vite build",
     "build:local": "vite build --mode localpreview",

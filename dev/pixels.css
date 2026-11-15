@@ -1,0 +1,30 @@
+html,
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #201d20;
+}
+#arena {
+  position: absolute;
+  inset: 0;
+}
+.pixel-game {
+  max-width: 1920px;
+  margin: 0 auto;
+}
+#traits > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  border-bottom: 1px solid #594434;
+  padding: 9px 0;
+}
+#traits b {
+  color: #b6c293;
+  font-family: monospace;
+}
+#journal {
+  max-height: 180px;
+  overflow: auto;
+}

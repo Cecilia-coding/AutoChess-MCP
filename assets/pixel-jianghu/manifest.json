@@ -1,0 +1,902 @@
+{
+  "version": 1,
+  "pack": "jianghu",
+  "frame": {
+    "width": 64,
+    "height": 64,
+    "columns": 8,
+    "rows": 17,
+    "anchor": {
+      "x": 32,
+      "y": 40
+    }
+  },
+  "atlas": {
+    "width": 512,
+    "height": 1088
+  },
+  "clips": {
+    "happy/idle": {
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ]
+    },
+    "happy/walk": {
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ]
+    },
+    "happy/attack": {
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 64,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 128,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 192,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 256,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 320,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        }
+      ]
+    },
+    "happy/hurt": {
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ]
+    },
+    "serious/idle": {
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ]
+    },
+    "serious/walk": {
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ]
+    },
+    "serious/attack": {
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 64,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 128,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 192,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 256,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 320,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        }
+      ]
+    },
+    "serious/hurt": {
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 448,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 448,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 448,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ]
+    },
+    "cry/idle": {
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ]
+    },
+    "cry/walk": {
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ]
+    },
+    "cry/attack": {
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 64,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 128,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 192,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 256,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 320,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        }
+      ]
+    },
+    "cry/hurt": {
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 704,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 704,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 704,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ]
+    },
+    "shock/idle": {
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ]
+    },
+    "shock/walk": {
+      "loop": true,
+      "frames": [
+        {
+          "x": 0,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ]
+    },
+    "shock/attack": {
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 64,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 128,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 192,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 256,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        },
+        {
+          "x": 320,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 135
+        }
+      ]
+    },
+    "shock/hurt": {
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 960,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 960,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 960,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ]
+    },
+    "dead": {
+      "loop": false,
+      "frames": [
+        {
+          "x": 0,
+          "y": 1024,
+          "w": 64,
+          "h": 64,
+          "durationMs": 160
+        },
+        {
+          "x": 64,
+          "y": 1024,
+          "w": 64,
+          "h": 64,
+          "durationMs": 160
+        },
+        {
+          "x": 128,
+          "y": 1024,
+          "w": 64,
+          "h": 64,
+          "durationMs": 160
+        },
+        {
+          "x": 192,
+          "y": 1024,
+          "w": 64,
+          "h": 64,
+          "durationMs": 160
+        }
+      ]
+    }
+  },
+  "effects": {
+    "ward": {
+      "file": "effects/ward.png",
+      "width": 64,
+      "height": 64,
+      "anchor": {
+        "x": 32,
+        "y": 40
+      }
+    }
+  },
+  "units": [
+    {
+      "id": "jh-boatgirl",
+      "name": "阿桃",
+      "atlas": "atlases/jh-boatgirl.png",
+      "portrait": "portraits/jh-boatgirl.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-hauler",
+      "name": "纤夫老黑",
+      "atlas": "atlases/jh-hauler.png",
+      "portrait": "portraits/jh-hauler.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-sailor",
+      "name": "水手",
+      "atlas": "atlases/jh-sailor.png",
+      "portrait": "portraits/jh-sailor.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-lamp",
+      "name": "灯油妹",
+      "atlas": "atlases/jh-lamp.png",
+      "portrait": "portraits/jh-lamp.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-clerk",
+      "name": "账房",
+      "atlas": "atlases/jh-clerk.png",
+      "portrait": "portraits/jh-clerk.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-medic",
+      "name": "船医",
+      "atlas": "atlases/jh-medic.png",
+      "portrait": "portraits/jh-medic.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-helmsman",
+      "name": "舵爷",
+      "atlas": "atlases/jh-helmsman.png",
+      "portrait": "portraits/jh-helmsman.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-storeman",
+      "name": "仓管",
+      "atlas": "atlases/jh-storeman.png",
+      "portrait": "portraits/jh-storeman.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-canal-lord",
+      "name": "漕帮主",
+      "atlas": "atlases/jh-canal-lord.png",
+      "portrait": "portraits/jh-canal-lord.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-hebo",
+      "name": "河伯会首",
+      "atlas": "atlases/jh-hebo.png",
+      "portrait": "portraits/jh-hebo.png",
+      "color": "#5d8a82"
+    },
+    {
+      "id": "jh-outrider",
+      "name": "趟子手",
+      "atlas": "atlases/jh-outrider.png",
+      "portrait": "portraits/jh-outrider.png",
+      "color": "#a85258"
+    },
+    {
+      "id": "jh-cook",
+      "name": "厨子",
+      "atlas": "atlases/jh-cook.png",
+      "portrait": "portraits/jh-cook.png",
+      "color": "#a85258"
+    },
+    {
+      "id": "jh-escort",
+      "name": "镖师沈横",
+      "atlas": "atlases/jh-escort.png",
+      "portrait": "portraits/jh-escort.png",
+      "color": "#a85258"
+    },
+    {
+      "id": "jh-outrunner",
+      "name": "押镖",
+      "atlas": "atlases/jh-outrunner.png",
+      "portrait": "portraits/jh-outrunner.png",
+      "color": "#a85258"
+    },
+    {
+      "id": "jh-chief",
+      "name": "总镖头",
+      "atlas": "atlases/jh-chief.png",
+      "portrait": "portraits/jh-chief.png",
+      "color": "#a85258"
+    },
+    {
+      "id": "jh-carter",
+      "name": "车夫",
+      "atlas": "atlases/jh-carter.png",
+      "portrait": "portraits/jh-carter.png",
+      "color": "#a85258"
+    },
+    {
+      "id": "jh-escort-lady",
+      "name": "女镖头",
+      "atlas": "atlases/jh-escort-lady.png",
+      "portrait": "portraits/jh-escort-lady.png",
+      "color": "#a85258"
+    },
+    {
+      "id": "jh-garrison",
+      "name": "总镇",
+      "atlas": "atlases/jh-garrison.png",
+      "portrait": "portraits/jh-garrison.png",
+      "color": "#a85258"
+    },
+    {
+      "id": "jh-shiv",
+      "name": "短刀阿七",
+      "atlas": "atlases/jh-shiv.png",
+      "portrait": "portraits/jh-shiv.png",
+      "color": "#5a627d"
+    },
+    {
+      "id": "jh-beggar",
+      "name": "叫花",
+      "atlas": "atlases/jh-beggar.png",
+      "portrait": "portraits/jh-beggar.png",
+      "color": "#5a627d"
+    },
+    {
+      "id": "jh-nightblade",
+      "name": "夜行人",
+      "atlas": "atlases/jh-nightblade.png",
+      "portrait": "portraits/jh-nightblade.png",
+      "color": "#5a627d"
+    },
+    {
+      "id": "jh-flyer",
+      "name": "飞贼",
+      "atlas": "atlases/jh-flyer.png",
+      "portrait": "portraits/jh-flyer.png",
+      "color": "#5a627d"
+    },
+    {
+      "id": "jh-bladehead",
+      "name": "梅十三",
+      "atlas": "atlases/jh-bladehead.png",
+      "portrait": "portraits/jh-bladehead.png",
+      "color": "#5a627d"
+    },
+    {
+      "id": "jh-swordsman",
+      "name": "剑客",
+      "atlas": "atlases/jh-swordsman.png",
+      "portrait": "portraits/jh-swordsman.png",
+      "color": "#5a627d"
+    },
+    {
+      "id": "jh-shadow",
+      "name": "影",
+      "atlas": "atlases/jh-shadow.png",
+      "portrait": "portraits/jh-shadow.png",
+      "color": "#5a627d"
+    },
+    {
+      "id": "jh-fan",
+      "name": "票友小满",
+      "atlas": "atlases/jh-fan.png",
+      "portrait": "portraits/jh-fan.png",
+      "color": "#9e5575"
+    },
+    {
+      "id": "jh-drum",
+      "name": "司鼓",
+      "atlas": "atlases/jh-drum.png",
+      "portrait": "portraits/jh-drum.png",
+      "color": "#9e5575"
+    },
+    {
+      "id": "jh-huadan",
+      "name": "花旦彩衣",
+      "atlas": "atlases/jh-huadan.png",
+      "portrait": "portraits/jh-huadan.png",
+      "color": "#9e5575"
+    },
+    {
+      "id": "jh-wusheng",
+      "name": "武生",
+      "atlas": "atlases/jh-wusheng.png",
+      "portrait": "portraits/jh-wusheng.png",
+      "color": "#9e5575"
+    },
+    {
+      "id": "jh-qingyi",
+      "name": "青衣",
+      "atlas": "atlases/jh-qingyi.png",
+      "portrait": "portraits/jh-qingyi.png",
+      "color": "#9e5575"
+    },
+    {
+      "id": "jh-laosheng",
+      "name": "老生",
+      "atlas": "atlases/jh-laosheng.png",
+      "portrait": "portraits/jh-laosheng.png",
+      "color": "#9e5575"
+    },
+    {
+      "id": "jh-troupe-lead",
+      "name": "班主",
+      "atlas": "atlases/jh-troupe-lead.png",
+      "portrait": "portraits/jh-troupe-lead.png",
+      "color": "#9e5575"
+    },
+    {
+      "id": "jh-starlet",
+      "name": "当红名角",
+      "atlas": "atlases/jh-starlet.png",
+      "portrait": "portraits/jh-starlet.png",
+      "color": "#9e5575"
+    },
+    {
+      "id": "jh-runner",
+      "name": "捕快周平",
+      "atlas": "atlases/jh-runner.png",
+      "portrait": "portraits/jh-runner.png",
+      "color": "#4b5b7e"
+    },
+    {
+      "id": "jh-copyist",
+      "name": "书办",
+      "atlas": "atlases/jh-copyist.png",
+      "portrait": "portraits/jh-copyist.png",
+      "color": "#4b5b7e"
+    },
+    {
+      "id": "jh-secretary",
+      "name": "师爷吴签",
+      "atlas": "atlases/jh-secretary.png",
+      "portrait": "portraits/jh-secretary.png",
+      "color": "#4b5b7e"
+    },
+    {
+      "id": "jh-constable",
+      "name": "捕头",
+      "atlas": "atlases/jh-constable.png",
+      "portrait": "portraits/jh-constable.png",
+      "color": "#4b5b7e"
+    },
+    {
+      "id": "jh-inspector",
+      "name": "巡检",
+      "atlas": "atlases/jh-inspector.png",
+      "portrait": "portraits/jh-inspector.png",
+      "color": "#4b5b7e"
+    },
+    {
+      "id": "jh-magistrate",
+      "name": "知县",
+      "atlas": "atlases/jh-magistrate.png",
+      "portrait": "portraits/jh-magistrate.png",
+      "color": "#4b5b7e"
+    },
+    {
+      "id": "jh-governor",
+      "name": "巡抚",
+      "atlas": "atlases/jh-governor.png",
+      "portrait": "portraits/jh-governor.png",
+      "color": "#4b5b7e"
+    }
+  ]
+}

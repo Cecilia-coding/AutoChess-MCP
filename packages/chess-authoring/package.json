@@ -1,0 +1,32 @@
+{
+  "name": "@autochess/chess-authoring",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Portable chess-pack authoring contract, preview and isolated MCP/HTTP workshop",
+  "exports": {
+    ".": { "types": "./dist/core/index.d.ts", "import": "./dist/core/index.js" },
+    "./relay": { "types": "./dist/relay/hub.d.ts", "import": "./dist/relay/hub.js" },
+    "./play": { "types": "./dist/play/index.d.ts", "import": "./dist/play/index.js" }
+  },
+  "engines": { "node": ">=22.13.0" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "node dist/server/main.js",
+    "dev": "tsx src/server/main.ts",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@autochess/chess-engine": "file:../chess-engine",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "express": "5.3.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "@types/express": "5.0.6",
+    "@types/node": "22.19.19",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

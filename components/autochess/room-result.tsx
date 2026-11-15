@@ -19,11 +19,11 @@ export default function RoomResult({ result, finished, show, onReturn }: {
     ? `${result.reward.delta >= 0 ? '+' : ''}${result.reward.delta} ${CURRENCY[result.reward.currency].name}${result.reward.reason === 'short' ? ' · 本局未达奖励轮数' : result.reward.reason === 'cap' ? ' · 今日奖励已领完' : result.reward.reason === 'legacy' ? ' · 已结算' : ''}`
     : '本局为游客对局';
   return <>
-    {show && dismissed ? <button className="room-result-reopen" onClick={() => setDismissed(false)}>查看本局结算</button> : null}
+    {show && dismissed ? <button className="room-result-reopen" onClick={() => setDismissed(false)}>查看终局结算</button> : null}
     <dialog ref={dialog} className="room-result-dialog" aria-labelledby="room-result-title" onCancel={() => setDismissed(true)}>
       <section className={`room-result room-result-${result.outcome}`}>
-        <span>✦ 本局结算 · 第 {result.place} 名 / {result.participants} 人</span>
-        <h2 id="room-result-title">{result.outcome === 'win' ? '本局获胜' : result.outcome === 'draw' ? '此局平分秋色' : '本局落败'}</h2>
+        <span>✦ 终局结算 · 第 {result.place} 名 / {result.participants} 人</span>
+        <h2 id="room-result-title">{result.outcome === 'win' ? '最终胜利' : result.outcome === 'draw' ? '终局平局' : '最终惜败'}</h2>
         <p>{reward}</p>
         <small>{finished ? '全场结束' : '你的对局已结束，可以留下看他们打完。'}</small>
         <div className="room-result-actions">

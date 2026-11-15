@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MATCH_TABLES, MATCH_POLL_MS, type MatchResult, type MatchTable } from '@/lib/meta/matchmaking';
 import { accountRequest } from './room-request';
 import { MATCH_REWARD_PREVIEW, MATCHMAKING_REWARD } from '@/lib/meta/economy';
+import { PixelSprite } from './pixel-ui/pixel-sprite';
 import './matchmaking.css';
 
 export default function Matchmaking({ token, pack, onEnter }: {
@@ -49,14 +50,14 @@ export default function Matchmaking({ token, pack, onEnter }: {
     finally { mutation.current = false; if (alive.current) setPending(false); }
   }
   return <section className="match-hall" aria-label="匹配棋局">
-    <div className="match-heading"><div><h3>下一位棋友，会是谁？</h3><p>人和机，都在这里相遇。满员即开局。</p></div><span className="match-reward">胜方收益 ×{MATCHMAKING_REWARD.winMultiplier}</span></div>
+    <div className="match-heading"><div><h3><PixelSprite name="bow" size={14} /> 下一位棋友，会是谁？</h3><p>人和机，都在这里相遇。满员即开局。</p></div><span className="match-reward"><PixelSprite name="sparkle" size={11} /> 胜方收益 ×{MATCHMAKING_REWARD.winMultiplier}</span></div>
     <div className="match-tables">{MATCH_TABLES.map(table => {
       const own = match?.status === 'queued' && match.seatSize === table.seats;
       const census = tables.find(item => item.seatSize === table.seats);
       const filled = own ? match.filled : census?.filled;
       return <article key={table.mode} className={`match-table ${own ? 'is-queued' : ''}`}>
         <div className="match-table-title"><div><h4>{table.name}</h4><p>{table.subtitle}</p></div><strong>{filled ?? '—'}<small> / {table.seats}</small></strong></div>
-        <div className="match-seats" aria-label={`已到 ${filled ?? 0} 位，共 ${table.seats} 席`}>{Array.from({length:table.seats},(_,i)=><span key={i} className={i < (filled ?? 0) ? 'is-filled' : ''} aria-hidden="true">{i < (filled ?? 0) ? '♟' : '＋'}</span>)}</div>
+        <div className="match-seats" aria-label={`已到 ${filled ?? 0} 位，共 ${table.seats} 席`}>{Array.from({length:table.seats},(_,i)=>{const active = i < (filled ?? 0); return <span key={i} className={active ? 'is-filled' : ''} aria-hidden="true"><PixelSprite name={active ? 'sakuraHeart' : 'seatEmpty'} size={13} /></span>;})}</div>
         <p className="match-count">{own ? `还差 ${match.remaining} 位 · 已等待 ${Math.max(0,Math.floor((now-match.enqueuedAt)/1000))} 秒` : census ? `队列中 ${census.humans} 人 · ${census.machines} 机` : '登录后查看实时席位'}</p>
         <button type="button" className={own ? '' : 'lobby-primary'} disabled={!token || !pack || pending || (!!match && !own)} onClick={() => void change(own ? undefined : table.seats)}>{pending ? '正在确认…' : own ? '退出匹配' : '加入匹配'}</button>
       </article>;
@@ -64,7 +65,7 @@ export default function Matchmaking({ token, pack, onEnter }: {
     <p className="match-footnote">当前所选棋谱独立匹配 · 取消排队免费 · 离线超过 2 分钟释放排队席位</p>
     <p className="match-footnote">机的 1v1：胜 +{MATCH_REWARD_PREVIEW.machineDuelWin} / 负 {MATCH_REWARD_PREVIEW.machineDuelLoss} bot；八人按名次结算，负方最多扣 {Math.abs(MATCH_REWARD_PREVIEW.machineDuelLoss)}。人按铜钱结算。</p>
     {match?.status === 'queued' && match.pack !== pack ? <output>你仍在另一套棋谱的队列中。退出后可以换谱。</output> : null}
-    {match?.status === 'matched' ? <div className="match-found"><output>✦ 棋友已到齐，轮到你入场了</output><button className="lobby-primary" onClick={() => onEnter?.(match.roomId,match.token)}>进入棋局</button></div> : null}
+    {match?.status === 'matched' ? <div className="match-found"><output><PixelSprite name="sparkle" size={12} /> 棋友已到齐，轮到你入场了</output><button className="lobby-primary" onClick={() => onEnter?.(match.roomId,match.token)}>进入棋局</button></div> : null}
     {error ? <p className="match-error" role="alert">{error} · 可以重试，排队状态以服务端为准。</p> : null}
     {!token ? <p className="match-footnote">先去「我的」登录，再来挑一桌。</p> : null}
   </section>;

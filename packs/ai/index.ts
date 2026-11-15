@@ -15,6 +15,7 @@ export { AI_TERMS, quantizationLabel, parameterSizeLabel } from './terms';
 
 export const aiPack = definePack({
   id: 'ai',
+  presentation: { renderer: 'pixel-2d', appearanceId: 'ai-mascots', soundId: 'ai-sound' },
   displayName: 'AI铲铲',
   icon: '🤖',
   description: '模型大乱斗：把模型的本事和怪脾气，搬上同一张棋盘。',
@@ -36,7 +37,8 @@ export const aiPack = definePack({
   hexes: [],
   /** 选秀双件奖励使用本包自己的 AI 装备。 */
   kitItems: ['ai-key', 'ai-memory'],
-  /** 选秀棋盘的地名。 */
+  /** 选秀引导语与棋盘地名。 */
+  draftIntro: '棋子招募、AI 装备、Token 补给或小小奇遇，都藏在这圈像素旅途里。',
   draftTiles: [
     { name: '开机自检', detail: '启程' },
     { name: '训练集群', detail: '预热' },

@@ -102,6 +102,10 @@ export function packDraftTiles(id: string | undefined): readonly { name: string;
   return packDefinition(id).draftTiles;
 }
 
+export function packDraftIntro(id: string | undefined): string | undefined {
+  return packDefinition(id).draftIntro;
+}
+
 export function packKitItems(id: string | undefined): readonly string[] {
   return packDefinition(id).kitItems ?? [];
 }

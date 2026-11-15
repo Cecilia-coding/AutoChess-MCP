@@ -1,9 +1,10 @@
 'use client';
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
-import { echoIconOf, echoStyleOf, formatEchoLine, formatEchoTime, type EchoEvent } from '@/lib/meta/echo-tree';
+import { echoStyleOf, formatEchoLine, formatEchoTime, type EchoEvent } from '@/lib/meta/echo-tree';
 import { EchoLiveQueue, ECHO_LIVE_MAX_AGE_MS, ECHO_LIVE_POLL_MS } from '@/lib/meta/echo-live';
 import { metaRequest } from './room-request';
+import { PixelSprite, echoKindSpriteName } from './pixel-ui/pixel-sprite';
 import './echo-tree.css';
 
 /** 回音树面板：树上的一张张礼笺，点开看附言。样式令牌由 lib/meta/echo-tree.ts 驱动。 */
@@ -11,7 +12,7 @@ export function EchoTreePanel({ events, empty }: { events: EchoEvent[]; empty?: 
   const [openId, setOpenId] = useState<string | null>(null);
   return <section className="echo-tree" aria-label="回音树">
     <div className="echo-tree-heading">
-      <span className="echo-tree-mark" aria-hidden="true">✦</span>
+      <span className="echo-tree-mark" aria-hidden="true"><PixelSprite name="clover" size={18} /></span>
       <div>
         <h3>回音树</h3>
         <p>送礼成功会在这里留一张礼笺，全站都看得见。</p>
@@ -22,7 +23,7 @@ export function EchoTreePanel({ events, empty }: { events: EchoEvent[]; empty?: 
         const open = openId === event.id;
         return <li key={event.id} className={`echo-leaf echo-${echoStyleOf(event)}`}>
           <button type="button" className="echo-leaf-line" aria-expanded={open} onClick={() => setOpenId(open ? null : event.id)}>
-            <span className="echo-leaf-icon" aria-hidden="true">{echoIconOf(event.kind)}</span>
+            <span className="echo-leaf-icon" aria-hidden="true"><PixelSprite name={echoKindSpriteName(event.kind)} size={15} /></span>
             <span className="echo-leaf-text">{formatEchoLine(event)}</span>
             <time dateTime={new Date(event.at).toISOString()} title="按你的设备当地时间显示">{formatEchoTime(event.at)}</time>
           </button>
@@ -129,7 +130,7 @@ export function EchoBanner({ pollMs = ECHO_LIVE_POLL_MS, visibleMs = 9000 }: { p
 
   if (!current) return null;
   return createPortal(<output className={`echo-banner echo-${echoStyleOf(current)}`} aria-live="polite">
-    <span className="echo-banner-icon" aria-hidden="true">{echoIconOf(current.kind)}</span>
+    <span className="echo-banner-icon" aria-hidden="true"><PixelSprite name={echoKindSpriteName(current.kind)} size={14} /></span>
     <span className="echo-banner-text">{formatEchoLine(current)}</span>
     {current.note ? <span className="echo-banner-note">“{current.note}”</span> : null}
   </output>, document.querySelector('dialog[open]') ?? document.body);

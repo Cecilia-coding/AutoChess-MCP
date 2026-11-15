@@ -41,6 +41,7 @@ scripts/__pycache__/
 .vercel
 next-env.d.ts
 /dist/
+/public/pixel-mascots/
 /.wrangler/
 /outputs/
 /work/
@@ -49,3 +50,4 @@ next-env.d.ts
 /data/
 /agent-credentials/
 /.cursor/chess-wake/
+/.generated/

@@ -6,6 +6,14 @@
 import type { CurrencyId } from './economy';
 import { boardModel, type BoardModelRef } from './board-assets';
 import { BOARD_SCENES } from './board-scenes.js';
+import { pixelPortrait } from '../../packs/presentation';
+import { pixelItemArt } from './pixel-items';
+import {
+  pixelBoardPreviewPath,
+  pixelDefaultAvatarSvg,
+  pixelFrameCardPreviewSvg,
+  pixelInlineFrameSvg,
+} from './pixel-cosmetics';
 
 export type CosmeticKind = 'board' | 'frame';
 
@@ -39,6 +47,8 @@ export type Cosmetic = {
 };
 
 export const DEFAULT_BOARD_SKIN = 'skin-revival';
+/** Virtual equip value meaning: clear board skin override and follow each pack's native pixel board. */
+export const NATIVE_BOARD_SKIN = 'board:native';
 /** 未单独校准的原画框默认比例，头像直径保持原值。 */
 export const FRAME_ART_SCALE = .94;
 
@@ -47,6 +57,12 @@ export const PAID_BOARD_PRICES = { human: 52, bot: 520 } as const;
 export const COSMETICS: Cosmetic[] = [
   { id: 'skin-rose-court', kind: 'board', name: '玫瑰古堡', tagline: '玫瑰攀上古堡，乌鸦掠过暮色中的誓约', price: PAID_BOARD_PRICES.human, prices: PAID_BOARD_PRICES, currency: 'human', rarity: 'epic', art: '🌹', boardScene: 'rose-court', palette: { inner: '#d5cbd6', outer: '#703b50', sky: '#302936' } },
   { id: 'skin-revival', kind: 'board', name: '复苏季节', tagline: '橄榄枝迎风轻摇，白鸽飞过春日庭院', price: 0, currency: 'human', rarity: 'epic', art: '🌼', boardScene: 'revival-season', palette: { inner: '#e8f0da', outer: '#7fa06a', sky: '#d6e6c8' } },
+  { id: 'skin-lotus-pond', kind: 'board', name: '荷塘清夏', tagline: '锦鲤绕着棋局游，莲叶漫过棋盘的边', price: PAID_BOARD_PRICES.human, prices: PAID_BOARD_PRICES, currency: 'human', rarity: 'epic', art: '🪷', palette: { inner: '#cfeee2', outer: '#3f8584', sky: '#bfe8d8' } },
+  { id: 'skin-coral-lagoon', kind: 'board', name: '汐音珠贝', tagline: '潮生珠贝，水母曳过琉璃浅湾', price: PAID_BOARD_PRICES.human, prices: PAID_BOARD_PRICES, currency: 'human', rarity: 'epic', art: '🐚', palette: { inner: '#ccf2ee', outer: '#26728c', sky: '#a8f0e4' } },
+  { id: 'skin-wisteria-brook', kind: 'board', name: '紫藤镜溪', tagline: '紫藤垂瀑，流萤伴着河灯入梦', price: PAID_BOARD_PRICES.human, prices: PAID_BOARD_PRICES, currency: 'human', rarity: 'epic', art: '🪻', palette: { inner: '#d6bcfc', outer: '#43417a', sky: '#8982c7' } },
+  { id: 'skin-embroidery-hoop', kind: 'board', name: '绣线花绷', tagline: '花绷还没绣完，针线正替你补上最后一片叶', price: PAID_BOARD_PRICES.human, prices: PAID_BOARD_PRICES, currency: 'human', rarity: 'epic', art: '🧵', palette: { inner: '#fbf5ea', outer: '#a46e49', sky: '#f6e8e1' } },
+  { id: 'skin-sunset-cloudsea', kind: 'board', name: '晚霞云海', tagline: '落日沉进云海，小鲸鱼驮着晚霞游过', price: PAID_BOARD_PRICES.human, prices: PAID_BOARD_PRICES, currency: 'human', rarity: 'epic', art: '🎈', palette: { inner: '#f4cdcd', outer: '#9767a8', sky: '#fbc99c' } },
+  { id: 'skin-carousel-night', kind: 'board', name: '星夜木马', tagline: '旋转木马不停，烟花替我们数着回合', price: PAID_BOARD_PRICES.human, prices: PAID_BOARD_PRICES, currency: 'human', rarity: 'epic', art: '🎠', palette: { inner: '#bb83a8', outer: '#302352', sky: '#4f2f63' } },
   { id: 'skin-time-astrolabe-ivory', kind: 'board', name: '时间星盘', tagline: '象牙白的穹庭，金色星轨缓缓流转', price: PAID_BOARD_PRICES.human, prices: PAID_BOARD_PRICES, currency: 'human', rarity: 'epic', art: '✦', boardScene: 'time-astrolabe-ivory', palette: { inner: '#eee5d1', outer: '#bba778', sky: '#e3ded1' } },
   { id: 'skin-time-astrolabe', kind: 'board', name: '时间星盘 · 异色', tagline: '深蓝夜幕中，群星沿时间的轨迹运行', giftIntro: '星盘转过许多时辰，指针却总偏向与你有关的那一刻。', price: 0, currency: 'human', acquisition: 'wheel', rarity: 'epic', art: '✦', boardScene: 'time-astrolabe', palette: { inner: '#c2d7e3', outer: '#738fa7', sky: '#233c58' } },
   { id: 'skin-taohua', kind: 'board', name: '桃花浮玉台', tagline: '默认棋盘，桃色庭院', price: 0, currency: 'human', acquisition: 'retired', rarity: 'common', art: '🌸', palette: { inner: '#fae5df', outer: '#d48d9e', sky: '#e9cfd9' } },
@@ -60,10 +76,11 @@ export const COSMETICS: Cosmetic[] = [
   { id: 'frame-peach', kind: 'frame', name: '桃枝框', tagline: '桃花缠边', price: 40, currency: 'human', acquisition: 'retired', rarity: 'common', art: '🌺' },
   { id: 'frame-jade', kind: 'frame', name: '玉扣框', tagline: '温润青玉', price: 90, currency: 'human', acquisition: 'retired', rarity: 'rare', art: '🟢' },
   { id: 'frame-crown', kind: 'frame', name: '连胜冠冕', tagline: '胜者专属金环', price: 200, currency: 'human', acquisition: 'retired', rarity: 'epic', art: '👑' },
-  { id: 'frame-revival-olive', kind: 'frame', name: '灵橄 · 衔春', tagline: '复苏季节 · 橄榄衔春，白鸽停在晨光里', giftIntro: '白鸽衔来的不止春天，还有藏不住的偏心。', price: 0, currency: 'human', acquisition: 'wheel', rarity: 'rare', art: '🕊️', frameAsset: { image: '/frames/frame_revival_olive.svg', portraitScale: 620 / 1024, layout: { scale: .87, x: 0, y: -.5 } } },
-  { id: 'frame-revival-ivy', kind: 'frame', name: '青藤 · 凌霄', tagline: '复苏季节 · 青藤常绿，白鸽振翅向你而来', giftIntro: '藤蔓借着春色攀上枝头，借着这份礼物，离你近一点。', price: 0, currency: 'human', acquisition: 'wheel', rarity: 'rare', art: '🌿', frameAsset: { image: '/frames/frame_revival_ivy.svg', portraitScale: 620 / 1024, layout: { scale: .87, x: 0, y: -.8 } } },
-  { id: 'frame-vernal-peach', kind: 'frame', name: '桃夭 · 灼华', tagline: '桃夭暮华 · 春燕拂花，金铃摇响朝景', price: 52, prices: { human: 52, bot: 520 }, currency: 'human', rarity: 'rare', art: '🌸', frameAsset: { image: '/frames/frame_vernal_peach.svg', portraitScale: 620 / 1024, layout: { scale: .86, x: 0, y: .7 } } },
-  { id: 'frame-nocturne-peach', kind: 'frame', name: '暮华 · 沉月', tagline: '桃夭暮华 · 灵蝶停枝，玉玦映着夜月', price: 52, prices: { human: 52, bot: 520 }, currency: 'human', rarity: 'rare', art: '🦋', frameAsset: { image: '/frames/frame_nocturne_peach.svg', portraitScale: 630 / 1024, layout: { scale: .88, x: -.8, y: 2.9 } } },
+  { id: 'frame-revival-olive', kind: 'frame', name: '灵橄 · 衔春', tagline: '复苏季节 · 橄榄衔春，白鸽停在晨光里', giftIntro: '白鸽衔来的不止春天，还有藏不住的偏心。', price: 0, currency: 'human', acquisition: 'wheel', rarity: 'rare', art: '🕊️', frameAsset: { image: '/frames/frame_revival_olive.svg', portraitScale: 34 / 48, layout: { scale: 1, x: 0, y: 0 } } },
+  { id: 'frame-revival-ivy', kind: 'frame', name: '青藤 · 凌霄', tagline: '复苏季节 · 青藤常绿，白鸽振翅向你而来', giftIntro: '藤蔓借着春色攀上枝头，借着这份礼物，离你近一点。', price: 0, currency: 'human', acquisition: 'wheel', rarity: 'rare', art: '🌿', frameAsset: { image: '/frames/frame_revival_ivy.svg', portraitScale: 34 / 48, layout: { scale: 1, x: 0, y: 0 } } },
+  { id: 'frame-vernal-peach', kind: 'frame', name: '桃夭 · 灼华', tagline: '桃夭暮华 · 春燕拂花，金铃摇响朝景', price: 52, prices: { human: 52, bot: 520 }, currency: 'human', rarity: 'rare', art: '🌸', frameAsset: { image: '/frames/frame_vernal_peach.svg', portraitScale: 34 / 48, layout: { scale: 1, x: 0, y: 0 } } },
+  { id: 'frame-nocturne-peach', kind: 'frame', name: '暮华 · 沉月', tagline: '桃夭暮华 · 灵蝶停枝，玉玦映着夜月', price: 52, prices: { human: 52, bot: 520 }, currency: 'human', rarity: 'rare', art: '🦋', frameAsset: { image: '/frames/frame_nocturne_peach.svg', portraitScale: 34 / 48, layout: { scale: 1, x: 0, y: 0 } } },
+  { id: 'frame-lotus-koi', kind: 'frame', name: '荷影 · 锦鲤', tagline: '荷塘清夏 · 两尾锦鲤绕着你游，莲叶托着晚风', price: 52, prices: { human: 52, bot: 520 }, currency: 'human', rarity: 'rare', art: '🐟', frameAsset: { image: '/frames/frame_lotus_koi.svg', portraitScale: 34 / 48, layout: { scale: 1, x: 0, y: 0 } } },
 ];
 
 const BY_ID = new Map(COSMETICS.map(entry => [entry.id, entry]));
@@ -131,8 +148,12 @@ function hash(seed: string): number {
 }
 
 /** 确定性 SVG 卡片：任意 id 都有图，分类配色 + 首字，离线可用。 */
-export function itemImage(id: string, options: { label?: string; tint?: string } = {}): string {
+export function itemImage(id: string, options: { label?: string; tint?: string; pixel?: boolean } = {}): string {
+  const portrait = pixelPortrait(id);
+  if (portrait) return portrait;
   if (IMAGE_OVERRIDES[id]) return IMAGE_OVERRIDES[id]!;
+  const pixelArt = pixelItemArt(id, options.pixel);
+  if (pixelArt) return pixelArt;
   const label = (options.label ?? id.replace(/^(eq|cat|low|s2)-/, '')).slice(0, 2);
   const tint = options.tint ?? `hsl(${hash(id) % 360} 55% 62%)`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${tint}"/><stop offset="1" stop-color="#2b2233"/></linearGradient></defs><rect width="96" height="96" rx="18" fill="url(#g)"/><rect x="6" y="6" width="84" height="84" rx="14" fill="none" stroke="#ffffff55" stroke-width="2"/><text x="48" y="58" font-size="30" text-anchor="middle" fill="#ffffff" font-family="serif">${label}</text></svg>`;
@@ -143,164 +164,23 @@ export function cosmeticImage(id: string): string {
   if (IMAGE_OVERRIDES[id]) return IMAGE_OVERRIDES[id]!;
   const cosmetic = cosmeticById(id);
   if (cosmetic?.kind === 'frame' && cosmetic.frameAsset) return cosmetic.frameAsset.image;
-  if (cosmetic?.boardScene) {
-    const image = BOARD_SCENES.find(scene => scene.id === cosmetic.boardScene)?.artwork?.image;
-    if (image) return image;
-  }
-  const palette = cosmetic?.palette;
-  const art = cosmetic?.art ?? '✦';
-  const name = cosmetic?.name ?? id;
-  const isFrame = cosmetic?.kind === 'frame';
-  const bg = palette?.sky ?? (isFrame ? '#f3edf8' : `hsl(${hash(id) % 360} 32% 86%)`);
-  const ground = palette?.outer ?? (isFrame ? '#c6b5d2' : '#8f7e91');
-  const accent = cosmetic?.rarity === 'epic' ? '#b38848' : cosmetic?.rarity === 'rare' ? '#8a486b' : '#5e7262';
-
-  // 古典双线卡牌画芯 (Muted Codex Frame / Loci Card)
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 110" role="img">
-    <defs>
-      <linearGradient id="g_${id}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="${bg}" stop-opacity="0.95"/>
-        <stop offset="100%" stop-color="${ground}" stop-opacity="0.25"/>
-      </linearGradient>
-      <radialGradient id="halo_${id}" cx="50%" cy="45%" r="42%">
-        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
-        <stop offset="100%" stop-color="${bg}" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <rect width="160" height="110" rx="14" fill="url(#g_${id})"/>
-    <rect x="5" y="5" width="150" height="100" rx="10" fill="none" stroke="${accent}" stroke-width="1" stroke-opacity="0.4"/>
-    <rect x="8" y="8" width="144" height="94" rx="8" fill="none" stroke="${accent}" stroke-width="0.5" stroke-dasharray="4 2" stroke-opacity="0.3"/>
-    <circle cx="80" cy="50" r="32" fill="url(#halo_${id})"/>
-    <circle cx="80" cy="50" r="28" fill="none" stroke="${accent}" stroke-width="0.8" stroke-opacity="0.35"/>
-    <text x="80" y="58" font-size="32" text-anchor="middle" dominant-baseline="central">${art}</text>
-    <path d="M 60 88 L 100 88" stroke="${accent}" stroke-width="0.8" stroke-opacity="0.5"/>
-    <circle cx="80" cy="88" r="1.8" fill="${accent}"/>
-    <text x="80" y="100" font-size="11" text-anchor="middle" fill="#2b2338" font-family="'Huiwen-Mincho', serif" letter-spacing="1">${name}</text>
-  </svg>`;
-  return svgUrl(svg);
+  if (cosmetic?.kind === 'board') return pixelBoardPreviewPath(cosmetic.id);
+  if (cosmetic?.kind === 'frame') return pixelFrameCardPreviewSvg(cosmetic.id);
+  return pixelFrameCardPreviewSvg('frame-ring');
 }
 
-/** 确定性头像：低饱和柔雾古籍色调，融入典雅同心圆与印记 */
+/** Deterministic 16-bit pixel heraldry avatar (crispEdges SVG data URL). */
 export function avatarImage(seed: string): string {
   if (IMAGE_OVERRIDES[`avatar:${seed}`]) return IMAGE_OVERRIDES[`avatar:${seed}`]!;
-  const h = hash(seed || 'anon');
-  // 低饱和古籍调色盘（暮紫墨、烟粉灰玫瑰、暗流金、冷青墨、深绯墨）
-  const codexColors = [
-    { fg: '#3b2f4a', bg: '#f4eff8', ring: '#cfc2dc' },
-    { fg: '#8a486b', bg: '#faedf3', ring: '#e2bccf' },
-    { fg: '#7d6232', bg: '#faf5ea', ring: '#e4d3b0' },
-    { fg: '#365349', bg: '#edf4f1', ring: '#bcd4cb' },
-    { fg: '#42556b', bg: '#edf2f7', ring: '#c2d2e2' },
-    { fg: '#6b3d43', bg: '#f8eeee', ring: '#dfbec3' },
-  ];
-  const theme = codexColors[h % codexColors.length]!;
-  const bits: boolean[] = [];
-  for (let i = 0; i < 15; i += 1) bits.push(((h >>> (i % 31)) & 1) === 1);
-  let cells = '';
-  for (let row = 0; row < 5; row += 1) for (let col = 0; col < 3; col += 1) {
-    if (!bits[row * 3 + col]) continue;
-    const mirror = 4 - col;
-    cells += `<rect x="${14 + col * 14}" y="${14 + row * 14}" width="12" height="12" rx="3.5" fill="${theme.fg}" fill-opacity="0.88"/>`;
-    if (mirror !== col) cells += `<rect x="${14 + mirror * 14}" y="${14 + row * 14}" width="12" height="12" rx="3.5" fill="${theme.fg}" fill-opacity="0.88"/>`;
-  }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img">
-    <rect width="96" height="96" rx="22" fill="${theme.bg}"/>
-    <circle cx="48" cy="48" r="41" fill="none" stroke="${theme.ring}" stroke-width="1.2" stroke-dasharray="3 3"/>
-    <circle cx="48" cy="48" r="37" fill="none" stroke="${theme.fg}" stroke-width="0.6" stroke-opacity="0.25"/>
-    ${cells}
-  </svg>`;
-  return svgUrl(svg);
+  return pixelDefaultAvatarSvg(seed);
 }
 
 /**
- * 头像框：高阶古籍矢量精雕（根据稀有度与款式输出精细镂空框与四角星芒）
+ * Resolve crisp pixel frame overlay URL (standalone 48x48 asset or 32x32 crispEdges fallback SVG).
  */
 export function frameImage(frameId: string | undefined): string | null {
   const cosmetic = cosmeticById(frameId);
   if (!cosmetic || cosmetic.kind !== 'frame') return null;
   if (cosmetic.frameAsset) return cosmetic.frameAsset.image;
-
-  if (frameId === 'frame-crown') {
-    // 连胜冠冕：T5 神话暗流金双重镂空框，顶饰梯队星芒与流金角标
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img">
-      <defs>
-        <linearGradient id="gold_edge" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#fdf4d8"/>
-          <stop offset="35%" stop-color="#c49e5d"/>
-          <stop offset="70%" stop-color="#8a6125"/>
-          <stop offset="100%" stop-color="#d9b66d"/>
-        </linearGradient>
-      </defs>
-      <!-- 双层金线框 -->
-      <rect x="2" y="2" width="92" height="92" rx="22" fill="none" stroke="url(#gold_edge)" stroke-width="2.5"/>
-      <rect x="5.5" y="5.5" width="85" height="85" rx="18" fill="none" stroke="#f6e7c1" stroke-width="0.8" stroke-dasharray="6 3"/>
-      <!-- 四角古铜暗流金角饰 -->
-      <path d="M 6 18 L 6 6 L 18 6" fill="none" stroke="#c49e5d" stroke-width="2"/>
-      <path d="M 90 18 L 90 6 L 78 6" fill="none" stroke="#c49e5d" stroke-width="2"/>
-      <path d="M 6 78 L 6 90 L 18 90" fill="none" stroke="#c49e5d" stroke-width="2"/>
-      <path d="M 90 78 L 90 90 L 78 90" fill="none" stroke="#c49e5d" stroke-width="2"/>
-      <!-- 冠冕顶星 -->
-      <path d="M 48 0 L 51 4 L 48 8 L 45 4 Z" fill="#fef2cb"/>
-      <circle cx="48" cy="4" r="1.2" fill="#8a6125"/>
-      <path d="M 39 2 L 41 5 L 39 8 L 37 5 Z" fill="#c49e5d"/>
-      <path d="M 57 2 L 59 5 L 57 8 L 55 5 Z" fill="#c49e5d"/>
-      <!-- 底部胜者徽记 -->
-      <circle cx="48" cy="92" r="3" fill="#c49e5d" stroke="#fef2cb" stroke-width="0.8"/>
-    </svg>`;
-    return svgUrl(svg);
-  }
-
-  if (frameId === 'frame-jade') {
-    // 玉扣框：温润墨玉碧环 + 暗金合扣
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img">
-      <defs>
-        <linearGradient id="jade_grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#72a893"/>
-          <stop offset="60%" stop-color="#3b6957"/>
-          <stop offset="100%" stop-color="#24483a"/>
-        </linearGradient>
-      </defs>
-      <rect x="2.5" y="2.5" width="91" height="91" rx="22" fill="none" stroke="url(#jade_grad)" stroke-width="3"/>
-      <rect x="6.5" y="6.5" width="83" height="83" rx="17" fill="none" stroke="#d5ede3" stroke-width="1" stroke-opacity="0.7"/>
-      <!-- 金扣咬角 -->
-      <circle cx="10" cy="10" r="3.2" fill="#c49e5d" stroke="#fff" stroke-width="0.6"/>
-      <circle cx="86" cy="10" r="3.2" fill="#c49e5d" stroke="#fff" stroke-width="0.6"/>
-      <circle cx="10" cy="86" r="3.2" fill="#c49e5d" stroke="#fff" stroke-width="0.6"/>
-      <circle cx="86" cy="86" r="3.2" fill="#c49e5d" stroke="#fff" stroke-width="0.6"/>
-    </svg>`;
-    return svgUrl(svg);
-  }
-
-  if (frameId === 'frame-peach') {
-    // 桃枝框：烟粉灰玫瑰红双线 + 纤细花蔓
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img">
-      <defs>
-        <linearGradient id="peach_grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#e89cb8"/>
-          <stop offset="70%" stop-color="#9d4b6c"/>
-          <stop offset="100%" stop-color="#692b43"/>
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="92" height="92" rx="22" fill="none" stroke="url(#peach_grad)" stroke-width="2.2"/>
-      <rect x="6" y="6" width="84" height="84" rx="18" fill="none" stroke="#fdecf2" stroke-width="0.8" stroke-dasharray="4 2"/>
-      <!-- 桃花角标 -->
-      <circle cx="8" cy="8" r="2.8" fill="#e89cb8"/>
-      <circle cx="88" cy="8" r="2.8" fill="#e89cb8"/>
-      <circle cx="8" cy="88" r="2.8" fill="#e89cb8"/>
-      <circle cx="88" cy="88" r="2.8" fill="#e89cb8"/>
-      <path d="M 48 3 L 50 6 L 48 9 L 46 6 Z" fill="#e89cb8"/>
-    </svg>`;
-    return svgUrl(svg);
-  }
-
-  // 默认 frame-ring 或基础款：素圈（素月流银，极细双线与四角星芒）
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img">
-    <rect x="2.5" y="2.5" width="91" height="91" rx="22" fill="none" stroke="#bfaecc" stroke-width="1.8"/>
-    <rect x="6" y="6" width="84" height="84" rx="18" fill="none" stroke="#ede5f5" stroke-width="0.9" stroke-dasharray="5 3"/>
-    <circle cx="48" cy="4" r="1.8" fill="#8a486b"/>
-    <circle cx="48" cy="92" r="1.8" fill="#8a486b"/>
-    <circle cx="4" cy="48" r="1.8" fill="#8a486b"/>
-    <circle cx="92" cy="48" r="1.8" fill="#8a486b"/>
-  </svg>`;
-  return svgUrl(svg);
+  return pixelInlineFrameSvg(cosmetic.id);
 }

@@ -1,0 +1,359 @@
+{
+  "version": 1,
+  "frame": {
+    "width": 96,
+    "height": 96,
+    "anchor": {
+      "x": 48,
+      "y": 48
+    }
+  },
+  "frames": [
+    {
+      "x": 0,
+      "y": 0,
+      "w": 96,
+      "h": 96
+    },
+    {
+      "x": 96,
+      "y": 0,
+      "w": 96,
+      "h": 96
+    },
+    {
+      "x": 192,
+      "y": 0,
+      "w": 96,
+      "h": 96
+    },
+    {
+      "x": 288,
+      "y": 0,
+      "w": 96,
+      "h": 96
+    }
+  ],
+  "units": [
+    {
+      "id": "jh-boatgirl",
+      "file": "effects/canal-lantern.png",
+      "attackFile": "effects/attacks/atk-lantern.png",
+      "symbolsFile": "effects/symbols/sym-heal.png",
+      "ranged": false,
+      "rotate": true
+    },
+    {
+      "id": "jh-hauler",
+      "file": "effects/canal-wave.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-sailor",
+      "file": "effects/canal-wave.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-lamp",
+      "file": "effects/canal-lantern.png",
+      "attackFile": "effects/attacks/atk-lantern.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-clerk",
+      "file": "effects/canal-lantern.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-heal.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-medic",
+      "file": "effects/canal-lantern.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-heal.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-helmsman",
+      "file": "effects/canal-wave.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shield.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-storeman",
+      "file": "effects/canal-wave.png",
+      "attackFile": "effects/attacks/atk-dart.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-canal-lord",
+      "file": "effects/canal-wave.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-hebo",
+      "file": "effects/canal-wave.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shield.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-outrider",
+      "file": "effects/escort-banner.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-cook",
+      "file": "effects/canal-lantern.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-heal.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-escort",
+      "file": "effects/escort-shield.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shield.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-outrunner",
+      "file": "effects/escort-banner.png",
+      "attackFile": "effects/attacks/atk-dart.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-chief",
+      "file": "effects/escort-banner.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-carter",
+      "file": "effects/escort-banner.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-escort-lady",
+      "file": "effects/escort-shield.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shield.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-garrison",
+      "file": "effects/escort-banner.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-shiv",
+      "file": "effects/blade-plum.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-beggar",
+      "file": "effects/blade-plum.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-nightblade",
+      "file": "effects/blade-plum.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-flyer",
+      "file": "effects/blade-plum.png",
+      "attackFile": "effects/attacks/atk-dart.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-bladehead",
+      "file": "effects/blade-plum.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-swordsman",
+      "file": "effects/blade-plum.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-shadow",
+      "file": "effects/blade-plum.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-fan",
+      "file": "effects/troupe-sleeve.png",
+      "attackFile": "effects/attacks/atk-dart.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-drum",
+      "file": "effects/troupe-gong.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-huadan",
+      "file": "effects/troupe-gong.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-heal.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-wusheng",
+      "file": "effects/troupe-sleeve.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-qingyi",
+      "file": "effects/troupe-sleeve.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-laosheng",
+      "file": "effects/troupe-sleeve.png",
+      "attackFile": "effects/attacks/atk-dart.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-troupe-lead",
+      "file": "effects/troupe-gong.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-heal.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-starlet",
+      "file": "effects/troupe-sleeve.png",
+      "attackFile": "effects/attacks/atk-dart.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-runner",
+      "file": "effects/yamen-seal.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-copyist",
+      "file": "effects/yamen-seal.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-heal.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-secretary",
+      "file": "effects/yamen-seal.png",
+      "attackFile": "effects/attacks/atk-tally.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-constable",
+      "file": "effects/escort-shield.png",
+      "attackFile": "effects/attacks/atk-slash.png",
+      "symbolsFile": "effects/symbols/sym-shield.png",
+      "ranged": false,
+      "rotate": false
+    },
+    {
+      "id": "jh-inspector",
+      "file": "effects/yamen-seal.png",
+      "attackFile": "effects/attacks/atk-tally.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-magistrate",
+      "file": "effects/yamen-seal.png",
+      "attackFile": "effects/attacks/atk-tally.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    },
+    {
+      "id": "jh-governor",
+      "file": "effects/yamen-seal.png",
+      "attackFile": "effects/attacks/atk-tally.png",
+      "symbolsFile": "effects/symbols/sym-shock.png",
+      "ranged": true,
+      "rotate": true
+    }
+  ]
+}

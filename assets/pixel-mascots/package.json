@@ -7,7 +7,8 @@
     "validate": "node scripts/validate.cjs",
     "check": "node scripts/check.cjs && node scripts/check-effects.cjs && node scripts/check-events.cjs",
     "export:fx": "node scripts/export-effects.cjs",
-    "export:events": "node scripts/export-events.cjs"
+    "export:events": "node scripts/export-events.cjs",
+    "check:game": "node scripts/check-game.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

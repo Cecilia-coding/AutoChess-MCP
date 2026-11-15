@@ -7,7 +7,7 @@ import { WHEEL_DRAFT, WHEEL_GUIDE, WHEEL_LIMITS, emptyWheel, type WheelCommand, 
 import { playWheel, validateWheelRules } from './wheel-engine';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { listedCosmetics, cosmeticPrice, cosmeticById, DEFAULT_BOARD_SKIN, isShopCosmetic, type CosmeticKind } from '../meta/cosmetics';
+import { listedCosmetics, cosmeticPrice, cosmeticById, DEFAULT_BOARD_SKIN, NATIVE_BOARD_SKIN, isShopCosmetic, type Cosmetic, type CosmeticKind } from '../meta/cosmetics';
 import { matchmakingDelta, EXCHANGE_BOT_PER_HUMAN, subsidyQuote, currencyFor, emptyWallet, rewardFor, settlementDelta, settlementRule, type CurrencyId, type MatchKind, type Wallet } from '../meta/economy';
 import type { EchoEvent } from '../meta/echo-tree';
 import type { SettlementReceipt } from '../meta/economy';
@@ -27,7 +27,7 @@ export type MatchSettlementInput = { roomId: string; round: number; entries: Mat
 type DailySettlement = { day: string; companion: number; travel: number };
 type SubsidyAction = { key: string; humanId: string; aiId: string; amount: number; gained?: number; spentBot: number; spentHuman: number; at: number };
 export type AccountRecord = { games: number; wins: number };
-export type Owned = { owned: string[]; equipped: Partial<Record<CosmeticKind, string>> };
+export type Owned = { owned: string[]; equipped: Partial<Record<CosmeticKind, string>>; boardExplicit?: boolean };
 
 export type Account = {
   id: string; username: string; usernameKey: string; passwordHash: string;
@@ -260,7 +260,8 @@ export class AccountStore {
   seatIdentity(accountId: string) {
     const account = this.accounts.get(accountId);
     if (!account || account.deletedAt) fail('机账号已失效');
-    return { accountId, accountName: account.username, ...(account.cosmetics?.equipped.board ? { skinId: account.cosmetics.equipped.board } : {}), ...(account.cosmetics?.equipped.frame ? { frame: account.cosmetics.equipped.frame } : {}) };
+    const skinId = this.effectiveBoardSkin(account);
+    return { accountId, accountName: account.username, ...(skinId ? { skinId } : {}), ...(account.cosmetics?.equipped.frame ? { frame: account.cosmetics.equipped.frame } : {}) };
   }
 
   /** New bot and claimed ticket are written to one accounts.json transaction. */
@@ -394,7 +395,7 @@ export class AccountStore {
       ...(options.ownerId ? { ownerId: options.ownerId } : {}),
       createdAt: Date.now(), lastActiveAt: Date.now(),
       coins: emptyWallet(),
-      cosmetics: { owned: [DEFAULT_BOARD_SKIN], equipped: { board: DEFAULT_BOARD_SKIN } },
+      cosmetics: { owned: [DEFAULT_BOARD_SKIN], equipped: {}, boardExplicit: false },
       gifts: [], record: { games: 0, wins: 0 },
     };
     this.accounts.set(account.id, account);
@@ -553,6 +554,35 @@ export class AccountStore {
       .map(account => this.publicAccount(account));
   }
 
+  private effectiveBoardSkin(account: Account): string | undefined {
+    const cosmetics = account.cosmetics;
+    if (!cosmetics) return undefined;
+    const board = cosmetics.equipped.board;
+    if (!board || cosmetics.boardExplicit === false) return undefined;
+    if (cosmetics.boardExplicit === true) return board;
+    // Legacy accounts created prior to pack-native default silently wrote DEFAULT_BOARD_SKIN.
+    return board === DEFAULT_BOARD_SKIN ? undefined : board;
+  }
+
+  private cloneCosmetics(cosmetics?: Owned): Owned {
+    return {
+      owned: [...cosmetics?.owned ?? []],
+      equipped: { ...cosmetics?.equipped },
+      ...(cosmetics?.boardExplicit !== undefined ? { boardExplicit: cosmetics.boardExplicit } : {}),
+    };
+  }
+
+  private autoEquipIfUnset(cosmetics: Owned, cosmetic: Cosmetic): void {
+    if (cosmetic.kind === 'board') {
+      if (!cosmetics.boardExplicit && (!cosmetics.equipped.board || cosmetics.equipped.board === DEFAULT_BOARD_SKIN)) {
+        cosmetics.equipped.board = cosmetic.id;
+        cosmetics.boardExplicit = true;
+      }
+      return;
+    }
+    if (!cosmetics.equipped[cosmetic.kind]) cosmetics.equipped[cosmetic.kind] = cosmetic.id;
+  }
+
   private sessionAccount(token: unknown): Account {
     if (typeof token !== 'string') fail('登录态无效');
     const session = this.sessions.get(token);
@@ -574,11 +604,15 @@ export class AccountStore {
       try { ownerName = this.accounts.get(this.ownerIdOfAi(account.id))?.username; }
       catch { /* Unbound or multiply bound legacy AI has no single gift recipient. */ }
     }
+    const equipped: Partial<Record<CosmeticKind, string>> = { ...account.cosmetics?.equipped };
+    const activeBoard = this.effectiveBoardSkin(account);
+    if (activeBoard) equipped.board = activeBoard;
+    else delete equipped.board;
     return {
       ...this.publicAccount(account),
       coins: { ...emptyWallet(), ...account.coins },
       owned: [...account.cosmetics?.owned ?? []],
-      equipped: { ...account.cosmetics?.equipped },
+      equipped,
       gifts: [...account.gifts ?? []],
       giftHistory: account.isAi ? [] : [...account.giftHistory ?? []].sort((a, b) => b.at - a.at || b.id.localeCompare(a.id)),
       ...(ownerName ? { ownerName } : {}),
@@ -1024,9 +1058,9 @@ export class AccountStore {
     const previousCoins = account.coins;
     const previousCosmetics = account.cosmetics;
     account.coins = wallet;
-    account.cosmetics = { owned: [...owned, cosmetic.id], equipped: { ...account.cosmetics?.equipped } };
-    // 没挑过外观（槽位空 or 还是默认）就自动换上刚买的那件。
-    if (!account.cosmetics.equipped[cosmetic.kind] || account.cosmetics.equipped[cosmetic.kind] === DEFAULT_BOARD_SKIN) account.cosmetics.equipped[cosmetic.kind] = cosmetic.id;
+    account.cosmetics = this.cloneCosmetics(account.cosmetics);
+    account.cosmetics.owned = [...owned, cosmetic.id];
+    this.autoEquipIfUnset(account.cosmetics, cosmetic);
     try { this.persist(); }
     catch (error) { account.coins = previousCoins; account.cosmetics = previousCosmetics; throw error; }
     return this.selfAccount(token);
@@ -1036,8 +1070,18 @@ export class AccountStore {
     const account = this.sessionAccount(token);
     if (cosmeticId === null) {
       const previous = account.cosmetics;
-      const equipped = { ...previous?.equipped }; delete equipped.frame;
-      account.cosmetics = { owned: [...previous?.owned ?? []], equipped };
+      const next = this.cloneCosmetics(previous);
+      delete next.equipped.frame;
+      account.cosmetics = next;
+      try { this.persist(); } catch (error) { account.cosmetics = previous; throw error; }
+      return this.selfAccount(token);
+    }
+    if (cosmeticId === NATIVE_BOARD_SKIN) {
+      const previous = account.cosmetics;
+      const next = this.cloneCosmetics(previous);
+      delete next.equipped.board;
+      next.boardExplicit = false;
+      account.cosmetics = next;
       try { this.persist(); } catch (error) { account.cosmetics = previous; throw error; }
       return this.selfAccount(token);
     }
@@ -1045,7 +1089,10 @@ export class AccountStore {
     if (!cosmetic) fail('没有这件外观');
     if (!(account.cosmetics?.owned ?? []).includes(cosmetic.id)) fail('尚未拥有这件外观');
     const previousCosmetics = account.cosmetics;
-    account.cosmetics = { owned: [...account.cosmetics!.owned], equipped: { ...account.cosmetics!.equipped, [cosmetic.kind]: cosmetic.id } };
+    const next = this.cloneCosmetics(previousCosmetics);
+    next.equipped[cosmetic.kind] = cosmetic.id;
+    if (cosmetic.kind === 'board') next.boardExplicit = true;
+    account.cosmetics = next;
     try { this.persist(); }
     catch (error) { account.cosmetics = previousCosmetics; throw error; }
     return this.selfAccount(token);
@@ -1124,13 +1171,19 @@ export class AccountStore {
     const owned = sender.cosmetics?.owned ?? [];
     let bought = false;
     if (owned.includes(cosmetic.id)) {
-      const equipped = { ...sender.cosmetics?.equipped };
+      const next = this.cloneCosmetics(sender.cosmetics);
       const remaining = owned.filter(id => id !== cosmetic.id);
-      if (equipped[cosmetic.kind] === cosmetic.id) {
-        if (cosmetic.kind === 'board') { equipped.board = DEFAULT_BOARD_SKIN; if (!remaining.includes(DEFAULT_BOARD_SKIN)) remaining.push(DEFAULT_BOARD_SKIN); }
-        else delete equipped.frame;
+      if (next.equipped[cosmetic.kind] === cosmetic.id) {
+        if (cosmetic.kind === 'board') {
+          delete next.equipped.board;
+          next.boardExplicit = false;
+          if (!remaining.includes(DEFAULT_BOARD_SKIN)) remaining.push(DEFAULT_BOARD_SKIN);
+        } else {
+          delete next.equipped.frame;
+        }
       }
-      sender.cosmetics = { owned: remaining, equipped };
+      next.owned = remaining;
+      sender.cosmetics = next;
     } else {
       if (!isShopCosmetic(cosmetic)) fail(cosmetic.acquisition === 'retired' ? '这件外观已下架' : '这件外观为转盘限定，抽取尚未开放');
       const currency = currencyFor(sender.isAi);
@@ -1202,11 +1255,13 @@ export class AccountStore {
     ];
     const owned = account.cosmetics?.owned ?? [];
     const fresh = gifts.map(gift => gift.cosmeticId).filter(id => !owned.includes(id));
-    account.cosmetics = { owned: [...owned, ...fresh], equipped: { ...account.cosmetics?.equipped } };
+    const next = this.cloneCosmetics(account.cosmetics);
+    next.owned = [...owned, ...fresh];
     for (const id of fresh) {
       const cosmetic = cosmeticById(id);
-      if (cosmetic && (!account.cosmetics.equipped[cosmetic.kind] || account.cosmetics.equipped[cosmetic.kind] === DEFAULT_BOARD_SKIN)) account.cosmetics.equipped[cosmetic.kind] = id;
+      if (cosmetic) this.autoEquipIfUnset(next, cosmetic);
     }
+    account.cosmetics = next;
     account.gifts = pending.filter(gift => !pendingIds.has(gift.id));
     const previousEcho=new Map(this.pendingEcho);
     if(this.echo)for(const gift of gifts){

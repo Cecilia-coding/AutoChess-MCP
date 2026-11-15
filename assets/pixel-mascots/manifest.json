@@ -674,7 +674,7 @@
       "atlas": "atlases/ai-claude.png",
       "portrait": "portraits/ai-claude.png",
       "previewRole": "melee",
-      "color": "#e88743"
+      "color": "#ef9362"
     },
     {
       "id": "ai-gpt",
@@ -683,7 +683,7 @@
       "atlas": "atlases/ai-gpt.png",
       "portrait": "portraits/ai-gpt.png",
       "previewRole": "support",
-      "color": "#d9e0db"
+      "color": "#dfe5e2"
     },
     {
       "id": "ai-codex",
@@ -701,7 +701,7 @@
       "atlas": "atlases/ai-deepseek.png",
       "portrait": "portraits/ai-deepseek.png",
       "previewRole": "caster",
-      "color": "#527cff"
+      "color": "#6c95f7"
     },
     {
       "id": "ai-gemini",
@@ -710,7 +710,7 @@
       "atlas": "atlases/ai-gemini.png",
       "portrait": "portraits/ai-gemini.png",
       "previewRole": "caster",
-      "color": "#9970f4"
+      "color": "#a688f7"
     },
     {
       "id": "ai-grok",
@@ -719,7 +719,7 @@
       "atlas": "atlases/ai-grok.png",
       "portrait": "portraits/ai-grok.png",
       "previewRole": "melee",
-      "color": "#747d88"
+      "color": "#7f8798"
     },
     {
       "id": "ai-kimi",
@@ -728,7 +728,7 @@
       "atlas": "atlases/ai-kimi.png",
       "portrait": "portraits/ai-kimi.png",
       "previewRole": "ranged",
-      "color": "#487fff"
+      "color": "#6594f7"
     },
     {
       "id": "ai-qwen",
@@ -737,7 +737,7 @@
       "atlas": "atlases/ai-qwen.png",
       "portrait": "portraits/ai-qwen.png",
       "previewRole": "caster",
-      "color": "#ad70e8"
+      "color": "#ad7ef0"
     },
     {
       "id": "ai-glm",
@@ -746,7 +746,7 @@
       "atlas": "atlases/ai-glm.png",
       "portrait": "portraits/ai-glm.png",
       "previewRole": "caster",
-      "color": "#4785ff"
+      "color": "#5f96f7"
     },
     {
       "id": "ai-minimax",
@@ -755,7 +755,7 @@
       "atlas": "atlases/ai-minimax.png",
       "portrait": "portraits/ai-minimax.png",
       "previewRole": "caster",
-      "color": "#ff8d55"
+      "color": "#f79672"
     },
     {
       "id": "ai-characterai",
@@ -764,7 +764,7 @@
       "atlas": "atlases/ai-characterai.png",
       "portrait": "portraits/ai-characterai.png",
       "previewRole": "support",
-      "color": "#d6d3cd"
+      "color": "#dcd8e2"
     },
     {
       "id": "ai-replika",
@@ -773,7 +773,7 @@
       "atlas": "atlases/ai-replika.png",
       "portrait": "portraits/ai-replika.png",
       "previewRole": "support",
-      "color": "#d7a9e9"
+      "color": "#e2b3f2"
     },
     {
       "id": "ai-talkie",
@@ -782,7 +782,7 @@
       "atlas": "atlases/ai-talkie.png",
       "portrait": "portraits/ai-talkie.png",
       "previewRole": "ranged",
-      "color": "#ffc247"
+      "color": "#f7cb68"
     },
     {
       "id": "ai-xiaoice",
@@ -791,7 +791,7 @@
       "atlas": "atlases/ai-xiaoice.png",
       "portrait": "portraits/ai-xiaoice.png",
       "previewRole": "support",
-      "color": "#9ae9ee"
+      "color": "#95e5ec"
     },
     {
       "id": "ai-doubao",
@@ -800,7 +800,7 @@
       "atlas": "atlases/ai-doubao.png",
       "portrait": "portraits/ai-doubao.png",
       "previewRole": "caster",
-      "color": "#f04a45"
+      "color": "#ef6868"
     },
     {
       "id": "ai-llama",
@@ -809,7 +809,7 @@
       "atlas": "atlases/ai-llama.png",
       "portrait": "portraits/ai-llama.png",
       "previewRole": "ranged",
-      "color": "#a68af3"
+      "color": "#b299f5"
     },
     {
       "id": "ai-mistral",
@@ -818,7 +818,7 @@
       "atlas": "atlases/ai-mistral.png",
       "portrait": "portraits/ai-mistral.png",
       "previewRole": "ranged",
-      "color": "#f69532"
+      "color": "#f5a256"
     },
     {
       "id": "ai-copilot",
@@ -827,7 +827,7 @@
       "atlas": "atlases/ai-copilot.png",
       "portrait": "portraits/ai-copilot.png",
       "previewRole": "support",
-      "color": "#5ac9e8"
+      "color": "#72cee8"
     },
     {
       "id": "ai-ernie",
@@ -836,7 +836,7 @@
       "atlas": "atlases/ai-ernie.png",
       "portrait": "portraits/ai-ernie.png",
       "previewRole": "caster",
-      "color": "#8d7cf3"
+      "color": "#9385f2"
     },
     {
       "id": "ai-hunyuan",
@@ -845,7 +845,7 @@
       "atlas": "atlases/ai-hunyuan.png",
       "portrait": "portraits/ai-hunyuan.png",
       "previewRole": "caster",
-      "color": "#71e2a4"
+      "color": "#7ae0b2"
     },
     {
       "id": "ai-musespark",
@@ -863,7 +863,7 @@
       "atlas": "atlases/ai-nai.png",
       "portrait": "portraits/ai-nai.png",
       "previewRole": "caster",
-      "color": "#a56ae0"
+      "color": "#b17de8"
     },
     {
       "id": "ai-tripo",
@@ -872,7 +872,7 @@
       "atlas": "atlases/ai-tripo.png",
       "portrait": "portraits/ai-tripo.png",
       "previewRole": "caster",
-      "color": "#67dfc4"
+      "color": "#72dec6"
     },
     {
       "id": "ai-manus",
@@ -881,7 +881,7 @@
       "atlas": "atlases/ai-manus.png",
       "portrait": "portraits/ai-manus.png",
       "previewRole": "melee",
-      "color": "#faf0d9"
+      "color": "#faf2e4"
     },
     {
       "id": "ai-kiro",
@@ -890,7 +890,7 @@
       "atlas": "atlases/ai-kiro.png",
       "portrait": "portraits/ai-kiro.png",
       "previewRole": "melee",
-      "color": "#ba81ec"
+      "color": "#c394f0"
     },
     {
       "id": "ai-jimeng",
@@ -899,7 +899,7 @@
       "atlas": "atlases/ai-jimeng.png",
       "portrait": "portraits/ai-jimeng.png",
       "previewRole": "caster",
-      "color": "#ee60c7"
+      "color": "#ef7ec8"
     },
     {
       "id": "ai-gemma",
@@ -908,7 +908,7 @@
       "atlas": "atlases/ai-gemma.png",
       "portrait": "portraits/ai-gemma.png",
       "previewRole": "caster",
-      "color": "#75cce4"
+      "color": "#80d2ea"
     },
     {
       "id": "ai-kling",
@@ -917,7 +917,7 @@
       "atlas": "atlases/ai-kling.png",
       "portrait": "portraits/ai-kling.png",
       "previewRole": "caster",
-      "color": "#b9f43f"
+      "color": "#b4eb5e"
     },
     {
       "id": "ai-ollama",
@@ -926,7 +926,7 @@
       "atlas": "atlases/ai-ollama.png",
       "portrait": "portraits/ai-ollama.png",
       "previewRole": "support",
-      "color": "#f4e6ce"
+      "color": "#f5e8d5"
     }
   ],
   "effects": {

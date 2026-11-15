@@ -9,10 +9,17 @@ export type UnitFrame = {
   hp: number;
   maxHp: number;
   alive: boolean;
-  /** 内力（蓝条）：按相邻两次施法线性充满，施法后归零（展示近似）。 */
+  /** 新回放读取事件状态；旧回放按相邻施法时刻近似蓝条。 */
   mana: number;
   maxMana: number;
   acting: 'idle' | 'move' | 'attack' | 'cast';
+  appearanceId?: string;
+  shield?: number;
+  shieldUntil?: number;
+  attackAt?: number;
+  hitAt?: number;
+  shockAt?: number;
+  deathAt?: number;
 };
 
 export type BattleFrame = {
@@ -27,6 +34,7 @@ export function frameAt(output: BattleOutput, timeMs: number): BattleFrame {
   const log: CombatEvent[] = [];
   let ended = false;
   const acting = new Map<string, UnitFrame['acting']>();
+  const authoritativeMana = new Set<string>();
   // 蓝条近似：收集每枚棋子的施法时刻与出生时刻
   const castsByUnit = new Map<string, number[]>();
   const spawnAt = new Map<string, number>();
@@ -58,6 +66,7 @@ export function frameAt(output: BattleOutput, timeMs: number): BattleFrame {
         mana: line?.manaStart ?? 0,
         maxMana: Math.max(1, line?.manaCost ?? 1),
         acting: 'idle',
+        appearanceId: line?.templateId,
       });
     }
 
@@ -70,10 +79,15 @@ export function frameAt(output: BattleOutput, timeMs: number): BattleFrame {
       source.col = event.pos.col;
       if (actionIsRecent) acting.set(source.id, 'move');
     }
-    if (event.type === 'attack' && source && actionIsRecent) acting.set(source.id, 'attack');
-    if (event.type === 'cast' && source && actionIsRecent) acting.set(source.id, 'cast');
+    if ((event.type === 'attack' || event.type === 'cast') && source) {
+      source.attackAt = event.timeMs;
+      if (actionIsRecent) acting.set(source.id, event.type);
+    }
     if (event.type === 'damage' && target) {
+      const before = target.hp / target.maxHp;
       target.hp = Math.max(0, target.hp - (event.value ?? 0));
+      if ((event.value ?? 0) > 0) target.hitAt = event.timeMs;
+      if (before > .5 && target.hp / target.maxHp <= .5 && target.hp / target.maxHp > .2) target.shockAt = event.timeMs;
     }
     if (event.type === 'heal' && target) {
       target.hp = Math.min(target.maxHp, target.hp + (event.value ?? 0));
@@ -84,11 +98,23 @@ export function frameAt(output: BattleOutput, timeMs: number): BattleFrame {
     if (event.type === 'death' && source) {
       source.alive = false;
       source.hp = 0;
+      source.deathAt = event.timeMs;
+    }
+    for (const state of event.visuals ?? []) {
+      const unit = units.get(state.id);
+      if (!unit) continue;
+      const before = unit.hp / unit.maxHp;
+      Object.assign(unit, state);
+      unit.alive = state.hp > 0;
+      if (before > .5 && state.hp / state.maxHp <= .5 && state.hp / state.maxHp > .2) unit.shockAt = event.timeMs;
+      authoritativeMana.add(unit.id);
     }
   }
 
   for (const unit of units.values()) {
     unit.acting = unit.alive ? (acting.get(unit.id) ?? 'idle') : 'idle';
+    if ((unit.shieldUntil ?? 0) <= timeMs || !unit.alive) unit.shield = 0;
+    if (authoritativeMana.has(unit.id)) continue;
     // 蓝条：相邻两次施法之间线性充满；只有上一发则按平均间隔续充
     const casts = castsByUnit.get(unit.id) ?? [];
     const start = spawnAt.get(unit.id) ?? 0;

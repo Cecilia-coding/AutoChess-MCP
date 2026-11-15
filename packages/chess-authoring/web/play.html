@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>棋谱试下</title>
+    <link rel="stylesheet" href="theme.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="play.css" />
+  </head>
+  <body>
+    <header>
+      <div class="workshop-brand">
+        <span class="brand-ornament" aria-hidden="true">✦ ❖ ✦</span>
+        <h1>棋谱试下</h1>
+      </div>
+      <span class="pill">测试版</span>
+    </header>
+    <main>
+      <div class="row">
+        <a href="./">← 返回创作</a><button id="reload">重新读取棋局</button
+        >
+      </div>
+      <p class="hint">棋局自动保存在此浏览器；另开一局会替换当前试下存档。</p><p id="play-status" role="status" aria-live="polite">正在读取棋局…</p>
+      <fieldset id="play-workspace" disabled>
+        <section class="panel">
+          <h2 id="pack-title"></h2>
+          <p id="match-summary"></p>
+          <p id="economy"></p>
+          <div class="row">
+            <button id="ready">准备完成 · 开战</button><button id="upgrade">购买经验</button
+            ><button id="new-game">再开一局</button>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>商店</h2>
+          <div id="shop" class="trial-shop"></div>
+          <button id="refresh">刷新商店</button>
+        </section>
+        <section class="panel">
+          <h2>棋盘</h2>
+          <p class="hint">先选棋子，再点棋盘格布阵。前排在上方，点已有棋子的格子可交换位置。</p>
+          <div id="board" class="trial-board"></div>
+          <h3>备战席</h3>
+          <div id="bench" class="row"></div>
+          <p id="piece-detail"></p>
+          <div class="row">
+            <button id="to-bench">选中棋子下场</button><button id="sell">出售选中棋子</button>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>上一场战斗</h2>
+          <p id="battle-summary">布阵后点击开战。</p>
+          <div id="battle-units" class="table-wrap"></div>
+          <details>
+            <summary>战斗事件</summary>
+            <ol id="battle-log"></ol>
+          </details>
+          <details>
+            <summary>回合记录</summary>
+            <ol id="history"></ol>
+          </details>
+        </section>
+        <details class="panel">
+          <summary>试下规则</summary>
+          <p id="rules"></p>
+        </details>
+        <details class="panel">
+          <summary>让机接着下</summary>
+          <p class="hint">开启接力后，机通过云端 MCP 发送操作，本页执行并回复局面摘要。棋谱、存档和战斗计算留在本机，请保持本页打开。</p>
+          <p id="relay-status" role="status">云端接力未开启。</p>
+          <label>MCP 地址<input id="trial-mcp" readonly></label>
+          <button id="copy-trial">开启接力并复制机凭据</button>
+          <label>接力 ID<input id="trial-id" readonly></label>
+          <label>机的接力密钥<input id="trial-key" type="password" readonly></label>
+          <button id="open-trial">关闭云端接力</button>
+        </details>
+      </fieldset>
+    </main>
+    <script type="module" src="play.js"></script>
+  </body>
+</html>

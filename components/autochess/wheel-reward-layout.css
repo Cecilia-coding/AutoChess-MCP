@@ -15,8 +15,8 @@
 .wheel-reward-dialog .wheel-draw-tag { max-width:95%; white-space:normal; text-align:center; }
 .wheel-reward-dialog .dove-carrier-actor { top:12%; }
 .wheel-reward-dialog .dove-carrier-actor img { width:100%; height:100%; }
-.wheel-reward-dialog .wheel-reward-art { display:block; width:128px; height:128px; object-fit:contain; margin:0 auto 12px; position:relative; z-index:2; }
-.wheel-reward-dialog .wheel-reward-art.is-board { width:100%; max-width:240px; height:150px; border-radius:8px; }
+.wheel-reward-dialog .wheel-reward-art { display:block; width:128px; height:128px; object-fit:contain; image-rendering:pixelated; margin:0 auto 12px; position:relative; z-index:2; }
+.wheel-reward-dialog .wheel-reward-art.is-board { width:100%; max-width:240px; height:150px; border-radius:0; image-rendering:pixelated; }
 .wheel-reward-dialog .reward-name-title { text-align:center; overflow-wrap:anywhere; }
 .wheel-reward-dialog .wheel-reward-theme { font-size:12px; line-height:1.6; text-align:center; color:#b0c9ac; margin:0 0 10px; }
 .wheel-reward-dialog .revival-card-header { flex-wrap:wrap; gap:8px; }

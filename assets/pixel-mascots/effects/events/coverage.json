@@ -170,7 +170,7 @@
     {
       "id": "ai-musespark",
       "attack": true,
-      "cast": "长文检索",
+      "cast": "填个邀请码",
       "variants": [],
       "hooks": {}
     },

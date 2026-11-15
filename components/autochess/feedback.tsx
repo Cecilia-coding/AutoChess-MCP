@@ -5,6 +5,8 @@ import { readAccountToken } from './account-session';
 import { FEEDBACK_KINDS, FEEDBACK_LIMITS, type FeedbackKind } from '@/lib/meta/feedback';
 import type { FeedbackEntry } from '@/lib/accounts/feedback-store';
 import type { CurrencyId } from '@/lib/meta/economy';
+import { PixelIcon } from './pixel-ui/pixel-icon';
+import { PixelSprite } from './pixel-ui/pixel-sprite';
 import './feedback.css';
 
 type Listing = { entries: FeedbackEntry[]; total: number; offset: number; canAdmin: boolean; storageBytes?: number; storageLimit?: number };
@@ -32,11 +34,11 @@ async function compress(file: File) {
   } finally { bitmap.close(); }
 }
 
-export default function Feedback({ roomId }: { roomId?: string }) {
+export default function Feedback({ roomId, variant = 'lobby' }: { roomId?: string; variant?: 'lobby' | 'pixel' | 'menu' }) {
   const token = useSyncExternalStore(subscribe, readAccountToken, () => '');
-  return <FeedbackPanel key={token} token={token} roomId={roomId} />;
+  return <FeedbackPanel key={token} token={token} roomId={roomId} variant={variant} />;
 }
-function FeedbackPanel({ token, roomId }: { token: string; roomId?: string }) {
+function FeedbackPanel({ token, roomId, variant }: { token: string; roomId?: string; variant: 'lobby' | 'pixel' | 'menu' }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [category, setCategory] = useState<FeedbackKind>('suggestion');
   const [text, setText] = useState(''); const [images, setImages] = useState<string[]>([]);
@@ -60,7 +62,16 @@ function FeedbackPanel({ token, roomId }: { token: string; roomId?: string }) {
   const changed = () => setRequestId(crypto.randomUUID());
   const open = () => { dialog.current?.showModal(); if (!requestId) changed(); if (token) void run(() => load()); };
   return <>
-    <button type="button" className="feedback-launch" onClick={open}>反馈处</button>
+    {variant === 'pixel' ? (
+      <button type="button" className="pixel-hud-slot feedback-slot" aria-label="反馈处" title="反馈处" onClick={open}>
+        <PixelIcon name="chat" size={13} />
+        <span className="pixel-hud-slot-label">反馈</span>
+      </button>
+    ) : (
+      <button type="button" className={`feedback-launch feedback-launch--${variant}`} onClick={open}>
+        <PixelSprite name="bubbleChat" size={14} /> <span>反馈处</span>
+      </button>
+    )}
     <dialog ref={dialog} className="feedback-dialog" aria-labelledby="feedback-title">
       <header><h2 id="feedback-title">反馈处</h2><button type="button" aria-label="关闭反馈处" onClick={() => dialog.current?.close()}>×</button></header>
       {!token ? <p>先在大厅「我的」登录，就能留下反馈、查看处理结果。</p> : <>
