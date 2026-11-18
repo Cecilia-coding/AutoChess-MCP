@@ -871,9 +871,11 @@ body:not(:has(.autochess-embed)):has(.arcade-page) {
 }
 
 .arcade-prize-thumb {
-  width: 46px;
-  height: 46px;
-  object-fit: cover;
+  width: 56px;
+  height: 42px;
+  flex: none;
+  object-fit: contain;
+  background: #f6f2ff;
   border: 2px solid #b5a4cb;
   image-rendering: pixelated;
 }
