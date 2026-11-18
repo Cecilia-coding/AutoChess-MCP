@@ -1,12 +1,12 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
-import { fitPixelBoard } from '../lib/autochess/pixel-board.ts';
-import { setSceneCanvasFactory } from '../lib/autochess/pixel-scene-kit.ts';
+import { fitPixelBoard } from '../lib/autochess/pixel-board';
+import { setSceneCanvasFactory } from '../lib/autochess/pixel-scene-kit';
 import {
   paintSceneAnimated,
   paintSceneStatic,
   type PixelSceneId,
-} from '../lib/autochess/pixel-scene-skins.ts';
+} from '../lib/autochess/pixel-scene-skins';
 
 function parseColor(s: string): [number, number, number, number] {
   if (s.startsWith('#')) {
@@ -184,7 +184,7 @@ const SKIN_MAP: readonly [string, PixelSceneId, number][] = [
   ['skin-time-astrolabe', 'astral-night', 3100],
   ['skin-time-astrolabe-ivory', 'astral-ivory', 3100],
   ['skin-embroidery-hoop', 'embroidery-hoop', 9000],
-  ['skin-sunset-cloudsea', 'sunset-cloudsea', 21000],
+  ['skin-wonderland-rabbit', 'wonderland-rabbit', 2600],
   ['skin-carousel-night', 'carousel-night', 2600],
 ];
 

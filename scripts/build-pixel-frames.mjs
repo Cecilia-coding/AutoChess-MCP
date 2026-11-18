@@ -20,7 +20,7 @@ const TAU = Math.PI * 2;
 
 class Grid {
   constructor() {
-    this.c = new Array(N * N).fill(null);
+    this.c = Array.from({ length: N * N }, () => null);
   }
   px(x, y, col) {
     if (col === undefined) return;

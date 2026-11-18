@@ -8,13 +8,13 @@ export type CompanionSnapshot = {
   inventory: string[]; enemy: string[];
   hp?: number; bountyBank?: number; hexes?: string[];
   /** 棋手等级/经验（等级即人口）与连胜。 */
-  level?: number; xp?: number; xpToNext?: number | null; xpBuyCost?: number; winStreak?: number;
+  level?: number; xp?: number; xpToNext?: number | null; xpBuyCost?: number; xpBuyAmount?: number; winStreak?: number;
 };
 
 export function parseCompanionSnapshot(input: unknown): CompanionSnapshot | null {
   if (!input || typeof input !== 'object') return null;
   const p = input as Record<string, unknown>;
-  for (const [key, max] of [['hp', 200], ['bountyBank', 12]] as const) {
+  for (const [key, max] of [['hp', 500], ['bountyBank', 100]] as const) {
     if (p[key] !== undefined && (typeof p[key] !== 'number' || !Number.isInteger(p[key]) || p[key] < 0 || p[key] > max)) return null;
   }
   for (const [key, min, max] of [['round', 1, 50], ['gold', 0, 999], ['capacity', 1, 10]] as const) {
@@ -37,7 +37,7 @@ export function buildCompanionPrompt(state: CompanionSnapshot): string {
     '你是 AutoChess 的自走棋对手 Cursor。只根据下面棋局决策，不调用工具、不读文件、不执行命令。',
     '仅输出JSON，不要Markdown。必要键say(1-30字),sell(已有棋子ID数组最多3),buy(商店原始下标数组0..4不重复),field(上场ID数组)。',
     '输出骨架：{"say":"准备好了","sell":[],"buy":[],"field":["已有棋子id"]}。没有买卖时保留空数组。',
-    '可选键hex(有hexOffer时三选一，本轮全员同一稀有度)、equip:[{"piece":"ID","item":"装备ID"}],unequip:同格式,positions:[{"piece":"ID","row":3,"col":0}]。不用的键可省略。',
+    '可选键hex(有hexOffer时三选一，本轮全员同一稀有度、词条各异)、equip:[{"piece":"ID","item":"装备ID"}],unequip:同格式,positions:[{"piece":"ID","row":3,"col":0}]。不用的键可省略。',
     `执行顺序:卸装备→卖棋→按buy顺序购买并自动三合一→field部署→positions站位→equip装配。不可透支。部署后备战最多${BENCH_CAPACITY}。`,
     'field/equip/positions中买来的棋用shop:N引用，已有用原ID；三张同名同星自动升星、优先保留场上原ID，合并的多个shop引用会指向同一棋。至少留一名棋上场，上场不超过capacity。',
     '已有棋子只引用对象的id字段值，不能把unitId、name、details或整行说明拼到ID中。',

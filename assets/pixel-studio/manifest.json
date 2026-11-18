@@ -1,0 +1,864 @@
+{
+  "version": 1,
+  "pack": "studio",
+  "pixelGrid": 24,
+  "frame": {
+    "width": 64,
+    "height": 64,
+    "columns": 8,
+    "rows": 17,
+    "anchor": {
+      "x": 32,
+      "y": 40
+    }
+  },
+  "atlas": {
+    "width": 512,
+    "height": 1088
+  },
+  "clips": {
+    "happy/idle": {
+      "row": 0,
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 0,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ],
+      "loop": true
+    },
+    "happy/walk": {
+      "row": 1,
+      "frames": [
+        {
+          "x": 0,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 64,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ],
+      "loop": true
+    },
+    "happy/attack": {
+      "row": 2,
+      "frames": [
+        {
+          "x": 0,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 64,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 128,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 192,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 256,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 10
+        },
+        {
+          "x": 320,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 384,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 448,
+          "y": 128,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        }
+      ],
+      "loop": false
+    },
+    "happy/hurt": {
+      "row": 3,
+      "frames": [
+        {
+          "x": 0,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 192,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ],
+      "loop": false
+    },
+    "serious/idle": {
+      "row": 4,
+      "frames": [
+        {
+          "x": 0,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 256,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ],
+      "loop": true
+    },
+    "serious/walk": {
+      "row": 5,
+      "frames": [
+        {
+          "x": 0,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 320,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ],
+      "loop": true
+    },
+    "serious/attack": {
+      "row": 6,
+      "frames": [
+        {
+          "x": 0,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 64,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 128,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 192,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 256,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 10
+        },
+        {
+          "x": 320,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 384,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 448,
+          "y": 384,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        }
+      ],
+      "loop": false
+    },
+    "serious/hurt": {
+      "row": 7,
+      "frames": [
+        {
+          "x": 0,
+          "y": 448,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 448,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 448,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ],
+      "loop": false
+    },
+    "cry/idle": {
+      "row": 8,
+      "frames": [
+        {
+          "x": 0,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 512,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ],
+      "loop": true
+    },
+    "cry/walk": {
+      "row": 9,
+      "frames": [
+        {
+          "x": 0,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 576,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ],
+      "loop": true
+    },
+    "cry/attack": {
+      "row": 10,
+      "frames": [
+        {
+          "x": 0,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 64,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 128,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 192,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 256,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 10
+        },
+        {
+          "x": 320,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 384,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 448,
+          "y": 640,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        }
+      ],
+      "loop": false
+    },
+    "cry/hurt": {
+      "row": 11,
+      "frames": [
+        {
+          "x": 0,
+          "y": 704,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 704,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 704,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ],
+      "loop": false
+    },
+    "shock/idle": {
+      "row": 12,
+      "frames": [
+        {
+          "x": 0,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 64,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 128,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        },
+        {
+          "x": 192,
+          "y": 768,
+          "w": 64,
+          "h": 64,
+          "durationMs": 225
+        }
+      ],
+      "loop": true
+    },
+    "shock/walk": {
+      "row": 13,
+      "frames": [
+        {
+          "x": 0,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 64,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 128,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        },
+        {
+          "x": 192,
+          "y": 832,
+          "w": 64,
+          "h": 64,
+          "durationMs": 115
+        }
+      ],
+      "loop": true
+    },
+    "shock/attack": {
+      "row": 14,
+      "frames": [
+        {
+          "x": 0,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 64,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 110
+        },
+        {
+          "x": 128,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 192,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 100
+        },
+        {
+          "x": 256,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 10
+        },
+        {
+          "x": 320,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 384,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        },
+        {
+          "x": 448,
+          "y": 896,
+          "w": 64,
+          "h": 64,
+          "durationMs": 140
+        }
+      ],
+      "loop": false
+    },
+    "shock/hurt": {
+      "row": 15,
+      "frames": [
+        {
+          "x": 0,
+          "y": 960,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 64,
+          "y": 960,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        },
+        {
+          "x": 128,
+          "y": 960,
+          "w": 64,
+          "h": 64,
+          "durationMs": 80
+        }
+      ],
+      "loop": false
+    },
+    "dead": {
+      "row": 16,
+      "frames": [
+        {
+          "x": 0,
+          "y": 1024,
+          "w": 64,
+          "h": 64,
+          "durationMs": 1000
+        }
+      ],
+      "loop": false
+    }
+  },
+  "units": [
+    {
+      "id": "st-slime-knight",
+      "spriteId": "slime-knight",
+      "name": "史莱姆骑",
+      "atlas": "atlases/st-slime-knight.png",
+      "portrait": "portraits/st-slime-knight.png",
+      "previewRole": "tank",
+      "color": "#62c49e",
+      "effectKind": "shield_guard"
+    },
+    {
+      "id": "st-clock-bunny",
+      "spriteId": "clock-bunny",
+      "name": "发条兔",
+      "atlas": "atlases/st-clock-bunny.png",
+      "portrait": "portraits/st-clock-bunny.png",
+      "previewRole": "melee",
+      "color": "#f2a2b4",
+      "effectKind": "melee_slash"
+    },
+    {
+      "id": "st-shroom-guard",
+      "spriteId": "shroom-guard",
+      "name": "蘑菇卫",
+      "atlas": "atlases/st-shroom-guard.png",
+      "portrait": "portraits/st-shroom-guard.png",
+      "previewRole": "tank",
+      "color": "#d97762",
+      "effectKind": "shield_guard"
+    },
+    {
+      "id": "st-lantern-spirit",
+      "spriteId": "lantern-spirit",
+      "name": "提灯灵",
+      "atlas": "atlases/st-lantern-spirit.png",
+      "portrait": "portraits/st-lantern-spirit.png",
+      "previewRole": "support",
+      "color": "#9ad6ec",
+      "effectKind": "holy_heal"
+    },
+    {
+      "id": "st-cat-mage",
+      "spriteId": "cat-mage",
+      "name": "黑猫巫",
+      "atlas": "atlases/st-cat-mage.png",
+      "portrait": "portraits/st-cat-mage.png",
+      "previewRole": "caster",
+      "color": "#8c72cf",
+      "effectKind": "arcane_orb"
+    },
+    {
+      "id": "st-crane-archer",
+      "spriteId": "crane-archer",
+      "name": "纸鹤弓",
+      "atlas": "atlases/st-crane-archer.png",
+      "portrait": "portraits/st-crane-archer.png",
+      "previewRole": "ranged",
+      "color": "#7ab7eb",
+      "effectKind": "ranged_bolt"
+    },
+    {
+      "id": "st-music-doll",
+      "spriteId": "music-doll",
+      "name": "八音姬",
+      "atlas": "atlases/st-music-doll.png",
+      "portrait": "portraits/st-music-doll.png",
+      "previewRole": "support",
+      "color": "#f0c46c",
+      "effectKind": "holy_heal"
+    },
+    {
+      "id": "st-crt-bot",
+      "spriteId": "crt-bot",
+      "name": "小电视",
+      "atlas": "atlases/st-crt-bot.png",
+      "portrait": "portraits/st-crt-bot.png",
+      "previewRole": "caster",
+      "color": "#69c9b4",
+      "effectKind": "arcane_orb"
+    },
+    {
+      "id": "st-tape-ranger",
+      "spriteId": "tape-ranger",
+      "name": "磁带侠",
+      "atlas": "atlases/st-tape-ranger.png",
+      "portrait": "portraits/st-tape-ranger.png",
+      "previewRole": "ranged",
+      "color": "#e8906e",
+      "effectKind": "ranged_bolt"
+    },
+    {
+      "id": "st-floppy-squire",
+      "spriteId": "floppy-squire",
+      "name": "软盘盾",
+      "atlas": "atlases/st-floppy-squire.png",
+      "portrait": "portraits/st-floppy-squire.png",
+      "previewRole": "tank",
+      "color": "#5f8fd9",
+      "effectKind": "shield_guard"
+    },
+    {
+      "id": "st-bulb-wisp",
+      "spriteId": "bulb-wisp",
+      "name": "灯泡精",
+      "atlas": "atlases/st-bulb-wisp.png",
+      "portrait": "portraits/st-bulb-wisp.png",
+      "previewRole": "caster",
+      "color": "#f5d76e",
+      "effectKind": "arcane_orb"
+    },
+    {
+      "id": "st-gear-golem",
+      "spriteId": "gear-golem",
+      "name": "齿轮偶",
+      "atlas": "atlases/st-gear-golem.png",
+      "portrait": "portraits/st-gear-golem.png",
+      "previewRole": "tank",
+      "color": "#b88a68",
+      "effectKind": "shield_guard"
+    },
+    {
+      "id": "st-dice-imp",
+      "spriteId": "dice-imp",
+      "name": "骰子怪",
+      "atlas": "atlases/st-dice-imp.png",
+      "portrait": "portraits/st-dice-imp.png",
+      "previewRole": "melee",
+      "color": "#e66e85",
+      "effectKind": "melee_slash"
+    },
+    {
+      "id": "st-tower-keeper",
+      "spriteId": "tower-keeper",
+      "name": "灯塔偶",
+      "atlas": "atlases/st-tower-keeper.png",
+      "portrait": "portraits/st-tower-keeper.png",
+      "previewRole": "support",
+      "color": "#e8c07a",
+      "effectKind": "holy_heal"
+    },
+    {
+      "id": "st-paper-boat",
+      "spriteId": "paper-boat",
+      "name": "折纸舟",
+      "atlas": "atlases/st-paper-boat.png",
+      "portrait": "portraits/st-paper-boat.png",
+      "previewRole": "ranged",
+      "color": "#7cc7c4",
+      "effectKind": "ranged_bolt"
+    },
+    {
+      "id": "st-hourglass-sage",
+      "spriteId": "hourglass-sage",
+      "name": "沙漏翁",
+      "atlas": "atlases/st-hourglass-sage.png",
+      "portrait": "portraits/st-hourglass-sage.png",
+      "previewRole": "caster",
+      "color": "#b487d9",
+      "effectKind": "arcane_orb"
+    },
+    {
+      "id": "st-moon-sprite",
+      "spriteId": "moon-sprite",
+      "name": "弦月灵",
+      "atlas": "atlases/st-moon-sprite.png",
+      "portrait": "portraits/st-moon-sprite.png",
+      "previewRole": "caster",
+      "color": "#f2cf68",
+      "effectKind": "arcane_orb"
+    },
+    {
+      "id": "st-cactus-boxer",
+      "spriteId": "cactus-boxer",
+      "name": "盆栽刺",
+      "atlas": "atlases/st-cactus-boxer.png",
+      "portrait": "portraits/st-cactus-boxer.png",
+      "previewRole": "melee",
+      "color": "#6bb87b",
+      "effectKind": "melee_slash"
+    },
+    {
+      "id": "st-tea-mimic",
+      "spriteId": "tea-mimic",
+      "name": "茶壶匠",
+      "atlas": "atlases/st-tea-mimic.png",
+      "portrait": "portraits/st-tea-mimic.png",
+      "previewRole": "support",
+      "color": "#c8b4db",
+      "effectKind": "holy_heal"
+    },
+    {
+      "id": "st-star-knight",
+      "spriteId": "star-knight",
+      "name": "星象棋",
+      "atlas": "atlases/st-star-knight.png",
+      "portrait": "portraits/st-star-knight.png",
+      "previewRole": "melee",
+      "color": "#5c6ea8",
+      "effectKind": "melee_slash"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { MODE_PACKS } from '@/packs/modes/registry';
 import type { PackSummary } from '@/packs/registry';
-import { roomRequest } from './room-request';
+import { useHostRequests } from './host-context';
 import { playerMcpUrl } from '@/lib/autochess/invite-copy';
 
 type Row = { templateId: string; name: string; cost: number; games: number; pickRate: number; wins: number; draws: number; winRate: number;
@@ -12,6 +12,7 @@ type Report = { startedAt: number; retainedFrom: number; windowDays: number; fig
 type LabRoom = { roomId: string; watchToken: string; left: { roomId: string; token: string }; right: { roomId: string; token: string } };
 
 export default function BalanceAdmin({ token, packs, mcpUrl }: { token: string; packs: PackSummary[]; mcpUrl: string }) {
+  const { roomRequest } = useHostRequests();
   const [pack, setPack] = useState('ai');
   const [mode, setMode] = useState('all');
   const [star, setStar] = useState(0);
@@ -28,7 +29,7 @@ export default function BalanceAdmin({ token, packs, mcpUrl }: { token: string; 
       setReport(result); setError('');
     } catch (cause) { setError((cause as Error).message); }
     finally { setBusy(false); }
-  }, [token, pack, mode, star, source]);
+  }, [token, pack, mode, star, source, roomRequest]);
   useEffect(() => { void Promise.resolve().then(refresh);
     const timer = setInterval(() => { if (document.visibilityState === 'visible') void refresh(); }, 30_000);
     return () => clearInterval(timer);

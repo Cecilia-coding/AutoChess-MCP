@@ -6,6 +6,8 @@
  * - 连胜会额外发金币（连败的上涨仍走 loss-bounty 的赏金池）。
  */
 
+import { getGameConfig } from '../meta/game-config';
+
 export const START_LEVEL = 2;
 /** Maximum player level. */
 export const MAX_LEVEL = 10;
@@ -14,6 +16,18 @@ export const XP_TO_NEXT: Record<number, number> = { 2: 2, 3: 4, 4: 8, 5: 14, 6: 
 export const XP_PER_ROUND = 3;
 export const XP_BUY_COST = 4;
 export const XP_BUY_AMOUNT = 4;
+
+export function xpPerRound(): number {
+  return getGameConfig().pacing.xpPerRound;
+}
+
+export function xpBuyCost(): number {
+  return getGameConfig().pacing.xpBuyCost;
+}
+
+export function xpBuyAmount(): number {
+  return getGameConfig().pacing.xpBuyAmount;
+}
 
 /** 人口 = 等级（再叠加扩编令），下限 1、上限 8。 */
 export function fieldCapacityForLevel(level: number, bonusCap = 0): number {
@@ -44,12 +58,12 @@ export function addXp(level: number, xp: number, amount: number): LevelProgress 
   return { level: nextLevel, xp: nextXp, gained };
 }
 
-/** 连胜额外金币：第一场不涨，从第二连胜起逐级上涨，封顶 4 金。 */
+/** 连胜额外金币：第一场不涨，从第二连胜起逐级上涨，封顶配置值。 */
 export const WIN_STREAK_GOLD_CAP = 4;
 
 export function winStreakGold(count: number): number {
   if (count <= 1) return 0;
-  return Math.min(WIN_STREAK_GOLD_CAP, count - 1);
+  return Math.min(getGameConfig().pacing.winStreakCap, count - 1);
 }
 
 /** 对战阶段：1-4 回合早期、5-8 中期、9+ 后期（给 roundIncome 这类阶梯用）。 */

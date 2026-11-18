@@ -1,2 +1,5 @@
-import Wheel from '@/components/autochess/wheel';
-export default function WheelPage(){return <Wheel/>;}
+import Arcade from '@/components/autochess/arcade';
+
+export default function WheelCompatPage() {
+  return <Arcade />;
+}

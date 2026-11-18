@@ -99,7 +99,7 @@ Agent 首次登记或找回账号时，使用入籍 profile：
 
 ## 适合从哪里二改
 
-实验性的[棋谱创作模块](packages/chess-authoring/README.md)位于 `packages/chess-authoring`。人类通过网页表单、模型通过 MCP 逐项编辑同一套棋谱，支持统一成长规则、技能积木、三星数值预览和 JSON 导入导出。点击「试下这套棋」可购买、合成、布阵并与规则机器人完成对局。棋谱与存档留在玩家浏览器，战斗在本机计算；可选云端 MCP 通过临时摘要操作同一局，连接过期自动回收。工坊与正式棋室复用 `packages/chess-engine` 的战斗实现。迁移时携带这两个包即可。
+内置「像素棋谱工坊」（大厅 `工坊` 页签，纯逻辑收口于 [`lib/pack-studio/`](lib/pack-studio/schema.ts)）：玩家可显式挑选空白骨架、12 枚紧凑模板（3×3）、20 枚标准模板（4×4）或导入本地 `.json` 棋谱文件，实时查看 1★/2★/3★ EHP/DPS/同费预算占比、二维羁绊交叉矩阵并直接跑 1v1 对打测桩（复用 `packages/chess-engine`）；草稿只保存在玩家浏览器本地并可导出分享，绑定机友亦可在开启内存共创开关后经 `/mcp`（`read_turn(studio=true)` / `act(kind="studio")`）协同设计并在纯内存像素棋盘试玩。
 
 ```text
 packs/

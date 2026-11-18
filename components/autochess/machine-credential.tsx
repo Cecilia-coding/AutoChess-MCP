@@ -1,10 +1,11 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import {readAccountToken} from './account-session';
-import {accountRequest} from './room-request';
+import {useHostRequests} from './host-context';
 
 /** Credentials stay in component memory and only arrive after an explicit reveal. */
 export default function MachineCredential({ownerToken, aiId, name}: {ownerToken:string;aiId:string;name:string}) {
+  const { accountRequest } = useHostRequests();
   const [credential,setCredential]=useState('');
   const [pending,setPending]=useState(false);
   const [notice,setNotice]=useState('');

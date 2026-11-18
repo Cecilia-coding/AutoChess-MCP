@@ -34,7 +34,7 @@ export type MergeResult = {
   bench: AutochessPiece[];
   returnedItems: string[];
   merges: number;
-  consumed: Record<string,string>;
+  consumed: Record<string, string>;
 };
 
 export type AutochessOpponent = {
@@ -144,7 +144,7 @@ function rollShopCost(maxCost: number, rng: ReturnType<typeof createRng>): numbe
 
 export function makeShop(seed: number, round: number, refresh = 0, roster: UnitDef[] = poolUnits(), level?: number): UnitDef[] {
   const rng = createRng(hash32(seed, round, 1201 + refresh * 17));
-  const maxCost = level===undefined?unlockedMaxCost(round):shopMaxCostForLevel(level);
+  const maxCost = level === undefined ? unlockedMaxCost(round) : shopMaxCostForLevel(level);
   return Array.from({ length: AUTOCHESS_SHOP_SIZE }, () => {
     const cost = rollShopCost(maxCost, rng);
     return chooseUnit(cost, rng, roster);
@@ -249,7 +249,7 @@ export function addAndMerge(
   ];
   const returnedItems: string[] = [];
   let merges = 0;
-  const mergedInto: Record<string,string> = {};
+  const mergedInto: Record<string, string> = {};
   const byPlace = (a: Located, b: Located) => (a.place === b.place ? a.order - b.order : a.place === 'board' ? -1 : 1);
   const of = (templateId: string, star: number) =>
     roster.filter((entry) => entry.piece.templateId === templateId && entry.piece.star === star).sort(byPlace);
@@ -298,13 +298,16 @@ export function deliverUnitToRoster(
   gold: number,
   unitId: string,
   pieceId: string,
+  star: Star = 1,
 ) {
   const unit = getUnit(unitId);
-  const merged = addAndMerge(board, bench, makePiece(unit, pieceId));
+  const piece = { ...makePiece(unit, pieceId), star };
+  const merged = addAndMerge(board, bench, piece);
   if (merged.bench.length <= BENCH_CAPACITY) {
     return { board: merged.board, bench: merged.bench, gold, returnedItems: merged.returnedItems };
   }
-  return { board, bench, gold: gold + autochessCostOf(unit), returnedItems: [] as string[] };
+  const copies = star === 1 ? 1 : star === 2 ? 3 : 9;
+  return { board, bench, gold: gold + autochessCostOf(unit) * copies, returnedItems: [] as string[] };
 }
 
 /** Put a benched piece onto an occupied cell and return that occupant to the bench. */

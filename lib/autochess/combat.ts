@@ -3,7 +3,7 @@ import { getSkill } from "../../content/autochess/skills";
 import { traits } from "../../content/autochess/traits";
 import { unitSkill } from "../../content/autochess/unit-skills";
 import { findHex } from "../../content/autochess/hexes";
-import { items } from "../../content/autochess/items";
+import { findItemTemplate, items } from "../../content/autochess/items";
 import { getUnit } from "../../content/autochess/units";
 import { combatStats, effectiveTraits, uniqueTraitCounts } from "./stats";
 
@@ -12,6 +12,7 @@ export const simulateBattle = createBattleEngine({
   getSkill,
   unitSkill,
   findHex,
+  findItem: findItemTemplate,
   items,
   traits,
   combatStats,

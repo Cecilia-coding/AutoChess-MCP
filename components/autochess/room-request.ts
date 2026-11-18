@@ -19,16 +19,16 @@ async function post<T>(path: string, body: object, offline = OFFLINE): Promise<T
 }
 
 /** 棋室操作（房间/对局）。 */
-export function roomRequest<T = unknown>(op: string, args: object = {}): Promise<T> {
-  return post<T>('/api/autochess/room', { op, ...args });
+export function roomRequest<T = unknown>(op: string, args: object = {}, endpoint = '/api/autochess/room'): Promise<T> {
+  return post<T>(endpoint, { op, ...args });
 }
 
 /** 账号与匹配（注册/登录/匹配队列）。 */
-export function accountRequest<T = unknown>(op: string, args: object = {}): Promise<T> {
-  return post<T>('/api/autochess/account', { op, ...args });
+export function accountRequest<T = unknown>(op: string, args: object = {}, endpoint = '/api/autochess/account'): Promise<T> {
+  return post<T>(endpoint, { op, ...args });
 }
 
 /** 局外外观/货币/排行。 */
-export function metaRequest<T = unknown>(op: string, args: object = {}): Promise<T> {
-  return post<T>('/api/autochess/meta', { op, ...args }, '外观服务暂时断开，恢复后重试。');
+export function metaRequest<T = unknown>(op: string, args: object = {}, endpoint = '/api/autochess/meta'): Promise<T> {
+  return post<T>(endpoint, { op, ...args }, '外观服务暂时断开，恢复后重试。');
 }

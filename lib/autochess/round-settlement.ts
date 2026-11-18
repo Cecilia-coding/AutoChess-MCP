@@ -4,16 +4,16 @@ import type { AutochessOpponent } from './core';
 import { fieldCapacity } from './core';
 import { recordCatchup, type CatchupState } from './catchup';
 import { settleLossBounty, type LossBounty } from './loss-bounty';
-import { AUTOCHESS_START_GOLD } from './core';
+import { computeDefeatDamage, computeDrawDamage, getGameConfig } from '../meta/game-config';
 
 /** Persistent player damage, separate from a piece's battle HP. */
-/** 阵亡伤害：底噪 + 随回合增长 + 存活加成；`scale` 由模式（lossDamageScale）整体缩放。 */
+/** 阵亡伤害：四段前轻后重 S 曲线（受后台「局内节奏与扣血表」热驱动），由模式 `lossDamageScale` 整体缩放。 */
 export function defeatDamage(round: number, survivors: number, scale = 1) {
-  return Math.max(1, Math.round((6 + 2 * Math.floor(Math.max(0, round - 1) / 3) + Math.min(5, Math.max(1, survivors))) * scale));
+  return computeDefeatDamage(round, survivors, scale);
 }
 export function battleHpLoss(battle: BattleOutput, round: number, scale = 1) {
   const count = (team: 'left' | 'right') => battle.units.filter(unit => unit.team === team && unit.survivingHp > 0).length;
-  const drawDamage = Math.max(1, Math.round((6 + 2 * Math.floor(Math.max(0, round - 1) / 3)) * scale));
+  const drawDamage = computeDrawDamage(round, scale);
   return {
     left: battle.outcome === 'right' ? defeatDamage(round, count('right'), scale) : battle.outcome === 'draw' ? drawDamage : 0,
     right: battle.outcome === 'left' ? defeatDamage(round, count('left'), scale) : battle.outcome === 'draw' ? drawDamage : 0,
@@ -47,8 +47,10 @@ export function settleLobbyRound(input: { hp: number; opponents: AutochessOppone
     const right = ordered[i + 1];
     const ghost = right ?? input.opponents.find(entry => entry.id !== left.id && entry.hp > 0);
     if (!ghost) continue;
-    const result = simulateBattle({ battleId: `lobby-${input.seed}-${input.round}-${i}`, seed: input.seed + input.round * 997 + i,
-      left: left.board, right: ghost.board });
+    const result = simulateBattle({
+      battleId: `lobby-${input.seed}-${input.round}-${i}`, seed: input.seed + input.round * 997 + i,
+      left: left.board, right: ghost.board
+    });
     const loss = battleHpLoss(result, input.round);
     outcomes.set(left.id, result.outcome === 'left' ? 'win' : result.outcome === 'right' ? 'loss' : 'draw');
     if (right) outcomes.set(right.id, result.outcome === 'right' ? 'win' : result.outcome === 'left' ? 'loss' : 'draw');
@@ -57,7 +59,7 @@ export function settleLobbyRound(input: { hp: number; opponents: AutochessOppone
     apply(left, loss.left);
     if (right) apply(right, loss.right);
   }
-  const livingHp = [hp, ...opponents.map(seat => seat.hp)].filter(value => value > 0).sort((a,b) => a-b);
+  const livingHp = [hp, ...opponents.map(seat => seat.hp)].filter(value => value > 0).sort((a, b) => a - b);
   const median = livingHp[Math.floor(livingHp.length / 2)] ?? 0;
   for (const seat of opponents) seat.catchup = recordCatchup(seat.catchup, losers.has(seat.id), seat.board.length, fieldCapacity(input.round, seat.bonusCap), seat.hp, median);
   const playerCatchup = recordCatchup(input.playerCatchup, input.battle.outcome === 'right', input.playerFielded ?? 0, input.playerCapacity ?? fieldCapacity(input.round), hp, median);
@@ -66,7 +68,7 @@ export function settleLobbyRound(input: { hp: number; opponents: AutochessOppone
     if (!outcome) continue;
     const bounty = settleLossBounty(seat.bounty, outcome, seat.hp);
     seat.bounty = bounty.state;
-    if (bounty.payout) seat.gold = (seat.gold ?? AUTOCHESS_START_GOLD) + bounty.payout;
+    if (bounty.payout) seat.gold = (seat.gold ?? getGameConfig().pacing.startGold) + bounty.payout;
   }
   const bounty = settleLossBounty(input.playerBounty, input.battle.outcome === 'left' ? 'win' : input.battle.outcome === 'right' ? 'loss' : 'draw', hp);
   return { hp, opponents, events, playerCatchup, playerBounty: bounty.state, bountyPayout: bounty.payout };

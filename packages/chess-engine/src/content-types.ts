@@ -58,6 +58,15 @@ export type UnitDef = {
   autochessOnly?: boolean;
   /** External unit: fixed at 1 star, excluded from the shop and field limit. */
   ally?: boolean;
+  /** Optional explicit visual sprite id when template id uses a runtime pack prefix. */
+  spriteId?: string;
+  /** Explicit per-star HP/ATK multipliers overriding the shared tier curve. */
+  starMult?: {
+    hp: readonly [number, number, number];
+    atk: readonly [number, number, number];
+  };
+  /** Skip the legacy low-cost armor/mr star bonus when a pack uses explicit multipliers. */
+  disableLowCostStarBonus?: boolean;
   source: "pack" | "summon" | "ai";
   /** Skills are role bricks, not claimed official kit. */
   skillNote: string;
@@ -261,6 +270,7 @@ export type MysteryBox = {
 
 /** 棋手触发的条件发放（残甲锻锋：棋手气血低于 X 后）。 */
 export type HexGrant = {
+  gold?: number;
   itemBoxes?: ItemBoxGrant[];
   grantTierItems?: { family: string; count: number };
 };
@@ -298,8 +308,32 @@ export type HexDef = {
   name: string;
   rarity: HexRarity;
   note: string;
+  category?: "economy" | "combat" | "artifact";
   grantUnitId?: string;
+  grantUnitStar?: 1 | 2 | 3;
   gold?: number;
+  immediateGold?: number;
+  immediateXp?: number;
+  roundXpBonus?: number;
+  xpPerBuyBonus?: number;
+  freeRefreshesPerRound?: number;
+  immediateFreeRefreshes?: number;
+  xpPerPaidRefresh?: number;
+  shopBanContract?: { banRounds: number; payoutGold: number };
+  bonusFieldCap?: number;
+  starUpHighestUnit?: { count: number; grantHazardImmunity?: boolean };
+  grantRandomCostUnit?: { cost: number; count: number; star?: 1 | 2 };
+  perTraitUnit?: { traits: string[]; stats: StatOp[] };
+  emergencyHealPct?: number;
+  controlImmune?: boolean;
+  immuneSafety?: boolean;
+  hazardModifiers?: {
+    chanceScalePct?: number;
+    forcePriceTrough?: boolean;
+    ignoreSoldOut?: boolean;
+    banFullRefundBonusGold?: number;
+    strikeBonusGold?: number;
+  };
   hpPct?: number;
   atkPct?: number;
   skillPct?: number;
@@ -342,6 +376,10 @@ export type HexDef = {
     selfHpBelowPct?: number;
     selfHpAbovePct?: number;
     noItems?: boolean;
+    hasItems?: boolean;
+    rowMin?: number;
+    rowMax?: number;
+    traitIn?: string[];
     roleIn?: string[];
     costAtLeast?: number;
     costAtMost?: number;

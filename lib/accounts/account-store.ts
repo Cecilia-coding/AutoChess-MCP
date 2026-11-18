@@ -1,14 +1,29 @@
 import { GIFT_NOTE_GUIDANCE } from '../meta/gift-copy';
 import {leaderboardOrder, type LeaderboardOrder} from '../meta/leaderboard';
 import { giftPresentation } from '../meta/gift-presentation';
-import { CURRENCY, WHEEL_TICKET_SHOP, FEEDBACK_REWARD, type FeedbackCredit } from '../meta/economy';
+import { CURRENCY, ARCADE_TICKET_SHOP, FEEDBACK_REWARD, type FeedbackCredit } from '../meta/economy';
 import { createHash, randomBytes, randomInt, scryptSync, timingSafeEqual } from 'node:crypto';
-import { WHEEL_DRAFT, WHEEL_GUIDE, WHEEL_LIMITS, emptyWheel, type WheelCommand, type WheelState, type WheelView, type WheelRules, type WheelEvent, type WheelReceipt } from '../meta/wheel';
-import { playWheel, validateWheelRules } from './wheel-engine';
+import {
+  ARCADE_GUIDE,
+  ARCADE_LIMITS,
+  ARCADE_PRIZE_SPECS,
+  arcadeReliefStatus,
+  emptyArcadeState,
+  type ArcadeCommand,
+  type ArcadeEvent,
+  type ArcadePrize,
+  type ArcadePrizeSpec,
+  type ArcadeReceipt,
+  type ArcadeState,
+  type ArcadeView,
+} from '../meta/arcade';
+import { getGameConfig } from '../meta/game-config';
+import { arcadeGameCatalog } from '../meta/arcade-registry';
+import { playArcade, validateArcadeConfig } from './arcade-engine';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { listedCosmetics, cosmeticPrice, cosmeticById, DEFAULT_BOARD_SKIN, NATIVE_BOARD_SKIN, isShopCosmetic, type Cosmetic, type CosmeticKind } from '../meta/cosmetics';
-import { matchmakingDelta, EXCHANGE_BOT_PER_HUMAN, subsidyQuote, currencyFor, emptyWallet, rewardFor, settlementDelta, settlementRule, type CurrencyId, type MatchKind, type Wallet } from '../meta/economy';
+import { listedCosmetics, cosmeticPrice, cosmeticById, DEFAULT_BOARD_SKIN, NATIVE_BOARD_SKIN, isShopCosmetic, isDefaultCosmetic, isArcadeCosmetic, type Cosmetic, type CosmeticKind } from '../meta/cosmetics';
+import { matchmakingDelta, exchangeBotPerHuman, subsidyQuote, currencyFor, emptyWallet, rewardFor, settlementDelta, settlementRule, type CurrencyId, type MatchKind, type Wallet } from '../meta/economy';
 import type { EchoEvent } from '../meta/echo-tree';
 import type { SettlementReceipt } from '../meta/economy';
 import { GIFT_LEDGER_MAX, GIFT_LEDGER_CURSOR_MAX, type GiftLedgerDirection, type GiftLedgerEntry, type GiftLedgerPage, type GiftLedgerQuery } from '../meta/gift-ledger';
@@ -18,12 +33,43 @@ export { fail };
 
 export type Gift = { id: string; fromId: string; fromName: string; cosmeticId: string; at: number; note?: string };
 export type GiftRecord = Gift & { toId: string; toName: string; claimedAt?: number; legacy?: true };
-export type RoomGiftAction = { key: string; cosmeticId: string; gift: Gift; bought: boolean; toName: string; coins: number };
+export type RoomGiftAction = { key: string; cosmeticId: string; gift: Gift; bought: boolean; toId?: string; toName: string; coins: number };
 /** 回音树发布口（可注入；不注入就不广播，测试与瘦身模式照旧）。 */
 export type EchoPublisher = { publish(input: Omit<EchoEvent, 'id' | 'at'> & { id?: string; at?: number }): EchoEvent };
+export type ArcadeOptions = {
+  enabled?: boolean;
+  echoScope?: 'public' | 'private' | 'none';
+  random?: () => number;
+  makeId?: () => string;
+  now?: () => number;
+};
+export type AccountStorage = {
+  read(): AccountFile | undefined;
+  write(data: AccountFile): void;
+};
+/** 旧版对对碰存档的结构化快照，仅用于平滑迁移旧奖品到像素游乐摊。 */
+type LegacyWheelPrizeSnapshot = {
+  id?: string;
+  spec?: {
+    id?: string;
+    name?: string;
+    icon?: string;
+    giftable?: boolean;
+    reward?: { kind?: string; cosmeticId?: string };
+  };
+  at?: number;
+  source?: string;
+  status?: 'pending' | 'used' | 'sent';
+  from?: { id: string; name: string };
+  to?: { id: string; name: string };
+  note?: string;
+  settledAt?: number;
+};
+type LegacyWheelSnapshot = { tickets?: number; prizes?: LegacyWheelPrizeSnapshot[] };
 /** 单席位结算条目：有效性由结算层按 `round` 与局型门槛判定。 */
 export type MatchEntry = { accountId: string; outcome: 'win' | 'loss' | 'draw'; place?: number };
-export type MatchSettlementInput = { roomId: string; round: number; entries: MatchEntry[]; travelIdleLoss?: boolean; partial?: boolean; participants?: string[]; seatCount?: number; matchmaking?: boolean };
+export type PlatformAccountPerson = { id: string; name: string; isAi: boolean; owners?: string[] };
+export type MatchSettlementInput = { roomId: string; round: number; entries: MatchEntry[]; travelIdleLoss?: boolean; partial?: boolean; participants?: string[]; seatCount?: number; matchmaking?: boolean; companionOnly?: boolean };
 type DailySettlement = { day: string; companion: number; travel: number };
 type SubsidyAction = { key: string; humanId: string; aiId: string; amount: number; gained?: number; spentBot: number; spentHuman: number; at: number };
 export type AccountRecord = { games: number; wins: number };
@@ -36,15 +82,18 @@ export type Account = {
   hiddenFromLeaderboard?: boolean;
   hiddenFromOwnerRoster?: boolean;
   feedbackCredits?: Record<string, FeedbackCredit>;
-  wheel?: WheelState;
+  arcade?: ArcadeState;
+  /** @deprecated Migrated into `arcade` on load. */
+  wheel?: LegacyWheelSnapshot;
   coins?: Wallet; cosmetics?: Owned; gifts?: Gift[]; giftHistory?: GiftRecord[]; record?: AccountRecord;
 };
 
 export type PublicAccount = Pick<Account, 'id' | 'username' | 'isAi' | 'isAdmin' | 'createdAt' | 'lastActiveAt' | 'deletedAt'> & {
   record?: AccountRecord; frame?: string;
 };
+export type BoundPartner = { id: string; username: string; isAi: boolean };
 export type SelfAccount = PublicAccount & {
-  coins: Wallet; owned: string[]; equipped: Partial<Record<CosmeticKind, string>>; gifts: Gift[]; giftHistory: GiftRecord[]; record: AccountRecord; ownerName?: string;
+  coins: Wallet; owned: string[]; equipped: Partial<Record<CosmeticKind, string>>; gifts: Gift[]; giftHistory: GiftRecord[]; record: AccountRecord; ownerName?: string; boundPartners: BoundPartner[];
 };
 export type Session = { token: string; accountId: string; createdAt: number; lastSeenAt: number };
 export type Binding = { humanId: string; aiId: string; createdAt: number };
@@ -52,7 +101,7 @@ export type AiInvite = { hash: string; humanId: string; createdAt: number; expir
 export type MachineTicket = { hash: string; roomId: string; hostId: string; kind: 'new' | 'existing'; aiId?: string; approvalId?: string; createdAt: number; expiresAt: number; usedAt?: number; revokedAt?: number };
 export type MachineRequest = { id: string; roomId: string; mode?: string; requesterId: string; ownerId: string; aiId: string; createdAt: number; expiresAt: number; status: 'pending' | 'approved' | 'declined' | 'revoked'; ticket?: string };
 type SessionState = { accountId: string; createdAt: number; lastSeenAt: number };
-type AccountFile = { version: 1; accounts: Account[]; sessions: Record<string, SessionState>; bindings?: Binding[]; aiInvites?: AiInvite[]; machineTickets?: MachineTicket[]; machineRequests?: MachineRequest[]; roomGiftActions?: RoomGiftAction[]; settledRooms?: Record<string, number>; settlementReceipts?: Record<string, SettlementReceipt>; dailySettlement?: Record<string, DailySettlement>; subsidyActions?: SubsidyAction[]; pendingEcho?: EchoEvent[] };
+export type AccountFile = { version: 1; accounts: Account[]; sessions: Record<string, SessionState>; bindings?: Binding[]; aiInvites?: AiInvite[]; machineTickets?: MachineTicket[]; machineRequests?: MachineRequest[]; roomGiftActions?: RoomGiftAction[]; settledRooms?: Record<string, number>; settlementReceipts?: Record<string, SettlementReceipt>; dailySettlement?: Record<string, DailySettlement>; subsidyActions?: SubsidyAction[]; pendingEcho?: EchoEvent[] };
 
 export const USERNAME_MIN = 2;
 export const USERNAME_MAX = 24;
@@ -114,13 +163,13 @@ export class AccountStore {
   private pendingEcho = new Map<string, EchoEvent>();
   private lastPersistedSeen = new Map<string, number>();
 
-  constructor(readonly directory: string, readonly echo?: EchoPublisher, readonly wheelOptions: { enabled?: boolean; rules?: WheelRules; random?:()=>number } = {}) {
-    if(wheelOptions.enabled)validateWheelRules(wheelOptions.rules??WHEEL_DRAFT);
-    mkdirSync(directory, { recursive: true });
+  constructor(readonly directory: string, readonly echo?: EchoPublisher, readonly arcadeOptions: ArcadeOptions = {}, private storage?: AccountStorage) {
+    if (arcadeOptions.enabled) validateArcadeConfig();
+    if (!storage) mkdirSync(directory, { recursive: true });
     const file = join(directory, 'accounts.json');
-    if (!existsSync(file)) return;
-    const data = JSON.parse(readFileSync(file, 'utf8')) as AccountFile;
-    if (data.version !== 1) fail('ACCOUNT_VERSION_UNSUPPORTED');
+    const data = storage ? storage.read() : existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) as AccountFile : undefined;
+    if (data === undefined) return;
+    if (!data || data.version !== 1) fail('ACCOUNT_VERSION_UNSUPPORTED');
     for (const account of data.accounts ?? []) {
       this.accounts.set(account.id, account);
       if (!account.deletedAt) this.byKey.set(account.usernameKey, account.id);
@@ -146,22 +195,134 @@ export class AccountStore {
     for (const [ownerId, daily] of Object.entries(data.dailySettlement ?? {})) this.dailySettlement.set(ownerId, daily);
     for (const action of data.subsidyActions ?? []) this.subsidyActions.set(action.key, action);
     for (const event of data.pendingEcho ?? []) this.pendingEcho.set(event.id, event);
-    // Older saves kept only the unclaimed inbox. Preserve every human recipient's factual pending gifts.
-    let migratedGifts = false;
+    // Preserve all pending inbox gifts in giftHistory across both humans and bound AIs, and migrate legacy wheel prizes into arcade.
+    let migrated = false;
     for (const account of this.accounts.values()) {
       const history = account.giftHistory ?? [];
       const seen = new Set(history.map(record => record.id));
-      const pending = account.isAi ? [] : (account.gifts ?? []).filter(gift => {
+      const pending = (account.gifts ?? []).filter(gift => {
         if (seen.has(gift.id)) return false;
         seen.add(gift.id);
         return true;
       });
-      if (!pending.length) continue;
-      account.giftHistory = [...history, ...pending.map(gift => ({ ...gift, toId: account.id, toName: account.username, legacy: true as const }))];
-      migratedGifts = true;
+      if (pending.length) {
+        account.giftHistory = [...history, ...pending.map(gift => ({ ...gift, toId: account.id, toName: account.username, legacy: true as const }))];
+        migrated = true;
+      }
+      if (this.migrateLegacyWheel(account)) migrated = true;
     }
-    if (migratedGifts) this.persist();
+    if (migrated) this.persist();
     this.flushPendingEcho();
+  }
+
+  private migrateLegacyWheel(account: Account): boolean {
+    const legacyPrizes = account.wheel?.prizes;
+    if (!legacyPrizes?.length) return false;
+    const arcade = account.arcade ? structuredClone(account.arcade) : emptyArcadeState();
+    const seen = new Set(arcade.prizes.map(prize => prize.id));
+    let changed = false;
+    for (const raw of legacyPrizes) {
+      if (!raw.id || seen.has(raw.id)) continue;
+      const cosmeticId = raw.spec?.reward?.cosmeticId;
+      if (!cosmeticId) continue;
+      seen.add(raw.id);
+      const knownSpec = ARCADE_PRIZE_SPECS.find(item => item.cosmeticId === cosmeticId);
+      const spec: ArcadePrizeSpec = knownSpec
+        ? structuredClone(knownSpec)
+        : { id: raw.spec?.id ?? raw.id, name: raw.spec?.name ?? cosmeticId, icon: raw.spec?.icon ?? '✦', cosmeticId, giftable: raw.spec?.giftable !== false, rarity: 'rare' };
+      const prize: ArcadePrize = {
+        id: raw.id,
+        spec,
+        at: raw.at ?? account.createdAt,
+        source: raw.source === 'gift' ? 'gift' : 'legacy',
+        status: raw.status ?? 'pending',
+        ...(raw.from ? { from: raw.from } : {}),
+        ...(raw.to ? { to: raw.to } : {}),
+        ...(raw.note ? { note: raw.note } : {}),
+        ...(raw.settledAt ? { settledAt: raw.settledAt } : {}),
+      };
+      arcade.prizes.push(prize);
+      changed = true;
+    }
+    if (!changed) return false;
+    account.arcade = arcade;
+    return true;
+  }
+
+  /**
+   * 宿主平台同进程受信任桥接：不颁发持久化登录态与密码，由宿主每次传入新鲜人物关系并在回调末尾原子落盘。
+   */
+  platformRun<T>(people: PlatformAccountPerson[], actorId: string, run: (token: string) => T): T {
+    const previousAccounts = structuredClone([...this.accounts.entries()]);
+    const previousKeys = new Map(this.byKey);
+    const previousBindings = new Map(this.bindings);
+    const previousRoomGiftActions = new Map(this.roomGiftActions);
+    const previousSubsidyActions = new Map(this.subsidyActions);
+    const previousPendingEcho = new Map(this.pendingEcho);
+    try {
+      const now = Date.now();
+      for (const person of people) {
+        if (!/^platform:[a-z0-9][a-z0-9_-]{0,31}:[a-f0-9]{32}$/.test(person.id)) fail('Invalid platform identity');
+        let account = this.accounts.get(person.id);
+        if (account && account.isAi !== person.isAi) fail('Platform identity type changed');
+        if (!account) {
+          account = {
+            id: person.id,
+            username: person.name,
+            usernameKey: person.id,
+            passwordHash: 'platform-only',
+            isAi: person.isAi,
+            isAdmin: false,
+            createdAt: now,
+            lastActiveAt: now,
+            coins: emptyWallet(),
+            cosmetics: { owned: [DEFAULT_BOARD_SKIN], equipped: { board: DEFAULT_BOARD_SKIN } },
+            gifts: [],
+            giftHistory: [],
+            record: { games: 0, wins: 0 },
+          };
+          this.accounts.set(person.id, account);
+        }
+        account.username = person.name;
+        account.isAdmin = false;
+        this.byKey.set(person.id, person.id);
+      }
+      for (const person of people) {
+        if (!person.isAi || !person.owners) continue;
+        const account = this.accounts.get(person.id)!;
+        delete account.ownerId;
+        const existingBindings = new Map(this.bindings);
+        for (const [key, binding] of this.bindings) {
+          if (binding.aiId === person.id) this.bindings.delete(key);
+        }
+        for (const humanId of person.owners) {
+          const owner = this.accounts.get(humanId);
+          if (!owner || owner.isAi || owner.deletedAt) fail('Invalid platform owner');
+          this.bindings.set(
+            `${humanId}:${person.id}`,
+            existingBindings.get(`${humanId}:${person.id}`) ?? { humanId, aiId: person.id, createdAt: now },
+          );
+        }
+      }
+      if (!this.accounts.has(actorId)) fail('Missing platform account');
+      const token = this.issueSession(actorId);
+      try {
+        const result = run(token);
+        this.sessions.delete(token);
+        this.persist();
+        return result;
+      } finally {
+        this.sessions.delete(token);
+      }
+    } catch (error) {
+      this.accounts = new Map(previousAccounts);
+      this.byKey = previousKeys;
+      this.bindings = previousBindings;
+      this.roomGiftActions = previousRoomGiftActions;
+      this.subsidyActions = previousSubsidyActions;
+      this.pendingEcho = previousPendingEcho;
+      throw error;
+    }
   }
 
   register(rawUsername: unknown, rawPassword: unknown, options: { isAi?: boolean; isAdmin?: boolean } = {}): { account: PublicAccount; token: string } {
@@ -395,7 +556,7 @@ export class AccountStore {
       ...(options.ownerId ? { ownerId: options.ownerId } : {}),
       createdAt: Date.now(), lastActiveAt: Date.now(),
       coins: emptyWallet(),
-      cosmetics: { owned: [DEFAULT_BOARD_SKIN], equipped: {}, boardExplicit: false },
+      cosmetics: { owned: [DEFAULT_BOARD_SKIN], equipped: { board: DEFAULT_BOARD_SKIN } },
       gifts: [], record: { games: 0, wins: 0 },
     };
     this.accounts.set(account.id, account);
@@ -556,12 +717,10 @@ export class AccountStore {
 
   private effectiveBoardSkin(account: Account): string | undefined {
     const cosmetics = account.cosmetics;
-    if (!cosmetics) return undefined;
+    if (!cosmetics) return DEFAULT_BOARD_SKIN;
     const board = cosmetics.equipped.board;
-    if (!board || cosmetics.boardExplicit === false) return undefined;
-    if (cosmetics.boardExplicit === true) return board;
-    // Legacy accounts created prior to pack-native default silently wrote DEFAULT_BOARD_SKIN.
-    return board === DEFAULT_BOARD_SKIN ? undefined : board;
+    if (board === NATIVE_BOARD_SKIN) return undefined;
+    return board || DEFAULT_BOARD_SKIN;
   }
 
   private cloneCosmetics(cosmetics?: Owned): Owned {
@@ -592,29 +751,39 @@ export class AccountStore {
   }
 
   private publicAccount(account: Account): PublicAccount {
-    const { passwordHash: _passwordHash, usernameKey: _usernameKey, ownerId: _ownerId, hiddenFromLeaderboard: _hiddenFromLeaderboard, hiddenFromOwnerRoster: _hiddenFromOwnerRoster, id, coins: _coins, cosmetics, gifts: _gifts, giftHistory: _giftHistory, wheel: _wheel, ...publicFields } = account;
+    const { passwordHash: _passwordHash, usernameKey: _usernameKey, ownerId: _ownerId, hiddenFromLeaderboard: _hiddenFromLeaderboard, hiddenFromOwnerRoster: _hiddenFromOwnerRoster, id, coins: _coins, cosmetics, gifts: _gifts, giftHistory: _giftHistory, arcade: _arcade, wheel: _wheel, ...publicFields } = account;
     return { id, ...publicFields, frame: cosmetics?.equipped?.frame };
   }
 
-  /** 自有视角：钱包 / 已购 / 装备 / 礼物收件箱 / 战绩。 */
+  private boundPartnersFor(account: Account): BoundPartner[] {
+    if (account.isAi) {
+      const ownerId = this.tryOwnerId(account.id);
+      const owner = ownerId ? this.accounts.get(ownerId) : undefined;
+      return owner && !owner.deletedAt && !owner.isAi
+        ? [{ id: owner.id, username: owner.username, isAi: false }]
+        : [];
+    }
+    return this.boundAiById(account.id).map(ai => ({ id: ai.id, username: ai.username, isAi: true }));
+  }
+
+  /** 自有视角：钱包 / 已购 / 装备 / 礼物收件箱 / 赠礼记录 / 绑定互赠伙伴 / 战绩。 */
   selfAccount(token: unknown): SelfAccount {
     const account = this.sessionAccount(token);
-    let ownerName: string | undefined;
-    if (account.isAi) {
-      try { ownerName = this.accounts.get(this.ownerIdOfAi(account.id))?.username; }
-      catch { /* Unbound or multiply bound legacy AI has no single gift recipient. */ }
-    }
+    const boundPartners = this.boundPartnersFor(account);
+    const ownerName = account.isAi ? boundPartners[0]?.username : undefined;
     const equipped: Partial<Record<CosmeticKind, string>> = { ...account.cosmetics?.equipped };
     const activeBoard = this.effectiveBoardSkin(account);
     if (activeBoard) equipped.board = activeBoard;
     else delete equipped.board;
+    const owned = [...new Set([DEFAULT_BOARD_SKIN, ...(account.cosmetics?.owned ?? [])])];
     return {
       ...this.publicAccount(account),
       coins: { ...emptyWallet(), ...account.coins },
-      owned: [...account.cosmetics?.owned ?? []],
+      owned,
       equipped,
       gifts: [...account.gifts ?? []],
-      giftHistory: account.isAi ? [] : [...account.giftHistory ?? []].sort((a, b) => b.at - a.at || b.id.localeCompare(a.id)),
+      giftHistory: [...account.giftHistory ?? []].sort((a, b) => b.at - a.at || b.id.localeCompare(a.id)),
+      boundPartners,
       ...(ownerName ? { ownerName } : {}),
       record: { games: 0, wins: 0, ...account.record },
     };
@@ -639,7 +808,7 @@ export class AccountStore {
       if (typeof query.cursor !== 'string' || !query.cursor.length || query.cursor.length > GIFT_LEDGER_CURSOR_MAX || !/^[a-zA-Z0-9_-]+$/.test(query.cursor)) fail('赠礼记录 cursor 无效，请从第一页重新读取');
       try {
         const decoded: unknown = JSON.parse(Buffer.from(query.cursor, 'base64url').toString('utf8'));
-        if (!Array.isArray(decoded) || decoded.length !== 5 || decoded[0] !== 1 || decoded[1] !== self.id || decoded[2] !== direction || !validTime(decoded[3]) || typeof decoded[4] !== 'string' || !/^(ordinary|wheel):[^:]+:[^:]+$/.test(decoded[4]) || decoded[4].length > 160) fail('invalid cursor');
+        if (!Array.isArray(decoded) || decoded.length !== 5 || decoded[0] !== 1 || decoded[1] !== self.id || decoded[2] !== direction || !validTime(decoded[3]) || typeof decoded[4] !== 'string' || !/^(ordinary|arcade|wheel):[^:]+:[^:]+$/.test(decoded[4]) || decoded[4].length > 160) fail('invalid cursor');
         boundary = { at: decoded[3], id: decoded[4] };
       } catch { fail('赠礼记录 cursor 无效或与当前账号、收发筛选不一致，请从第一页重新读取'); }
     }
@@ -667,14 +836,33 @@ export class AccountStore {
           ...(claimed ? { claimedAt: gift.claimedAt, claimedAtIso: new Date(gift.claimedAt!).toISOString() } : {}),
         });
       }
-      for (const prize of recipient.wheel?.prizes ?? []) {
+      const seenPrizeIds = new Set<string>();
+      for (const prize of recipient.arcade?.prizes ?? []) {
+        seenPrizeIds.add(prize.id);
         if (prize.source !== 'gift' || !prize.from || (prize.from.id !== self.id && recipient.id !== self.id)) continue;
         const settled = validTime(prize.settledAt);
+        const cosmetic = cosmeticById(prize.spec.cosmeticId);
+        add({
+          id: `arcade:${recipient.id}:${prize.id}`, source: 'arcade',
+          from: { id: prize.from.id, name: prize.from.name }, to: { id: recipient.id, name: recipient.username },
+          item: { id: prize.spec.id, name: prize.spec.name, cosmeticId: prize.spec.cosmeticId, ...(cosmetic?.tagline ? { theme: cosmetic.tagline } : {}), ...(cosmetic?.giftIntro ? { intro: cosmetic.giftIntro } : {}) },
+          ...(prize.note ? { note: prize.note } : {}), at: prize.at,
+          status: prize.status === 'pending' ? 'pending' : prize.status === 'used' ? 'claimed' : prize.status === 'sent' ? 'forwarded' : 'unknown',
+          ...(prize.status === 'used' && settled ? { claimedAt: prize.settledAt, claimedAtIso: new Date(prize.settledAt!).toISOString() } : {}),
+          ...(prize.status === 'sent' && settled ? { forwardedAt: prize.settledAt, forwardedAtIso: new Date(prize.settledAt!).toISOString() } : {}),
+        });
+      }
+      for (const prize of recipient.wheel?.prizes ?? []) {
+        if (!prize.id || seenPrizeIds.has(prize.id)) continue;
+        if (prize.source !== 'gift' || !prize.from || (prize.from.id !== self.id && recipient.id !== self.id)) continue;
+        const settled = validTime(prize.settledAt);
+        const cosmeticId = prize.spec?.reward?.cosmeticId;
+        const cosmetic = cosmeticById(cosmeticId);
         add({
           id: `wheel:${recipient.id}:${prize.id}`, source: 'wheel',
           from: { id: prize.from.id, name: prize.from.name }, to: { id: recipient.id, name: recipient.username },
-          item: { id: prize.spec.id, name: prize.spec.name, ...(prize.spec.reward.kind === 'cosmetic' ? { cosmeticId: prize.spec.reward.cosmeticId, theme: cosmeticById(prize.spec.reward.cosmeticId)?.tagline, intro: cosmeticById(prize.spec.reward.cosmeticId)?.giftIntro } : {}) },
-          ...(prize.note ? { note: prize.note } : {}), at: prize.at,
+          item: { id: prize.spec?.id ?? prize.id, name: prize.spec?.name ?? cosmeticId ?? prize.id, ...(cosmeticId ? { cosmeticId, ...(cosmetic?.tagline ? { theme: cosmetic.tagline } : {}), ...(cosmetic?.giftIntro ? { intro: cosmetic.giftIntro } : {}) } : {}) },
+          ...(prize.note ? { note: prize.note } : {}), at: prize.at ?? recipient.createdAt,
           status: prize.status === 'pending' ? 'pending' : prize.status === 'used' ? 'claimed' : prize.status === 'sent' ? 'forwarded' : 'unknown',
           ...(prize.status === 'used' && settled ? { claimedAt: prize.settledAt, claimedAtIso: new Date(prize.settledAt!).toISOString() } : {}),
           ...(prize.status === 'sent' && settled ? { forwardedAt: prize.settledAt, forwardedAtIso: new Date(prize.settledAt!).toISOString() } : {}),
@@ -690,7 +878,7 @@ export class AccountStore {
     return {
       entries: page, nextCursor, hasMore, direction, order: 'newest_first', serverNow: Date.now(),
       historyNotice: '按现存赠礼记录展示；缺失的旧礼物与时间无法还原。已转赠表示收件人另行送出，领取时间仅在有记录时显示。',
-      presentations: { ordinary: giftPresentation('ordinary'), wheel: giftPresentation('wheel') },
+      presentations: { ordinary: giftPresentation('ordinary'), arcade: giftPresentation('arcade'), wheel: giftPresentation('wheel') },
     };
   }
 
@@ -721,7 +909,7 @@ export class AccountStore {
     const previousReceipts = new Map(this.settlementReceipts);
     const previousRooms = new Map(this.settledRooms);
     const previousDaily = new Map(this.dailySettlement);
-    const previousAccounts = new Map<string, { coins: Wallet | undefined; record: AccountRecord | undefined }>();
+    const previousAccounts = new Map<string, { coins: Wallet | undefined; record: AccountRecord | undefined; arcade: ArcadeState | undefined }>();
     const present = new Set(input.participants ?? input.entries.map(entry => entry.accountId));
     const day = new Date().toISOString().slice(0, 10);
     const settled: string[] = []; const skipped: string[] = [];
@@ -739,10 +927,10 @@ export class AccountStore {
         const receipt: SettlementReceipt = { currency: currencyFor(account.isAi), delta: 0 };
         receipts[entry.accountId] = receipt;
         this.settlementReceipts.set(key, receipt);
-        previousAccounts.set(entry.accountId, { coins: account.coins, record: account.record });
+        previousAccounts.set(entry.accountId, { coins: account.coins, record: account.record, arcade: account.arcade });
         const ownerId = account.isAi ? this.tryOwnerId(account.id) : account.id;
         const mentorPresent = Boolean(ownerId && present.has(ownerId));
-        const kind: MatchKind = account.isAi ? (mentorPresent && !input.matchmaking ? 'companion' : 'travel') : 'companion';
+        const kind: MatchKind = input.companionOnly ? 'companion' : account.isAi ? (mentorPresent && !input.matchmaking ? 'companion' : 'travel') : 'companion';
         const rule = settlementRule(kind);
         // 有效对局门槛：房间打满 minRounds 才结算（拦住刚建房就认输 / 空局）。
         const travelLoss = kind === 'travel' && entry.outcome === 'loss';
@@ -772,6 +960,15 @@ export class AccountStore {
         const record = { games: 0, wins: 0, ...account.record };
         record.games += 1; if (entry.outcome === 'win') record.wins += 1;
         account.record = record;
+        const ticketDrop = rule.arcadeTickets?.[entry.outcome] ?? 0;
+        if (ticketDrop > 0) {
+          const currentArcade = this.getArcadeState(account);
+          const gainedTickets = Math.min(ticketDrop, Math.max(0, ARCADE_TICKET_SHOP.maxTickets - currentArcade.tickets));
+          if (gainedTickets > 0) {
+            account.arcade = { ...structuredClone(currentArcade), tickets: currentArcade.tickets + gainedTickets };
+            receipt.arcadeTickets = gainedTickets;
+          }
+        }
         settled.push(entry.accountId);
       }
       if (!input.partial) this.settledRooms.set(input.roomId, Date.now());
@@ -779,7 +976,7 @@ export class AccountStore {
     } catch (error) {
       for (const [id, previous] of previousAccounts) {
         const account = this.accounts.get(id);
-        if (account) { account.coins = previous.coins; account.record = previous.record; }
+        if (account) { account.coins = previous.coins; account.record = previous.record; account.arcade = previous.arcade; }
       }
       this.dailySettlement = previousDaily;
       this.settledRooms = previousRooms;
@@ -800,6 +997,19 @@ export class AccountStore {
     try { return this.ownerIdOfAi(aiId); } catch { return undefined; }
   }
 
+  private ownedAisOfHuman(humanId: string): Account[] {
+    return [...this.bindings.values()]
+      .filter(binding => binding.humanId === humanId)
+      .map(binding => this.accounts.get(binding.aiId))
+      .filter((ai): ai is Account => Boolean(ai && !ai.deletedAt && ai.isAi && this.tryOwnerId(ai.id) === humanId));
+  }
+
+  private resolveBoundAiCandidate(humanId: string, key: string): Account | undefined {
+    return this.accounts.get(key)
+      ?? this.accounts.get(this.byKey.get(key.toLowerCase()) ?? '')
+      ?? this.ownedAisOfHuman(humanId).find(ai => ai.username === key);
+  }
+
   /** 旧入口只作迁移提示；新兑换必须选机，避免机芯困在玩家钱包。 */
   exchange(token: unknown, humanCoins: unknown): never {
     const account = this.sessionAccount(token);
@@ -817,7 +1027,8 @@ export class AccountStore {
     if (account.isAi) fail('只有玩家可以接济自己的机');
     const amount = Number(coins);
     if (!Number.isSafeInteger(amount) || amount <= 0) fail('接济数量无效');
-    const ai = this.accounts.get(typeof aiId === 'string' ? aiId : '');
+    const aiKey = typeof aiId === 'string' ? aiId.trim() : '';
+    const ai = aiKey ? this.resolveBoundAiCandidate(account.id, aiKey) : undefined;
     if (!ai || ai.deletedAt || !ai.isAi) fail('目标机不存在');
     if (this.tryOwnerId(ai.id) !== account.id) fail('只能接济自己名下的机');
     if (requestId !== undefined && (typeof requestId !== 'string' || !/^[a-zA-Z0-9_-]{8,80}$/.test(requestId))) fail('接济请求编号无效');
@@ -825,7 +1036,7 @@ export class AccountStore {
     const previous = key ? this.subsidyActions.get(key) : undefined;
     if (previous) {
       if (previous.aiId !== ai.id || previous.amount !== amount) fail('这次接济已用于另一笔转账');
-      return { wallet: { ...emptyWallet(), ...account.coins }, aiWallet: { ...emptyWallet(), ...ai.coins }, gained: previous.gained ?? (previous.spentBot === 0 && previous.spentHuman === previous.amount ? previous.amount * EXCHANGE_BOT_PER_HUMAN : previous.amount), aiName: ai.username, spentBot: previous.spentBot, spentHuman: previous.spentHuman, replayed: true };
+      return { wallet: { ...emptyWallet(), ...account.coins }, aiWallet: { ...emptyWallet(), ...ai.coins }, gained: previous.gained ?? (previous.spentBot === 0 && previous.spentHuman === previous.amount ? previous.amount * exchangeBotPerHuman() : previous.amount), aiName: ai.username, spentBot: previous.spentBot, spentHuman: previous.spentHuman, replayed: true };
     }
     const wallet = { ...emptyWallet(), ...account.coins };
     const quote = subsidyQuote(amount);
@@ -900,147 +1111,323 @@ export class AccountStore {
     return wallet;
   }
 
-  wheelView(token:unknown):WheelView {
-    const account=this.sessionAccount(token),rules=this.wheelOptions.rules??WHEEL_DRAFT;
-    const {receipts:_receipts,...savedState}=account.wheel??emptyWheel(rules);
-    const state={...savedState,prizes:savedState.prizes.map(prize=>({
-      ...prize,
-      ...(prize.status==='pending'?{claimAction:{tool:'claim_gift' as const,args:{giftId:prize.id},fill:['accountToken'] as ['accountToken']}}:{})
-    }))};
-    const recipients=account.isAi?[]:this.boundAiById(account.id).map(({id,username})=>({id,username}));
-    const currency=currencyFor(account.isAi);
-    const themes:Record<string,string>={},introductions:Record<string,string>={};
-    for(const spec of [...rules.prizes,...state.prizes.map(prize=>prize.spec)])if(spec.giftable&&spec.reward.kind==='cosmetic'){
-      const theme=cosmeticById(spec.reward.cosmeticId)?.tagline;
-      if(theme)themes[spec.reward.cosmeticId]=theme;
-      const intro=cosmeticById(spec.reward.cosmeticId)?.giftIntro;
-      if(intro)introductions[spec.reward.cosmeticId]=intro;
-    }
-    const ticketShop={currency,currencyName:CURRENCY[currency].name,balance:account.coins?.[currency]??0,ticketsPerPack:WHEEL_TICKET_SHOP.ticketsPerPack,packPrice:WHEEL_TICKET_SHOP.prices[currency],maxTickets:WHEEL_TICKET_SHOP.maxTickets};
-    return structuredClone({enabled:this.wheelOptions.enabled===true,rules,state,ticketShop,gifting:{isAi:account.isAi,recipients,presentation:giftPresentation('wheel'),themes,introductions},...(this.wheelOptions.enabled&&account.isAi?{guide:WHEEL_GUIDE}:{}),
-      recipientHint:account.isAi?'收礼人固定为你的人类':'可以送给棋友或你的机；填对方的完整账号名。'});
-  }
-
-  /** One flat claim path for ordinary parcels and wheel gifts; omitted request IDs stay retry-safe. */
-  claimGift(token:unknown, rawGiftId:unknown, rawRequestId?:unknown) {
-    const account=this.sessionAccount(token);
-    if(typeof rawGiftId!=='string'||!rawGiftId||rawGiftId.length>100)fail('请选择要领取的礼物');
-    const requestId=rawRequestId===undefined
-      ? `claim-${createHash('sha256').update(`${account.id}:${rawGiftId}`).digest('hex').slice(0,32)}`
-      : rawRequestId;
-    if(typeof requestId!=='string'||!/^[a-zA-Z0-9_-]{8,80}$/.test(requestId))fail('领取请求编号无效');
-    if((account.gifts??[]).some(gift=>gift.id===rawGiftId)||account.giftHistory?.some(gift=>gift.id===rawGiftId))
-      return {source:'ordinary' as const,...this.claimGifts(token,rawGiftId)};
-    const state=account.wheel??emptyWheel(this.wheelOptions.rules??WHEEL_DRAFT);
-    const prize=state.prizes.find(candidate=>candidate.id===rawGiftId);
-    if(!prize||prize.status==='sent')fail('这不是送给你的待领取礼物');
-    if(prize.status==='used')return {source:'wheel' as const,claimed:true,giftId:prize.id,wheel:this.wheelView(token),replayed:true};
-    const previous=state.receipts.find(receipt=>receipt.requestId===requestId);
-    const revision=previous?previous.revision-1:state.revision;
-    return {source:'wheel' as const,claimed:true,giftId:prize.id,wheel:this.wheelAction(token,{action:'use',requestId,revision,prizeId:prize.id})};
-  }
-
-  /** Spend, outcome, prize transfer and retry receipt are committed in one accounts.json write. */
-  wheelAction(token:unknown, raw:unknown):WheelView {
-    const sender=this.sessionAccount(token);
-    if(!this.wheelOptions.enabled)fail('对对碰还在筹备中');
-    if(!raw||typeof raw!=='object'||Array.isArray(raw))fail('抽奖操作无效');
-    const input=raw as Record<string,unknown>;
-    if(Object.keys(input).some(key=>!['action','requestId','revision','count','prizeId','to','note'].includes(key)))fail('抽奖参数无效');
-    if(!['start','fill','redeem','use','gift','buy_tickets'].includes(String(input.action))||typeof input.requestId!=='string'||!/^[a-zA-Z0-9_-]{8,80}$/.test(input.requestId)||!Number.isSafeInteger(input.revision)||Number(input.revision)<0)fail('抽奖请求编号或版本无效');
-    for(const key of ['prizeId','to','note']) if(input[key]!==undefined&&(typeof input[key]!=='string'||(input[key] as string).length>(key==='note'?60:100)))fail('奖品或收件人参数无效');
-    if(input.count!==undefined&&(!['fill','buy_tickets'].includes(String(input.action))||!Number.isSafeInteger(input.count)))fail('券数或补格数量无效');
-    if(input.action!=='gift'&&(input.to!==undefined||input.note!==undefined))fail('收件人和寄语仅用于赠礼');
-    if(['start','fill','buy_tickets'].includes(String(input.action))&&input.prizeId!==undefined)fail('此操作无需奖品编号');
-    const command=input as WheelCommand,rules=this.wheelOptions.rules??WHEEL_DRAFT;
-    const before=sender.wheel??emptyWheel(rules);
-    const reply=(receipt:Omit<WheelReceipt,'fingerprint'>,replayed:boolean):WheelView=>{
-      const view=this.wheelView(token),event=receipt.events.find(event=>event.kind==='gift');
-      const prize=event?view.state.prizes.find(prize=>prize.id===event.prizeId):undefined;
-      const giftDelivery:WheelView['giftDelivery']=prize?.spec.reward.kind==='cosmetic'
-        ? {status:'delivered',viewState:'unreported',recipientName:prize.to?.name,presentation:giftPresentation('wheel',prize.spec.reward.cosmeticId)} : undefined;
-      return {...view,receipt:structuredClone(receipt),replayed,...(giftDelivery?{giftDelivery}:{})};
+  private getArcadeState(account: Account): ArcadeState {
+    const base = emptyArcadeState();
+    const saved = account.arcade;
+    if (!saved) return base;
+    return {
+      ...base,
+      ...saved,
+      stats: { ...base.stats, ...saved.stats },
+      prizes: [...saved.prizes ?? []],
+      receipts: [...saved.receipts ?? []],
     };
-    const fingerprint=createHash('sha256').update(JSON.stringify({action:command.action,revision:command.revision,count:command.count,prizeId:command.prizeId,to:command.to,note:command.note})).digest('hex');
-    const previous=before.receipts.find(r=>r.requestId===command.requestId);
-    if(previous) {
-      if(previous.fingerprint!==fingerprint)fail('重试编号已用于另一操作');
-      const {fingerprint:_fingerprint,...receipt}=previous;
-      return reply(receipt,true);
-    }
-    // Even after bounded receipts expire, an old revision cannot spend or grant again.
-    if(command.revision!==before.revision)fail('进度已更新，请刷新后继续');
-    let state=structuredClone(before),events:WheelEvent[]=[];
-    const at=Date.now(),makeId=()=>randomBytes(16).toString('hex');
-    let target:Account|undefined,targetState:WheelState|undefined,echo:EchoEvent|undefined;
-    const previousCoins=sender.coins,previousCosmetics=sender.cosmetics,previousWheel=sender.wheel;
-    let coins=sender.coins,cosmetics=sender.cosmetics;
-    if(command.action==='buy_tickets') {
-      const count=command.count;
-      if(!Number.isSafeInteger(count)||count!<WHEEL_TICKET_SHOP.ticketsPerPack||count!>WHEEL_TICKET_SHOP.maxTickets||count!%WHEEL_TICKET_SHOP.ticketsPerPack!==0)fail('购券 count 须为10的倍数，每次10–100张');
-      if(!Number.isSafeInteger(state.tickets+count!)||state.tickets+count!>1_000_000)fail('持有券数已到上限');
-      const currency=currencyFor(sender.isAi),cost=count!/WHEEL_TICKET_SHOP.ticketsPerPack*WHEEL_TICKET_SHOP.prices[currency];
-      coins={...emptyWallet(),...sender.coins};
-      if(coins[currency]<cost)fail(`${CURRENCY[currency].name}不足，购买${count}张需${cost}`);
-      coins[currency]-=cost;state.tickets+=count!;
-      events=[{kind:'buy_tickets',tickets:count,cost,currency}];
-    } else if(command.action==='use'||command.action==='gift') {
-      const prize=state.prizes.find(p=>p.id===command.prizeId);
-      if(!prize||prize.status!=='pending')fail('这份奖品已处理或不存在');
-      if(command.action==='use') {
-        const reward=prize.spec.reward;
-        if(reward.kind==='coins') {coins={...emptyWallet(),...sender.coins};coins[reward.currency]+=reward.amount;}
-        else if(reward.kind==='tickets')state.tickets+=reward.amount;
-        else if(reward.kind==='cosmetic') {
-          if(!cosmeticById(reward.cosmeticId))fail('这件外观暂时无法领取，请保留奖品');
-          const owned=sender.cosmetics?.owned??[];
-          if(owned.includes(reward.cosmeticId))fail('你已经有这件外观，可以把这份奖品送出去');
-          cosmetics={owned:[...owned,reward.cosmeticId],equipped:{...sender.cosmetics?.equipped}};
-        } else fail('这类奖品暂时无法领取，请保留奖品');
-        prize.status='used';prize.settledAt=at;events=[{kind:'use',prizeId:prize.id}];
-        if(prize.source==='gift'&&prize.from)echo={id:`claim-${prize.id}`,at,kind:'gift_received',from:{...prize.from,isAi:this.accounts.get(prize.from.id)?.isAi??false},to:{id:sender.id,name:sender.username,isAi:sender.isAi},item:{id:prize.spec.id,name:prize.spec.name,kind:prize.spec.reward.kind},style:prize.spec.presentation.broadcastSkin,...(prize.note?{note:prize.note}:{})};
-      } else {
-        if(!prize.spec.giftable||prize.spec.reward.kind!=='cosmetic')fail('只有外观奖品可以赠送');
-        const targetId=sender.isAi?this.ownerIdOfAi(sender.id):this.byKey.get(command.to?.trim().toLowerCase()??'');
-        target=targetId?this.accounts.get(targetId):undefined;
-        if(!target||target.deletedAt||target.id===sender.id)fail('请填写有效的收礼账号');
-        if(sender.isAi&&command.to&&command.to.trim().toLowerCase()!==target.usernameKey)fail('收礼人固定为你的人类');
-        if(target.isAi&&this.ownerIdOfAi(target.id)!==sender.id)fail('机的礼物由它的人来送');
-        targetState=structuredClone(target.wheel??emptyWheel(rules));
-        if(targetState.prizes.length>=WHEEL_LIMITS.prizes)fail('对方的奖品箱已满');
-        const giftId=makeId(),note=command.note?.trim();
-        targetState.prizes.push({id:giftId,spec:structuredClone(prize.spec),at,source:'gift',status:'pending',from:{id:sender.id,name:sender.username},...(note?{note}:{})});
-        targetState.revision++;
-        prize.status='sent';prize.to={id:target.id,name:target.username};prize.settledAt=at;
-        events=[{kind:'gift',prizeId:prize.id}];
+  }
+
+  private buildGiftEcho(
+    from: { id: string; name: string; isAi: boolean },
+    to: { id: string; name: string; isAi: boolean },
+    payload: { id: string; at: number; item: EchoEvent['item']; note?: string; style?: string },
+  ): EchoEvent | undefined {
+    const scopeMode = this.arcadeOptions.echoScope ?? 'public';
+    if (!this.echo || scopeMode === 'none') return undefined;
+    const scope = scopeMode === 'private' ? 'private' : 'public';
+    return {
+      id: payload.id,
+      at: payload.at,
+      kind: 'gift_received',
+      from,
+      to,
+      item: payload.item,
+      scope,
+      ...(scope === 'private' ? { audienceIds: [...new Set([from.id, to.id])] } : {}),
+      ...(payload.style ? { style: payload.style } : {}),
+      ...(payload.note ? { note: payload.note } : {}),
+    };
+  }
+
+  /** 对称解析唯一合法的绑定互赠对象：机只能赠予主人；玩家只能赠予名下已绑定的机。 */
+  private resolveBoundGiftTarget(sender: Account, rawTo?: unknown): Account {
+    const cleanTo = typeof rawTo === 'string' ? rawTo.trim() : '';
+    if (rawTo !== undefined && typeof rawTo !== 'string') fail('请填写有效的收礼账号');
+    if (sender.isAi) {
+      const ownerId = this.ownerIdOfAi(sender.id);
+      const target = this.accounts.get(ownerId);
+      if (!target || target.deletedAt || target.isAi) fail('你的人类账号已失效');
+      if (cleanTo && cleanTo !== target.id && cleanTo.toLowerCase() !== target.usernameKey) {
+        fail('礼物只能送给自己的玩家');
       }
-    } else ({state,events}=playWheel(before,command,rules,this.wheelOptions.random??(()=>randomInt(1_000_000_000)/1_000_000_000),makeId,at));
-    // Currency/ticket drops settle immediately; only cosmetics wait for use or gifting.
-    const oldPrizeIds=new Set(before.prizes.map(p=>p.id));
-    for(const prize of state.prizes) {
-      if(oldPrizeIds.has(prize.id)||prize.status!=='pending')continue;
-      const reward=prize.spec.reward;
-      if(reward.kind==='coins') {coins={...emptyWallet(),...coins};coins[reward.currency]+=reward.amount;}
-      else if(reward.kind==='tickets')state.tickets+=reward.amount;
-      else continue;
-      prize.status='used';prize.settledAt=at;
+      return target;
     }
+    const ownedAis = this.ownedAisOfHuman(sender.id);
+    if (cleanTo) {
+      const candidate = this.resolveBoundAiCandidate(sender.id, cleanTo);
+      if (!candidate || candidate.deletedAt || candidate.id === sender.id) fail('找不到指定的绑定伙伴');
+      if (!candidate.isAi || this.tryOwnerId(candidate.id) !== sender.id) fail('只能与自己名下已绑定的机互赠礼物');
+      return candidate;
+    }
+    if (!ownedAis.length) fail('你还没有绑定自己的机，先在客厅发一张邀请券绑定吧');
+    if (ownedAis.length > 1) fail('你名下绑定了多只机，请指明要送给哪一只（填 to）');
+    return ownedAis[0]!;
+  }
+
+  arcadeView(token: unknown): ArcadeView {
+    const account = this.sessionAccount(token);
+    const arcCfg = getGameConfig().arcade;
+    const { receipts: _receipts, ...savedState } = this.getArcadeState(account);
+    const state = {
+      ...savedState,
+      prizes: savedState.prizes.map(prize => ({
+        ...prize,
+        ...(prize.status === 'pending'
+          ? { claimAction: { tool: 'claim_gift' as const, args: { giftId: prize.id }, fill: ['accountToken'] as ['accountToken'] } }
+          : {}),
+      })),
+    };
+    const recipients = this.boundPartnersFor(account).map(({ id, username }) => ({ id, username }));
+    const currency = currencyFor(account.isAi);
+    const wallet = { ...emptyWallet(), ...account.coins };
+    const ticketShop = {
+      currency,
+      currencyName: CURRENCY[currency].name,
+      balance: wallet[currency],
+      ticketsPerPack: ARCADE_TICKET_SHOP.ticketsPerPack,
+      packPrice: currency === 'bot' ? arcCfg.ticketBotPrice : arcCfg.ticketHumanPrice,
+      maxPackCount: arcCfg.maxPackCount,
+      maxTickets: arcCfg.maxTickets,
+    };
+    const at = this.arcadeOptions.now ? this.arcadeOptions.now() : Date.now();
+    const reliefInfo = arcadeReliefStatus(state, currency, wallet[currency], at, arcCfg.maxTickets);
+    return structuredClone({
+      enabled: this.arcadeOptions.enabled === true,
+      games: arcadeGameCatalog(),
+      stakes: arcCfg.stakes,
+      gambleRules: {
+        winProbability: arcCfg.gambleWinProbability,
+        multiplier: arcCfg.gambleMultiplier,
+        maxDoubles: arcCfg.gambleMaxDoubles,
+      },
+      starterTickets: arcCfg.starterTickets,
+      relief: {
+        tickets: arcCfg.reliefTickets,
+        dailyLimit: arcCfg.reliefDailyLimit,
+        usedToday: reliefInfo.usedToday,
+        remainingToday: reliefInfo.remainingToday,
+        eligible: reliefInfo.eligible,
+      },
+      wallet: { ...wallet, activeCurrency: currency, activeBalance: wallet[currency] },
+      ticketShop,
+      state,
+      guide: ARCADE_GUIDE,
+      gifting: { isAi: account.isAi, recipients, presentation: giftPresentation('arcade') },
+      recipientHint: account.isAi
+        ? '可将抽到的限定外观赠予你绑定的人类主人'
+        : recipients.length
+          ? '可将抽到的限定外观赠予你名下已绑定的机'
+          : '绑定一只机后，即可互赠抽到的限定外观',
+    });
+  }
+
+  /** One flat claim path for ordinary parcels and arcade gifts; omitted request IDs stay retry-safe. */
+  claimGift(token: unknown, rawGiftId: unknown, rawRequestId?: unknown) {
+    const account = this.sessionAccount(token);
+    if (typeof rawGiftId !== 'string' || !rawGiftId || rawGiftId.length > 100) fail('请选择要领取的礼物');
+    const requestId = rawRequestId === undefined
+      ? `claim-${createHash('sha256').update(`${account.id}:${rawGiftId}`).digest('hex').slice(0, 32)}`
+      : rawRequestId;
+    if (typeof requestId !== 'string' || !/^[a-zA-Z0-9_-]{8,80}$/.test(requestId)) fail('领取请求编号无效');
+    if ((account.gifts ?? []).some(gift => gift.id === rawGiftId) || account.giftHistory?.some(gift => gift.id === rawGiftId)) {
+      return { source: 'ordinary' as const, ...this.claimGifts(token, rawGiftId) };
+    }
+    const state = this.getArcadeState(account);
+    const prize = state.prizes.find(candidate => candidate.id === rawGiftId);
+    if (!prize || prize.status === 'sent') fail('这不是送给你的待领取礼物');
+    if (prize.status === 'used') {
+      return { source: 'arcade' as const, claimed: true, giftId: prize.id, arcade: this.arcadeView(token), replayed: true };
+    }
+    const previous = state.receipts.find(receipt => receipt.requestId === requestId);
+    const revision = previous ? previous.revision - 1 : state.revision;
+    return {
+      source: 'arcade' as const,
+      claimed: true,
+      giftId: prize.id,
+      arcade: this.arcadeAction(token, { action: 'use', requestId, revision, prizeId: prize.id }),
+    };
+  }
+
+  /** 游乐摊统一动作事务：开局试手券、购券、老虎机/刮刮乐下注、见好就收/搏倍、拆封入囊、互赠。 */
+  arcadeAction(token: unknown, raw: unknown): ArcadeView {
+    const sender = this.sessionAccount(token);
+    if (!this.arcadeOptions.enabled) fail('像素游乐摊还在筹备中');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail('游乐摊操作无效');
+    const input = raw as Record<string, unknown>;
+    const allowedKeys = new Set(['action', 'requestId', 'revision', 'gameId', 'stakeId', 'payMode', 'autoCashOut', 'count', 'prizeId', 'to', 'note']);
+    if (Object.keys(input).some(key => !allowedKeys.has(key))) fail('游乐摊参数无效');
+    const action = String(input.action);
+    if (!['start', 'relief', 'buy_tickets', 'play', 'cash_out', 'gamble', 'use', 'gift'].includes(action)
+      || typeof input.requestId !== 'string'
+      || !/^[a-zA-Z0-9_-]{8,80}$/.test(input.requestId)
+      || !Number.isSafeInteger(input.revision)
+      || Number(input.revision) < 0) {
+      fail('游乐摊请求编号或版本无效');
+    }
+    for (const key of ['gameId', 'stakeId', 'payMode', 'prizeId', 'to', 'note'] as const) {
+      if (input[key] !== undefined && (typeof input[key] !== 'string' || (input[key] as string).length > (key === 'note' ? 60 : 100))) {
+        fail('游乐摊参数格式无效');
+      }
+    }
+    if (input.autoCashOut !== undefined && (action !== 'play' || typeof input.autoCashOut !== 'boolean')) {
+      fail('autoCashOut 仅能在 play 时传入布尔值');
+    }
+    if (input.count !== undefined && (action !== 'buy_tickets' || !Number.isSafeInteger(input.count))) {
+      fail('购券张数无效');
+    }
+    if (action !== 'play' && (input.gameId !== undefined || input.stakeId !== undefined || input.payMode !== undefined)) {
+      fail('玩法与赌注参数仅用于 play');
+    }
+    if (action !== 'gift' && (input.to !== undefined || input.note !== undefined)) {
+      fail('收件人和寄语仅用于赠礼');
+    }
+    if (!['use', 'gift'].includes(action) && input.prizeId !== undefined) {
+      fail('此操作无需奖品编号');
+    }
+
+    const command = input as ArcadeCommand;
+    const before = this.getArcadeState(sender);
+    const reply = (receipt: Omit<ArcadeReceipt, 'fingerprint'>, replayed: boolean): ArcadeView => {
+      const view = this.arcadeView(token);
+      const giftEvent = receipt.events.find((event): event is Extract<ArcadeEvent, { kind: 'gift' }> => event.kind === 'gift');
+      const prize = giftEvent ? view.state.prizes.find(item => item.id === giftEvent.prizeId) : undefined;
+      const giftDelivery: ArcadeView['giftDelivery'] = prize
+        ? {
+          status: 'delivered',
+          viewState: 'unreported',
+          recipientName: prize.to?.name ?? giftEvent?.toName,
+          presentation: giftPresentation('arcade', prize.spec.cosmeticId),
+        }
+        : undefined;
+      return { ...view, receipt: structuredClone(receipt), replayed, ...(giftDelivery ? { giftDelivery } : {}) };
+    };
+
+    const fingerprint = createHash('sha256').update(JSON.stringify({
+      action: command.action,
+      revision: command.revision,
+      gameId: command.gameId,
+      stakeId: command.stakeId,
+      payMode: command.payMode,
+      autoCashOut: command.autoCashOut,
+      count: command.count,
+      prizeId: command.prizeId,
+      to: command.to,
+      note: command.note,
+    })).digest('hex');
+
+    const previous = before.receipts.find(r => r.requestId === command.requestId);
+    if (previous) {
+      if (previous.fingerprint !== fingerprint) fail('重试编号已用于另一操作');
+      const { fingerprint: _fingerprint, ...receipt } = previous;
+      return reply(receipt, true);
+    }
+    if (command.revision !== before.revision) fail('进度已更新，请刷新后继续');
+
+    let state = structuredClone(before);
+    let events: ArcadeEvent[] = [];
+    const at = this.arcadeOptions.now ? this.arcadeOptions.now() : Date.now();
+    const makeId = this.arcadeOptions.makeId ?? (() => randomBytes(16).toString('hex'));
+    const random = this.arcadeOptions.random ?? (() => randomInt(1_000_000_000) / 1_000_000_000);
+    const currency = currencyFor(sender.isAi);
+
+    let target: Account | undefined;
+    let targetState: ArcadeState | undefined;
+    let echo: EchoEvent | undefined;
+    const previousCoins = sender.coins;
+    const previousCosmetics = sender.cosmetics;
+    const previousArcade = sender.arcade;
+    let coins = sender.coins;
+    let cosmetics = sender.cosmetics;
+
+    if (command.action === 'use' || command.action === 'gift') {
+      const prize = state.prizes.find(p => p.id === command.prizeId);
+      if (!prize || prize.status !== 'pending') fail('这份奖品已处理或不存在');
+      if (command.action === 'use') {
+        const cosmetic = cosmeticById(prize.spec.cosmeticId);
+        if (!cosmetic) fail('这件外观暂时无法领取，请保留奖品');
+        const owned = sender.cosmetics?.owned ?? [];
+        if (owned.includes(cosmetic.id)) fail('你已经有这件外观，可以把这份奖品送出去');
+        cosmetics = this.cloneCosmetics(sender.cosmetics);
+        cosmetics.owned = [...owned, cosmetic.id];
+        this.autoEquipIfUnset(cosmetics, cosmetic);
+        prize.status = 'used';
+        prize.settledAt = at;
+        events = [{ kind: 'use', prizeId: prize.id, cosmeticId: cosmetic.id }];
+        if (prize.source === 'gift' && prize.from) {
+          echo = this.buildGiftEcho(
+            { id: prize.from.id, name: prize.from.name, isAi: this.accounts.get(prize.from.id)?.isAi ?? false },
+            { id: sender.id, name: sender.username, isAi: sender.isAi },
+            { id: `claim-${prize.id}`, at, item: { id: prize.spec.id, name: prize.spec.name, kind: cosmetic.kind }, style: 'gold', ...(prize.note ? { note: prize.note } : {}) },
+          );
+        }
+      } else {
+        if (!prize.spec.giftable) fail('这件奖品不支持赠送');
+        target = this.resolveBoundGiftTarget(sender, command.to);
+        if ((target.cosmetics?.owned ?? []).includes(prize.spec.cosmeticId)
+          || (target.gifts ?? []).some(g => g.cosmeticId === prize.spec.cosmeticId)
+          || this.getArcadeState(target).prizes.some(p => p.status === 'pending' && p.spec.cosmeticId === prize.spec.cosmeticId)) {
+          fail('对方已经有这件外观或待领取的同款礼物了');
+        }
+        targetState = structuredClone(this.getArcadeState(target));
+        if (targetState.prizes.length >= ARCADE_LIMITS.prizes) fail('对方的奖品箱已满');
+        const giftId = makeId();
+        const note = command.note?.trim();
+        targetState.prizes.push({
+          id: giftId,
+          spec: structuredClone(prize.spec),
+          at,
+          source: 'gift',
+          status: 'pending',
+          from: { id: sender.id, name: sender.username },
+          ...(note ? { note } : {}),
+        });
+        targetState.revision++;
+        prize.status = 'sent';
+        prize.to = { id: target.id, name: target.username };
+        prize.settledAt = at;
+        events = [{ kind: 'gift', prizeId: prize.id, toId: target.id, toName: target.username, cosmeticId: prize.spec.cosmeticId }];
+      }
+    } else {
+      const balance = sender.coins?.[currency] ?? 0;
+      const result = playArcade(before, command, { currency, balance, random, makeId, at });
+      state = result.state;
+      events = result.events;
+      if (result.coinDelta !== 0) {
+        coins = { ...emptyWallet(), ...sender.coins };
+        if (coins[currency] + result.coinDelta < 0) fail(`${CURRENCY[currency].name}不足`);
+        coins[currency] += result.coinDelta;
+      }
+    }
+
     state.revision++;
-    const receipt={requestId:command.requestId,fingerprint,revision:state.revision,events};
-    state.receipts=[...state.receipts,receipt].slice(-WHEEL_LIMITS.receipts);
-    const previousTarget=target?.wheel;
-    sender.wheel=state;sender.coins=coins;sender.cosmetics=cosmetics;
-    if(target&&targetState)target.wheel=targetState;
-    if(echo&&this.echo)this.pendingEcho.set(echo.id,echo);
-    try {this.persist();} catch(error) {
-      sender.wheel=previousWheel;sender.coins=previousCoins;sender.cosmetics=previousCosmetics;
-      if(target)target.wheel=previousTarget;
-      if(echo)this.pendingEcho.delete(echo.id);
+    const receipt: ArcadeReceipt = { requestId: command.requestId, fingerprint, revision: state.revision, events };
+    state.receipts = [...state.receipts, receipt].slice(-ARCADE_LIMITS.receipts);
+    const previousTarget = target?.arcade;
+    sender.arcade = state;
+    sender.coins = coins;
+    sender.cosmetics = cosmetics;
+    if (target && targetState) target.arcade = targetState;
+    if (echo && this.echo) this.pendingEcho.set(echo.id, echo);
+    try {
+      this.persist();
+    } catch (error) {
+      sender.arcade = previousArcade;
+      sender.coins = previousCoins;
+      sender.cosmetics = previousCosmetics;
+      if (target) target.arcade = previousTarget;
+      if (echo) this.pendingEcho.delete(echo.id);
       throw error;
     }
     this.flushPendingEcho();
-    const {fingerprint:_fingerprint,...publicReceipt}=receipt;
-    return reply(publicReceipt,false);
+    const { fingerprint: _fingerprint, ...publicReceipt } = receipt;
+    return reply(publicReceipt, false);
   }
 
   /** 购买外观：买家用自己那侧的币结算（人铜钱、机机芯）。 */
@@ -1048,7 +1435,15 @@ export class AccountStore {
     const account = this.sessionAccount(token);
     const cosmetic = cosmeticById(typeof cosmeticId === 'string' ? cosmeticId : undefined);
     if (!cosmetic) fail('没有这件外观');
-    if (!isShopCosmetic(cosmetic)) fail(cosmetic.acquisition === 'retired' ? '这件外观已下架' : '这件外观为转盘限定，抽取尚未开放');
+    if (!isShopCosmetic(cosmetic)) {
+      fail(
+        isDefaultCosmetic(cosmetic)
+          ? '该外观为初始默认棋盘，不可购买'
+          : isArcadeCosmetic(cosmetic)
+            ? '这件外观为游乐摊限定，可前往像素游乐摊抽取'
+            : '这件外观已下架',
+      );
+    }
     const owned = account.cosmetics?.owned ?? [];
     if (owned.includes(cosmetic.id)) fail('已经拥有这件外观');
     const currency = currencyFor(account.isAi);
@@ -1079,29 +1474,32 @@ export class AccountStore {
     if (cosmeticId === NATIVE_BOARD_SKIN) {
       const previous = account.cosmetics;
       const next = this.cloneCosmetics(previous);
-      delete next.equipped.board;
-      next.boardExplicit = false;
+      next.equipped.board = NATIVE_BOARD_SKIN;
+      next.boardExplicit = true;
       account.cosmetics = next;
       try { this.persist(); } catch (error) { account.cosmetics = previous; throw error; }
       return this.selfAccount(token);
     }
     const cosmetic = cosmeticById(typeof cosmeticId === 'string' ? cosmeticId : undefined);
     if (!cosmetic) fail('没有这件外观');
-    if (!(account.cosmetics?.owned ?? []).includes(cosmetic.id)) fail('尚未拥有这件外观');
+    if (!isDefaultCosmetic(cosmetic) && !(account.cosmetics?.owned ?? []).includes(cosmetic.id)) fail('尚未拥有这件外观');
     const previousCosmetics = account.cosmetics;
     const next = this.cloneCosmetics(previousCosmetics);
+    if (isDefaultCosmetic(cosmetic) && !next.owned.includes(cosmetic.id)) {
+      next.owned = [cosmetic.id, ...next.owned];
+    }
     next.equipped[cosmetic.kind] = cosmetic.id;
-    if (cosmetic.kind === 'board') next.boardExplicit = true;
+    if (cosmetic.kind === 'board') next.boardExplicit = cosmetic.id !== DEFAULT_BOARD_SKIN;
     account.cosmetics = next;
     try { this.persist(); }
     catch (error) { account.cosmetics = previousCosmetics; throw error; }
     return this.selfAccount(token);
   }
 
-  /** 只有归属明确的机可以给自己的玩家赠礼。`note` 是可选的短附言（写进回音树礼笺）。 */
-  giftCosmetic(token: unknown, toUsername: unknown, cosmeticId: unknown, note?: unknown): { gift: Gift; bought: boolean } {
+  /** 人与名下绑定的机可双向互赠外观（`note` 可选，最多 60 字）。 */
+  giftCosmetic(token: unknown, toRecipient: unknown, cosmeticId: unknown, note?: unknown): { gift: Gift; bought: boolean; toName: string; coins: number; currency: CurrencyId } {
     const sender = this.sessionAccount(token);
-    return this.giftFromAi(sender, toUsername, cosmeticId, undefined, undefined, note);
+    return this.deliverCosmeticGift(sender, toRecipient, cosmeticId, undefined, undefined, note);
   }
 
   /** 已由房间座位鉴权的机在 act 里赠礼；请求编号和礼物一起入账。`note` 是可选的短附言。 */
@@ -1113,57 +1511,124 @@ export class AccountStore {
     return this.giftOnce(sender, key, cosmeticId, note, roomId);
   }
 
-  /** Account-scoped retries survive rooms ending, removal and server restarts. */
-  giftCosmeticForAccount(token: unknown, requestId: string, cosmeticId: unknown, note?: unknown) {
+  /** 账号级幂等互赠（人 <-> 机均适用）：重放返回原回执。 */
+  giftCosmeticForAccount(token: unknown, requestId: string, cosmeticId: unknown, note?: unknown, toRecipient?: unknown) {
     const sender = this.sessionAccount(token);
-    if (!sender.isAi) fail('只有机可以给自己的玩家送礼');
     if (typeof requestId !== 'string' || requestId.length < 8 || requestId.length > 80) fail('赠礼请求编号无效');
-    this.ownerIdOfAi(sender.id);
-    return this.giftOnce(sender, `account:${sender.id}:${requestId}`, cosmeticId, note);
+    return this.giftOnce(sender, `account:${sender.id}:${requestId}`, cosmeticId, note, undefined, toRecipient);
   }
 
-  private giftOnce(sender: Account, key: string, cosmeticId: unknown, note?: unknown, roomId?: string): { gift: Gift; bought: boolean; toName: string; coins: number } {
+  private giftOnce(sender: Account, key: string, cosmeticId: unknown, note?: unknown, roomId?: string, toRecipient?: unknown): { gift: Gift; bought: boolean; toName: string; coins: number } {
     const previous = this.roomGiftActions.get(key);
     if (previous) {
       if (previous.cosmeticId !== cosmeticId) fail('这次赠礼已送出另一件外观');
+      if (toRecipient !== undefined && previous.toId) {
+        const resolved = this.resolveBoundGiftTarget(sender, toRecipient);
+        if (resolved.id !== previous.toId) fail('这次赠礼已送给另一位绑定伙伴');
+      }
       return { gift: { ...previous.gift }, bought: previous.bought, toName: previous.toName, coins: previous.coins };
     }
-    const result = this.giftFromAi(sender, undefined, cosmeticId, key, roomId, note);
-    const action = this.roomGiftActions.get(key)!;
-    return { ...result, toName: action.toName, coins: action.coins };
+    const result = this.deliverCosmeticGift(sender, toRecipient, cosmeticId, key, roomId, note);
+    return { gift: result.gift, bought: result.bought, toName: result.toName, coins: result.coins };
+  }
+
+  private buildGiftOptions(sender: Account, target?: Account) {
+    const currency = currencyFor(sender.isAi);
+    const coins = sender.coins?.[currency] ?? 0;
+    const pool = [
+      ...new Map(
+        [
+          ...listedCosmetics(),
+      ...(sender.cosmetics?.owned ?? []).flatMap(id => {
+        const item = cosmeticById(id);
+        return item ? [item] : [];
+      }),
+    ].filter(item => !isDefaultCosmetic(item)).map(item => [item.id, item]),
+      ).values(),
+    ];
+    return {
+      currency,
+      coins,
+      options: pool.map(cosmetic => {
+        const targetHas = target
+          ? (target.cosmetics?.owned ?? []).includes(cosmetic.id) || (target.gifts ?? []).some(gift => gift.cosmeticId === cosmetic.id)
+          : false;
+        const senderHas = (sender.cosmetics?.owned ?? []).includes(cosmetic.id);
+        const price = cosmeticPrice(cosmetic, currency);
+        return {
+          id: cosmetic.id,
+          name: cosmetic.name,
+          theme: cosmetic.tagline,
+          intro: cosmetic.giftIntro,
+          kind: cosmetic.kind,
+          tier: cosmetic.tier ?? (cosmetic.kind === 'frame' ? 'frame' : 't3'),
+          price,
+          currency,
+          acquisition: cosmetic.acquisition ?? 'shop',
+          ownedBySender: senderHas,
+          ownedByRecipient: targetHas,
+          available: !targetHas && (senderHas ? true : isShopCosmetic(cosmetic) && coins >= price),
+        };
+      }),
+    };
+  }
+
+  /** 对称互赠目录（人和绑定的机通用）。 */
+  giftCatalog(token: unknown, rawTo?: unknown) {
+    const sender = this.sessionAccount(token);
+    const partners = this.boundPartnersFor(sender);
+    let target: Account | undefined;
+    if (rawTo !== undefined) {
+      target = this.resolveBoundGiftTarget(sender, rawTo);
+    } else if (partners.length === 1) {
+      const candidate = this.accounts.get(partners[0]!.id);
+      if (candidate && !candidate.deletedAt) target = candidate;
+    }
+    const built = this.buildGiftOptions(sender, target);
+    return {
+      senderIsAi: sender.isAi,
+      currency: built.currency,
+      currencyName: CURRENCY[built.currency].name,
+      coins: built.coins,
+      recipient: target ? { id: target.id, username: target.username, isAi: target.isAi } : null,
+      recipients: partners,
+      noteHint: GIFT_NOTE_GUIDANCE,
+      presentation: giftPresentation('ordinary'),
+      options: built.options,
+    };
   }
 
   /** 只在机主动查看送礼选项时提供，避免每次读盘都重复外观目录。 */
   giftCatalogForAi(aiId: string) {
     const sender = this.accounts.get(aiId);
     if (!sender || sender.deletedAt || !sender.isAi) fail('只有机可以给自己的玩家送礼');
-    const ownerId = this.ownerIdOfAi(sender.id);
-    const target = this.accounts.get(ownerId);
-    if (!target || target.deletedAt || target.isAi) fail('你的人类账号已失效');
-    const coins = sender.coins?.bot ?? 0;
+    const target = this.resolveBoundGiftTarget(sender);
+    const built = this.buildGiftOptions(sender, target);
     return {
       ownerName: target.username,
       noteHint: GIFT_NOTE_GUIDANCE,
       presentation: giftPresentation('ordinary'),
-      coins,
-      options: [...new Map([...listedCosmetics(), ...(sender.cosmetics?.owned ?? []).flatMap(id => { const item = cosmeticById(id); return item ? [item] : []; })].map(item => [item.id, item])).values()].map(cosmetic => {
-        const targetHas = (target.cosmetics?.owned ?? []).includes(cosmetic.id) || (target.gifts ?? []).some(gift => gift.cosmeticId === cosmetic.id);
-        const senderHas = (sender.cosmetics?.owned ?? []).includes(cosmetic.id);
-        return { id: cosmetic.id, name: cosmetic.name, theme: cosmetic.tagline, intro: cosmetic.giftIntro, kind: cosmetic.kind, price: cosmeticPrice(cosmetic, 'bot'), acquisition: cosmetic.acquisition ?? 'shop', available: !targetHas && (senderHas ? true : isShopCosmetic(cosmetic) && coins >= cosmeticPrice(cosmetic, 'bot')) };
-      }),
+      coins: built.coins,
+      options: built.options,
     };
   }
 
-  private giftFromAi(sender: Account, toUsername: unknown, cosmeticId: unknown, roomActionKey?: string, _roomId?: string, note?: unknown): { gift: Gift; bought: boolean } {
-    if (!sender.isAi) fail('只有机可以给自己的玩家送礼');
-    const ownerId = this.ownerIdOfAi(sender.id);
-    const target = this.accounts.get(ownerId);
-    if (!target || target.deletedAt || target.isAi) fail('你的人类账号已失效');
-    const targetKey = typeof toUsername === 'string' ? toUsername.trim().toLowerCase() : '';
-    if (targetKey && this.byKey.get(targetKey) !== target.id) fail('礼物只能送给自己的玩家');
+  private deliverCosmeticGift(
+    sender: Account,
+    toRecipient: unknown,
+    cosmeticId: unknown,
+    roomActionKey?: string,
+    _roomId?: string,
+    note?: unknown,
+  ): { gift: Gift; bought: boolean; toName: string; coins: number; currency: CurrencyId } {
+    const target = this.resolveBoundGiftTarget(sender, toRecipient);
     const cosmetic = cosmeticById(typeof cosmeticId === 'string' ? cosmeticId : undefined);
     if (!cosmetic) fail('没有这件外观');
-    if ((target.cosmetics?.owned ?? []).some(id => id === cosmetic.id) || (target.gifts ?? []).some(gift => gift.cosmeticId === cosmetic.id)) fail('对方已经有这件外观了');
+    if (isDefaultCosmetic(cosmetic)) fail('初始默认外观不可赠送');
+    if ((target.cosmetics?.owned ?? []).some(id => id === cosmetic.id) || (target.gifts ?? []).some(gift => gift.cosmeticId === cosmetic.id)) {
+      fail('对方已经有这件外观了');
+    }
+    const currency = currencyFor(sender.isAi);
     const previousSenderCosmetics = sender.cosmetics;
     const previousSenderCoins = sender.coins;
     const previousTargetGifts = target.gifts;
@@ -1177,7 +1642,6 @@ export class AccountStore {
         if (cosmetic.kind === 'board') {
           delete next.equipped.board;
           next.boardExplicit = false;
-          if (!remaining.includes(DEFAULT_BOARD_SKIN)) remaining.push(DEFAULT_BOARD_SKIN);
         } else {
           delete next.equipped.frame;
         }
@@ -1185,8 +1649,9 @@ export class AccountStore {
       next.owned = remaining;
       sender.cosmetics = next;
     } else {
-      if (!isShopCosmetic(cosmetic)) fail(cosmetic.acquisition === 'retired' ? '这件外观已下架' : '这件外观为转盘限定，抽取尚未开放');
-      const currency = currencyFor(sender.isAi);
+      if (!isShopCosmetic(cosmetic)) {
+        fail(isArcadeCosmetic(cosmetic) ? '这件外观为游乐摊限定，可前往像素游乐摊抽取' : '这件外观已下架');
+      }
       const wallet = { ...emptyWallet(), ...sender.coins };
       if (wallet[currency] < cosmeticPrice(cosmetic, currency)) fail('余额不足');
       wallet[currency] -= cosmeticPrice(cosmetic, currency);
@@ -1194,12 +1659,23 @@ export class AccountStore {
       bought = true;
     }
     const cleanNote = typeof note === 'string' ? note.trim().slice(0, 60) : '';
-    const gift: Gift = { ...(cleanNote ? { note: cleanNote } : {}), id: randomBytes(6).toString('hex'), fromId: sender.id, fromName: sender.username, cosmeticId: cosmetic.id, at: Date.now() };
+    const gift: Gift = {
+      ...(cleanNote ? { note: cleanNote } : {}),
+      id: randomBytes(6).toString('hex'),
+      fromId: sender.id,
+      fromName: sender.username,
+      cosmeticId: cosmetic.id,
+      at: Date.now(),
+    };
     target.gifts = [...target.gifts ?? [], gift];
     target.giftHistory = [...target.giftHistory ?? [], { ...gift, toId: target.id, toName: target.username }];
-    if (roomActionKey) this.roomGiftActions.set(roomActionKey, { key: roomActionKey, cosmeticId: cosmetic.id, gift, bought, toName: target.username, coins: sender.coins?.bot ?? 0 });
-    try { this.persist(); }
-    catch (error) {
+    const balance = sender.coins?.[currency] ?? 0;
+    if (roomActionKey) {
+      this.roomGiftActions.set(roomActionKey, { key: roomActionKey, cosmeticId: cosmetic.id, gift, bought, toId: target.id, toName: target.username, coins: balance });
+    }
+    try {
+      this.persist();
+    } catch (error) {
       sender.cosmetics = previousSenderCosmetics;
       sender.coins = previousSenderCoins;
       target.gifts = previousTargetGifts;
@@ -1209,7 +1685,7 @@ export class AccountStore {
       throw error;
     }
     this.flushPendingEcho();
-    return { gift, bought };
+    return { gift, bought, toName: target.username, coins: balance, currency };
   }
 
   /** Retry durable broadcasts. Stable event IDs let the public store deduplicate after a crash. */
@@ -1247,11 +1723,11 @@ export class AccountStore {
     const recordedIds = new Set(history.map(record => record.id));
     account.giftHistory = [
       ...history.map(record => pendingIds.has(record.id) ? { ...record, claimedAt } : record),
-      ...(account.isAi ? [] : gifts.filter(gift => {
+      ...gifts.filter(gift => {
         if (recordedIds.has(gift.id)) return false;
         recordedIds.add(gift.id);
         return true;
-      }).map(gift => ({ ...gift, toId: account.id, toName: account.username, claimedAt, legacy: true as const }))),
+      }).map(gift => ({ ...gift, toId: account.id, toName: account.username, claimedAt, legacy: true as const })),
     ];
     const owned = account.cosmetics?.owned ?? [];
     const fresh = gifts.map(gift => gift.cosmeticId).filter(id => !owned.includes(id));
@@ -1263,17 +1739,22 @@ export class AccountStore {
     }
     account.cosmetics = next;
     account.gifts = pending.filter(gift => !pendingIds.has(gift.id));
-    const previousEcho=new Map(this.pendingEcho);
-    if(this.echo)for(const gift of gifts){
-      const cosmetic=cosmeticById(gift.cosmeticId);
-      this.pendingEcho.set(`claim-${gift.id}`,{id:`claim-${gift.id}`,at:claimedAt,kind:'gift_received',from:{id:gift.fromId,name:gift.fromName,isAi:this.accounts.get(gift.fromId)?.isAi??true},to:{id:account.id,name:account.username,isAi:account.isAi},item:{id:gift.cosmeticId,name:cosmetic?.name??gift.cosmeticId,kind:cosmetic?.kind},...(gift.note?{note:gift.note}:{})});
+    const previousEcho = new Map(this.pendingEcho);
+    for (const gift of gifts) {
+      const cosmetic = cosmeticById(gift.cosmeticId);
+      const echo = this.buildGiftEcho(
+        { id: gift.fromId, name: gift.fromName, isAi: this.accounts.get(gift.fromId)?.isAi ?? true },
+        { id: account.id, name: account.username, isAi: account.isAi },
+        { id: `claim-${gift.id}`, at: claimedAt, item: { id: gift.cosmeticId, name: cosmetic?.name ?? gift.cosmeticId, kind: cosmetic?.kind }, ...(gift.note ? { note: gift.note } : {}) },
+      );
+      if (echo) this.pendingEcho.set(echo.id, echo);
     }
     try { this.persist(); }
     catch (error) {
       account.cosmetics = previousCosmetics;
       account.giftHistory = previousHistory;
       account.gifts = pending;
-      this.pendingEcho=previousEcho;
+      this.pendingEcho = previousEcho;
       throw error;
     }
     this.flushPendingEcho();
@@ -1306,6 +1787,10 @@ export class AccountStore {
   private persist() {
     const file = join(this.directory, 'accounts.json');
     const data: AccountFile = { version: 1, accounts: [...this.accounts.values()], sessions: Object.fromEntries(this.sessions), bindings: [...this.bindings.values()], aiInvites: [...this.aiInvites.values()], machineTickets: [...this.machineTickets.values()], machineRequests: [...this.machineRequests.values()], roomGiftActions: [...this.roomGiftActions.values()], settledRooms: Object.fromEntries(this.settledRooms), settlementReceipts: Object.fromEntries(this.settlementReceipts), dailySettlement: Object.fromEntries(this.dailySettlement), subsidyActions: [...this.subsidyActions.values()], pendingEcho: [...this.pendingEcho.values()] };
+    if (this.storage) {
+      this.storage.write({ ...data, sessions: {} });
+      return;
+    }
     writeFileSync(`${file}.pending`, JSON.stringify(data), { encoding: 'utf8', mode: 0o600 });
     renameSync(`${file}.pending`, file);
   }

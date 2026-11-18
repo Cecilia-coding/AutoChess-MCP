@@ -3,13 +3,16 @@
  * skeleton, one big central painting owns the arena, and themed props spill across the
  * edges so the board boundary is never the picture boundary.
  *
- *  - 绣线花绷 embroidery-hoop  : a giant wooden hoop on blush gingham, satin-stitch peony
- *                                 wreath still being sewn (animated needle), spools, pins,
- *                                 gold scissors, tape measure, 9 button seats.
- *  - 晚霞云海 sunset-cloudsea  : enemy half is the dusk sky, own half is a sea of clouds,
- *                                 the sun sets exactly on the midline; cloud towers break the
- *                                 edges; balloons, birds and a little cloud whale drift by.
- *  - 星夜木马 carousel-night   : a night-fair carousel platform with a mirrored centre drum,
+ *  - 绣线花绷 embroidery-hoop    : a giant wooden hoop on blush gingham, satin-stitch peony
+ *                                   wreath still being sewn (animated needle), spools, pins,
+ *                                   gold scissors, tape measure, 9 button seats.
+ *  - 仙境怀表兔 wonderland-rabbit : an enchanted Wonderland glade built around a giant open
+ *                                   brass-and-porcelain pocket watch tied with an Alice-blue
+ *                                   ribbon; Sir White Rabbit in a crimson heart waistcoat checks
+ *                                   his swinging watch while half-painted roses, Cheshire Cat,
+ *                                   playing cards, polka-dot mushrooms, teapot & Drink-Me potion
+ *                                   spill organically across the edges; 9 tea-party cup seats.
+ *  - 星夜木马 carousel-night     : a night-fair carousel platform with a mirrored centre drum,
  *                                 8 prancing horses orbiting, ferris wheel, striped tent,
  *                                 cotton-candy cart, string lights, fireworks, 9 teacup seats.
  */
@@ -41,15 +44,6 @@ const wrap = (v: number, m: number) => ((v % m) + m) % m;
 const slots = (L: Lay) => Array.from({ length: BENCH_CAPACITY }, (_, i) => ({ x: L.bl + i * L.bs, y: L.by }));
 /** Scale for big central compositions (desktop grid = 190 art px wide). */
 const kOf = (L: Lay) => clamp(L.gw / 190, 0.55, 1.15);
-
-/** Disc whose outer rim dissolves with an ordered dither (soft pixel glow edges). */
-function ditherDisc(a: Art, cx: number, cy: number, rx: number, ry: number, col: string, soft = 0.25) {
-  a.disc(cx, cy, rx, ry, col, (dx, dy) => {
-    const rr = Math.hypot(dx / (rx + 0.5), dy / (ry + 0.5));
-    if (rr < 1 - soft) return false;
-    return bayer(dx + 64, dy + 64) < (rr - (1 - soft)) / soft;
-  });
-}
 
 type Thread = { d: string; b: string; l: string; h: string };
 
@@ -569,74 +563,7 @@ const embroideryScene: AtelierScene = {
   },
 };
 
-/* ═══════════════════════════ 2. 晚霞云海 · SUNSET CLOUD SEA ═══════════════════════════ */
-
-export const SUN: Pal = {
-  s0: '#4a3e7c', s1: '#5d4c8e', s2: '#77599d', s3: '#9767a8', s4: '#b975aa', s5: '#d686a9',
-  s6: '#ec9ca7', s7: '#f6b2a0', s8: '#fbc99c', s9: '#ffdcac', s10: '#ffeec6',
-  sun0: '#fffbf0', sun1: '#fff1c6', sun2: '#ffdd98', sun3: '#ffc47f',
-  streak: '#b46a9c', streakD: '#8a5390', streakL: '#f6a9a8',
-  c0: '#6c5591', c1: '#8a6aa4', c2: '#a980b1', c3: '#c899bb', c4: '#e2b2c3', c5: '#f4cdcd', c6: '#ffe4d6', c7: '#fff4ea',
-  glow: '#ffe6b8', star: '#fff5e6', moon: '#fff1d0', moonD: '#e8c9a8',
-  bird: '#4a3a6a',
-};
-
-type Lobe = { x: number; y: number; R: number };
-
-function makeTower(r: Rng, baseX: number, baseY: number, topY: number, maxR: number, minR: number, lean: number): Lobe[] {
-  const lobes: Lobe[] = [];
-  let y = baseY;
-  while (y > topY) {
-    const t = (baseY - y) / Math.max(1, baseY - topY);
-    const R = maxR + (minR - maxR) * t;
-    const n = t < 0.3 ? 3 : t < 0.7 ? 2 : 1;
-    for (let m = 0; m < n; m++) {
-      lobes.push({
-        x: baseX + (m - (n - 1) / 2) * R * 0.95 + (r() - 0.5) * R * 0.9 + lean * t * 10 + Math.sin(t * 5 + baseX) * 3,
-        y: y + (r() - 0.5) * R * 0.5,
-        R: R * (0.7 + r() * 0.5),
-      });
-    }
-    y -= R * (0.55 + r() * 0.3);
-  }
-  return lobes;
-}
-
-function paintCumulus(a: Art, lobes: readonly Lobe[], sunX: number, sunY: number, pal: readonly string[], flat = 0.86) {
-  const [p0, p1, p2, p3, p4] = pal as [string, string, string, string, string];
-  for (const l of lobes) a.disc(l.x, l.y, l.R + 1, l.R * flat + 1, p0);
-  for (const l of lobes) a.disc(l.x, l.y, l.R, l.R * flat, p1);
-  for (const l of lobes) {
-    const dx = clamp((sunX - l.x) / 90, -1, 1);
-    a.disc(l.x + dx * l.R * 0.12, l.y - l.R * 0.12 * flat, l.R * 0.9, l.R * 0.78 * flat, p2);
-  }
-  for (const l of lobes) {
-    const dx = clamp((sunX - l.x) / 90, -1, 1);
-    a.disc(l.x + dx * l.R * 0.24, l.y - l.R * 0.26 * flat, l.R * 0.66, l.R * 0.54 * flat, p3);
-  }
-  const top = Math.min(...lobes.map(l => l.y - l.R));
-  for (const l of lobes) {
-    const dx = clamp((sunX - l.x) / 90, -1, 1);
-    const mid = -Math.PI / 2 + dx * 0.9;
-    a.arc(l.x + dx * l.R * 0.12, l.y - l.R * 0.12 * flat, l.R * 0.9, l.R * 0.78 * flat, mid - 0.55, mid + 0.55, l.y - l.R < top + 14 ? p4 : mix(p3, p4, 0.5));
-  }
-  void sunY;
-}
-
-function paintStreak(a: Art, x: number, y: number, len: number, th: number, body: string, rim: string, top?: string) {
-  for (let i = 0; i <= len; i++) {
-    const u = i / len;
-    const w = th * Math.pow(Math.sin(u * Math.PI), 0.6);
-    if (w < 0.5) {
-      if (bayer(i, Math.round(y)) < 0.5) a.p(x + i, y, body);
-      continue;
-    }
-    const y0 = Math.round(y - w * 0.6), y1 = Math.round(y + w * 0.4);
-    a.r(x + i, y0, 1, y1 - y0 + 1, body);
-    a.p(x + i, y1, rim);
-    if (top && i % 3 !== 0) a.p(x + i, y0, top);
-  }
-}
+/* ═══════════════════════ 2. 仙境怀表兔 · WONDERLAND RABBIT ═══════════════════════ */
 
 function crescent(a: Art, cx: number, cy: number, R: number, ox: number, oy: number, col: string, shade: string) {
   const r2 = (R + 0.5) ** 2;
@@ -650,274 +577,1021 @@ function crescent(a: Art, cx: number, cy: number, R: number, ox: number, oy: num
   }
 }
 
-function paintBalloon(a: Art, x: number, y: number, s: number, A: string, B: string, D: string) {
-  const rx = 7 * s, ry = 8.5 * s, skirt = 3.5 * s;
-  for (let dy = Math.round(-ry); dy <= Math.round(ry + skirt); dy++) {
-    let hw: number;
-    if (dy <= ry * 0.2) {
-      const tt = dy / ry;
-      hw = rx * Math.sqrt(Math.max(0, 1 - tt * tt));
-    } else {
-      const u = (dy - ry * 0.2) / (ry * 0.8 + skirt);
-      hw = rx * 0.98 * (1 - u * 0.74);
-    }
-    const H = Math.floor(hw);
-    for (let dx = -H; dx <= H; dx++) {
-      const g = Math.floor(((dx / (hw + 0.01)) + 1) * 2.5);
-      let col = g % 2 === 0 ? A : B;
-      if (Math.abs(dx) >= H || dy === Math.round(-ry)) col = D;
-      else {
-        const lit = -(dx / rx) * 0.7 - (dy / ry) * 0.45;
-        if (lit > 0.5) col = mix(col, '#ffffff', 0.4);
-        else if (lit < -0.4) col = mix(col, D, 0.35);
-      }
-      a.p(x + dx, y + dy, col);
+export const WON: Pal = {
+  // Classic Alice Pinafore Baby-Blue & Milk-White Gingham-Damask Tablecloth
+  cl0: '#d4e8f9', cl1: '#e3f1fc', cl2: '#f1f8ff', cl3: '#c1dcf3', cl4: '#add0ee',
+  shadow: '#7ea4cc',
+  // Midnight Ink-Navy (墨蓝 — grounding Lolita velvet, ribbons, watch hands & outlines)
+  nv0: '#132240', nv1: '#1c325e', nv2: '#294882', nv3: '#3c65ab',
+  // Classic Alice Blue & Wedgewood / Cornflower Blue (蓝色 · 浅蓝色)
+  bl0: '#5386c4', bl1: '#78aee3', bl2: '#a6d0f7', bl3: '#d4ebfc', blHi: '#eef7ff',
+  // Crisp Apron Eyelet-Lace & Bone-China White (白色)
+  wh0: '#ffffff', wh1: '#f6faff', wh2: '#e5effa', wh3: '#cbddf2',
+  // Moonlit Champagne-Silver (subtle antique watch crown, key & porcelain rim)
+  svD: '#64779c', sv: '#96a9cc', svL: '#cdd9ed',
+  gdD: '#8a754c', gd: '#bfa775', gdL: '#e6d4a8', gdHi: '#fff9e8',
+  // Snowy Long-Eared Bunny fur & whisper-soft inner-ear blush
+  furO: '#172a4f', fur0: '#ffffff', fur1: '#f2f7fd', fur2: '#d5e4f5',
+  earD: '#d48da8', ear: '#f4bdd2', earHi: '#fde6ef',
+  // Crystal "DRINK ME" sapphire-sky potion
+  potD: '#2a6fb0', pot: '#6bc0f5', potHi: '#dcf4ff',
+};
+
+const SUIT_HEART = [
+  '.hh...hh.',
+  'hHHh.hhhh',
+  'hHHhhhhhh',
+  'hhhhhhhhd',
+  '.hhhhhhd.',
+  '..hhhhd..',
+  '...hhd...',
+  '....d....',
+];
+const SUIT_SPADE = [
+  '....s....',
+  '...sss...',
+  '..sSSss..',
+  '.sSSssss.',
+  'ssssssssd',
+  '.ss.s.sd.',
+  '....s....',
+  '...sds...',
+];
+const SUIT_CLUB = [
+  '...ccc...',
+  '..cCCcc..',
+  '...ccc...',
+  '.cc.c.cc.',
+  'cCCcccccd',
+  '.cc.c.cd.',
+  '....c....',
+  '...cdc...',
+];
+const SUIT_DIAMOND = [
+  '...d...',
+  '..dDd..',
+  '.dDDdd.',
+  'dDDdddd',
+  '.ddddd.',
+  '..ddd..',
+  '...d...',
+];
+const SUIT_CROWN = [
+  '.g...g...g.',
+  'gGg.gGg.gGg',
+  'ggggggggggg',
+  '.ggghbhggg.',
+  '.dddddddddd',
+];
+
+/** Lush Midnight Ink-Navy & Sapphire Botanical Rose-Leaf Hedge in upper corners (with pointed leaves!). */
+function paintNavyFoliageMound(
+  a: Art,
+  lobes: readonly { x: number; y: number; R: number }[],
+  side: 'L' | 'R',
+) {
+  const C = WON;
+  const dir = side === 'L' ? 1 : -1;
+  a.alpha(0.35, () => {
+    for (const l of lobes) a.disc(l.x + 1.5, l.y + 2.8, l.R + 1, l.R * 0.82 + 1, C.shadow!);
+  });
+  // Pointed storybook rose leaves & trailing ivy sprigs jutting organically out from the hedge!
+  for (const [i, l] of lobes.entries()) {
+    for (let p = 0; p < 3; p++) {
+      const baseAng = side === 'L' ? 0.15 + p * 0.52 + (i % 2) * 0.18 : Math.PI - (0.15 + p * 0.52 + (i % 2) * 0.18);
+      const lx = l.x + Math.cos(baseAng) * (l.R * 0.62);
+      const ly = l.y + Math.sin(baseAng) * (l.R * 0.54);
+      a.petal(lx, ly, baseAng, l.R * 0.72, l.R * 0.34, C.nv0!, C.nv1!, C.nv3!, 0.52);
     }
   }
-  const by = y + ry + skirt;
-  a.line(x - rx * 0.28, by, x - 1.5 * s, by + 4 * s, '#6a4a60');
-  a.line(x + rx * 0.28, by, x + 1.5 * s, by + 4 * s, '#6a4a60');
-  a.r(x - 2 * s, by + 4 * s, 4 * s + 1, Math.max(2, 3 * s), '#8a5a3c');
-  a.r(x - 2 * s, by + 4 * s, 4 * s + 1, 1, '#d29a68');
-}
-
-function paintCloudWhale(a: Art, x0: number, y0: number, sec: number, s = 1) {
-  const O = '#6a5190', Bd = '#b49ad0', Be = '#e6d6f2', Hi = '#dcc9ef';
-  const flap = Math.sin(sec * 1.6) * 2.5;
-  const X = (d: number) => x0 + d * s, Y = (d: number) => y0 + d * s;
-  // tail fluke
-  a.quad(X(-18), Y(0), X(-25), Y(-2), X(-29), Y(-6 + flap), 2.4 * s, 1.2 * s, O);
-  a.quad(X(-18), Y(0), X(-25), Y(-2), X(-29), Y(-6 + flap), 1.6 * s, 0.6 * s, Bd);
-  a.petal(X(-29), Y(-6 + flap), -2.5, 6.5 * s, 2.4 * s, O, Bd, Hi, 0.6);
-  a.petal(X(-29), Y(-6 + flap), -0.75, 6.5 * s, 2.4 * s, O, Bd, Hi, 0.6);
-  // body
-  a.disc(X(0), Y(0), 21 * s, 7.6 * s, O);
-  a.disc(X(11), Y(-0.6), 9.6 * s, 8.4 * s, O);
-  a.disc(X(0), Y(0), 20 * s, 6.8 * s, Bd);
-  a.disc(X(11), Y(-0.6), 8.8 * s, 7.6 * s, Bd);
-  a.disc(X(3), Y(3.4), 15 * s, 3 * s, Be);
-  a.disc(X(-2), Y(-3.6), 13 * s, 2.1 * s, Hi);
-  // fin
-  a.petal(X(5), Y(4), 2.1, 6 * s, 2.2 * s, O, Bd, Hi, 0.6);
-  // face
-  a.r(X(14), Y(-1), 2, 2, '#3a2a52');
-  a.p(X(14), Y(-1), '#ffffff');
-  a.r(X(13), Y(2), 3, 1, '#f3a2bf');
-  a.line(X(17), Y(2), X(19.5), Y(1), O);
-  // throat grooves
-  for (let i = 0; i < 3; i++) a.line(X(6 - i * 3), Y(4.2), X(10 - i * 3), Y(5.2), mix(Be, O, 0.3));
-}
-
-const sunsetScene: AtelierScene = {
-  plan(L, r) {
-    const k = kOf(L);
-    const Hz = L.mid;
-    const sun = { x: L.cx, y: Hz - 2, R: 31 * k };
-    const towerL = makeTower(r, L.gl - 30, Hz + 22, 22, 17, 8, 0.6);
-    const towerR = makeTower(r, L.gr + 30, Hz + 26, 30, 17, 8, -0.5);
-    const rows: { y: number; R: number; j: number; puffs: Lobe[] }[] = [];
-    let y = Hz + 1.5, j = 0;
-    while (y < L.H + 14) {
-      const R = 3.2 + j * 1.75;
-      const puffs: Lobe[] = [];
-      let x = -R + r() * R;
-      while (x < L.W + R) {
-        puffs.push({ x, y: y + (r() - 0.5) * R * 0.45, R: R * (0.6 + r() * 0.8) });
-        x += R * (0.75 + r() * 0.7);
-      }
-      rows.push({ y, R, j, puffs });
-      y += R * 0.55 + 1.3;
-      j++;
+  for (const l of lobes) a.disc(l.x, l.y, l.R, l.R * 0.8, C.nv0!);
+  for (const l of lobes) a.disc(l.x - dir * 1.2, l.y - 1.2, l.R * 0.88, l.R * 0.7, C.nv1!);
+  for (const l of lobes) a.disc(l.x - dir * 2.2, l.y - 2.4, l.R * 0.64, l.R * 0.5, C.nv2!);
+  // Delicate sapphire leaf-vein highlights & tiny baby-blue forget-me-not buds
+  for (const [i, l] of lobes.entries()) {
+    const vx = l.x + dir * (l.R * 0.25), vy = l.y + l.R * 0.18;
+    a.line(vx - dir * 4, vy - 2, vx + dir * 3, vy + 2, C.nv3!);
+    if (i % 2 === 1) {
+      const bx = l.x + dir * (l.R * 0.48), by = l.y + l.R * 0.36;
+      a.p(bx, by - 1, C.bl2!); a.p(bx - 1, by, C.bl2!); a.p(bx + 1, by, C.bl2!); a.p(bx, by + 1, C.bl2!);
+      a.p(bx, by, C.wh0!);
     }
-    const streaks = [
-      { x: L.cx - 92, y: Hz - 14, len: 70, th: 2.6 },
-      { x: L.cx + 18, y: Hz - 9, len: 64, th: 2.2 },
-      { x: L.cx - 40, y: Hz - 24, len: 58, th: 2.0 },
-      { x: L.cx + 34, y: Hz - 34, len: 46, th: 1.8 },
-      { x: L.gl - 6, y: 46, len: 52, th: 1.8 },
-      { x: L.cx + 10, y: 30, len: 60, th: 1.6 },
-      { x: L.gr - 40, y: 58, len: 44, th: 1.5 },
+  }
+}
+
+/** Cupped Classic Alice Briar Rose in Pure Lace-White, Baby-Blue, or Midnight Ink-Navy (crisp spiral petals!). */
+function paintAliceRose(a: Art, cx: number, cy: number, R: number, tone: 'white' | 'sky' | 'navy', seed = 0) {
+  const C = WON;
+  const P = tone === 'white'
+    ? { edge: C.nv2!, deep: C.bl0!, mid: '#cde3f8', lit: '#f2f8ff', rim: '#ffffff', core: C.bl1! }
+    : tone === 'sky'
+      ? { edge: C.nv1!, deep: C.nv3!, mid: C.bl0!, lit: C.bl2!, rim: C.wh0!, core: C.nv2! }
+      : { edge: C.nv0!, deep: C.nv1!, mid: C.nv2!, lit: C.bl0!, rim: C.bl2!, core: C.wh0! };
+  a.alpha(0.35, () => a.disc(cx + 1.4, cy + 2, R + 1, R * 0.88 + 1, C.nv0!));
+  // 4 pointed sapphire-navy rose leaves tucked behind
+  for (let i = 0; i < 4; i++) {
+    const ang = seed + 0.4 + (i * TAU) / 4;
+    a.petal(cx, cy, ang, R * 1.28, R * 0.38, C.nv0!, C.nv2!, C.bl0!, 0.52);
+  }
+  // Outer 5 cupped petals with crisp dark-blue/cornflower petal crevices
+  for (let k = 0; k < 5; k++) {
+    const ang = seed + (k / 5) * TAU;
+    const px = cx + Math.cos(ang) * R * 0.44, py = cy + Math.sin(ang) * R * 0.4;
+    a.disc(px, py, R * 0.62, R * 0.56, P.edge);
+  }
+  for (let k = 0; k < 5; k++) {
+    const ang = seed + (k / 5) * TAU;
+    const px = cx + Math.cos(ang) * R * 0.42, py = cy + Math.sin(ang) * R * 0.38;
+    a.disc(px, py, R * 0.52, R * 0.46, P.mid);
+    a.disc(px - 0.4, py - 0.5, R * 0.38, R * 0.33, P.lit);
+    a.arc(px, py, R * 0.48, R * 0.42, ang - 0.9, ang + 0.9, P.rim);
+  }
+  // Deep cupped inner rose bowl
+  a.disc(cx, cy - 0.2, R * 0.52, R * 0.46, P.deep);
+  // Inner 4 spiral petals
+  for (let k = 0; k < 4; k++) {
+    const ang = seed + 0.55 + (k / 4) * TAU;
+    const px = cx + Math.cos(ang) * R * 0.24, py = cy - 0.3 + Math.sin(ang) * R * 0.21;
+    a.disc(px, py, R * 0.31, R * 0.27, P.lit);
+    a.arc(px, py, R * 0.29, R * 0.25, ang - 1.15, ang + 0.95, P.rim);
+  }
+  // Crisp spiral rosebud heart
+  a.disc(cx, cy - 0.5, R * 0.2, R * 0.18, P.core);
+  a.arc(cx, cy - 0.5, R * 0.17, R * 0.15, -0.5, Math.PI * 1.15, P.rim);
+}
+
+/** Scalloped Ruffled White Eyelet-Lace Tea Doily (for vignettes & under the Long-Eared Bunny). */
+function paintEyeletDoily(a: Art, cx: number, cy: number, rx: number, ry: number, navyCenter = false) {
+  const C = WON;
+  a.alpha(0.32, () => a.disc(cx + 1.5, cy + 2.2, rx + 2, ry + 2, C.shadow!));
+  const N = 16;
+  for (let i = 0; i < N; i++) {
+    const ang = (i / N) * TAU;
+    const lx = cx + Math.cos(ang) * rx * 0.9, ly = cy + Math.sin(ang) * ry * 0.9;
+    a.disc(lx, ly, rx * 0.24, ry * 0.26, C.bl1!);
+    a.disc(lx, ly - 0.3, rx * 0.2, ry * 0.22, C.wh0!);
+    a.p(lx, ly, C.nv2!);
+  }
+  a.disc(cx, cy, rx * 0.88, ry * 0.88, C.wh2!);
+  a.disc(cx, cy - 0.4, rx * 0.82, ry * 0.82, C.wh0!);
+  if (navyCenter) {
+    // Rich Midnight Ink-Navy velvet cushion center so snowy white bunny pops 100%!
+    a.disc(cx, cy - 0.4, rx * 0.68, ry * 0.68, C.nv0!);
+    a.disc(cx, cy - 0.6, rx * 0.62, ry * 0.62, C.nv1!);
+    a.ring(cx, cy - 0.6, rx * 0.54, ry * 0.54, C.bl1!, 14);
+  } else {
+    a.ring(cx, cy - 0.4, rx * 0.64, ry * 0.64, C.bl2!, 14);
+  }
+}
+
+/** 12 o'clock pocket-watch silver-champagne bow ring + Double-Layered Ink-Navy & Baby-Blue Coquette Bow! */
+function paintAliceWatchBow(a: Art, cx: number, topY: number, k: number) {
+  const C = WON;
+  // Moonlit silver-champagne pocket-watch bow ring & crown
+  const ry0 = topY - 12 * k;
+  a.alpha(0.3, () => a.arc(cx + 1.5, ry0 + 2, 9.5 * k, 6.8 * k, 0, TAU, C.shadow!, 2.8 * k));
+  a.arc(cx, ry0, 9.5 * k, 6.8 * k, 0, TAU, C.nv1!, 3.2 * k);
+  a.arc(cx, ry0, 9.5 * k, 6.8 * k, 0, TAU, C.gdL!, 1.9 * k);
+  a.arc(cx, ry0, 9.5 * k, 6.8 * k, Math.PI * 1.05, Math.PI * 1.75, C.wh0!, 1);
+  const cyCrown = topY - 6 * k;
+  a.disc(cx, cyCrown, 6.4 * k, 3.0 * k, C.nv1!);
+  a.disc(cx, cyCrown, 5.4 * k, 2.2 * k, C.gdL!);
+  a.r(cx - 2.5 * k, cyCrown - 1.8 * k, 4 * k, 1, C.wh0!);
+
+  const by = topY - 1 * k;
+  // 1. Streaming Midnight Ink-Navy satin ribbon tails draping left & right!
+  for (const s of [-1, 1] as const) {
+    a.alpha(0.3, () => a.quad(cx, by + 2, cx + s * 19 * k, by + 4 * k, cx + s * 36 * k, by + 14 * k, 4.2 * k, 3.0 * k, C.shadow!));
+    a.quad(cx, by, cx + s * 19 * k, by + 2.2 * k, cx + s * 36 * k, by + 12 * k, 4.2 * k, 3.0 * k, C.nv0!);
+    a.quad(cx, by, cx + s * 19 * k, by + 1.8 * k, cx + s * 35.5 * k, by + 11.5 * k, 3.2 * k, 2.1 * k, C.nv1!);
+    a.quad(cx, by - 0.6, cx + s * 18 * k, by + 1.0 * k, cx + s * 33 * k, by + 10 * k, 1.3 * k, 0.8 * k, C.nv3!);
+    // Crisp white lace trim along ribbon tail
+    a.quad(cx, by - 1.5, cx + s * 18 * k, by + 0.1 * k, cx + s * 34 * k, by + 9.2 * k, 0.7, 0.6, C.wh0!);
+  }
+  // 2. Outer Midnight Ink-Navy velvet bow loops (wider under-layer)
+  for (const s of [-1, 1] as const) {
+    const lx = cx + s * 12.2 * k, ly = by - 1.2 * k;
+    a.disc(lx, ly, 11.8 * k, 6.2 * k, C.nv0!);
+    a.disc(lx, ly, 10.8 * k, 5.2 * k, C.nv1!);
+    a.arc(lx, ly, 10.6 * k, 5.0 * k, -Math.PI * 0.85, Math.PI * 0.85, C.wh0!);
+  }
+  // 3. Inner Puffed Alice Baby-Blue satin bow loops + white picot sheen!
+  for (const s of [-1, 1] as const) {
+    const lx = cx + s * 10.2 * k, ly = by - 1.6 * k;
+    a.disc(lx, ly, 9.2 * k, 4.6 * k, C.nv2!);
+    a.disc(lx, ly, 8.2 * k, 3.8 * k, C.bl1!);
+    a.disc(lx - s * 1.2 * k, ly - 1.0 * k, 5.5 * k, 2.2 * k, C.bl2!);
+    a.r(lx - 2 * k, ly - 2.1 * k, 4 * k, 1, C.wh0!);
+    a.line(cx + s * 3 * k, by - 1.2, cx + s * 6.8 * k, by - 2 * k, C.nv2!);
+  }
+  // Central satin knot + sapphire pearl brooch
+  a.disc(cx, by - 1.2, 4.6 * k, 4.0 * k, C.nv0!);
+  a.disc(cx, by - 1.4, 3.6 * k, 3.1 * k, C.bl2!);
+  a.disc(cx, by - 1.4, 1.8 * k, 1.6 * k, C.nv1!);
+  a.p(cx - 0.6, by - 2.0, C.wh0!);
+}
+
+/**
+ * Hero Classic-Alice Long-Eared Bunny (长耳兔, ~62 art-px tall on desktop!):
+ * Ultra-long silky bunny ears (one graceful plumed S-arch high ear + one 27px ribbon-tied lop ear
+ * cascading over a dark Midnight Ink-Navy velvet capelet for 100% crisp silhouette contrast!),
+ * Alice-Blue pleated skirt + crisp white ruffled pinafore apron, big sparkling Sapphire-Ink eyes,
+ * and a swinging silver-champagne pocket watch!
+ */
+function paintAliceLongEarRabbit(a: Art, cx: number, by: number, s: number, sec: number) {
+  const C = WON;
+  const bob = Math.sin(sec * 2.2) * 0.65 * s;
+  const earSway = Math.sin(sec * 2.1) * 1.4 * s;
+  const lopSway = Math.cos(sec * 1.9) * 1.3 * s;
+  const swing = Math.sin(sec * 3.0) * 2.1 * s;
+  const blink = (sec % 4.8) > 4.64;
+  const X = (d: number) => cx + d * s;
+  const Y = (d: number) => by + d * s - bob;
+
+  // Midnight Ink-Navy velvet & white eyelet-lace cushion under the bunny
+  if (s >= 0.95) {
+    paintEyeletDoily(a, cx - 1.2 * s, by - 0.8 * s, 17.2 * s, 6.4 * s, true);
+  } else {
+    a.alpha(0.38, () => a.disc(cx + 1, by + 1, 12.5 * s, 4.2 * s, C.nv1!));
+  }
+
+  // 1. ULTRA-LONG Plumed Back Ear (graceful high S-arch sweeping up 25px with rounded teardrop tip!)
+  const bex0 = X(2.2), bey0 = Y(-26.2);
+  const bex1 = X(3.0 + earSway * 0.35), bey1 = Y(-38.0);
+  const bex2 = X(-4.2 + earSway), bey2 = Y(-46.2);
+  a.quad(bex0, bey0, bex1, bey1, bex2, bey2, 3.8 * s, 3.4 * s, C.furO!);
+  a.disc(bex2, bey2, 3.4 * s, 3.0 * s, C.furO!);
+  a.quad(bex0, bey0, bex1, bey1, bex2, bey2, 2.8 * s, 2.5 * s, C.fur0!);
+  a.disc(bex2, bey2, 2.5 * s, 2.1 * s, C.fur0!);
+  a.quad(X(2.4), Y(-27.5), X(3.0 + earSway * 0.3), Y(-36.8), X(-2.8 + earSway * 0.8), Y(-43.8), 1.4 * s, 1.1 * s, C.ear!);
+
+  // 2. Fluffy snowy snowball tail peeking out behind coat on left
+  a.disc(X(-10.4), Y(-7.6), 4.6 * s, 4.2 * s, C.furO!);
+  a.disc(X(-10.4), Y(-7.8), 3.7 * s, 3.3 * s, C.fur2!);
+  a.disc(X(-10.9), Y(-8.5), 2.6 * s, 2.3 * s, C.fur0!);
+
+  // 3. Snowy rabbit hind paws
+  for (const [fx, fy, rx] of [[-3.8, -1.6, 4.8], [4.8, -1.5, 5.2]] as const) {
+    a.disc(X(fx), by + fy * s, rx * s, 2.5 * s, C.furO!);
+    a.disc(X(fx), by + (fy - 0.2) * s, (rx - 0.9) * s, 1.7 * s, C.fur0!);
+    a.p(X(fx + rx * 0.5), by + fy * s, C.fur2!);
+  }
+
+  // 4. Classic-Alice Pleated Blue Dress-Skirt + Deep Midnight Ink-Navy Velvet Capelet + White Apron!
+  // Flared Alice-Blue lower skirt + crisp white lace petticoat hem
+  a.disc(X(0.2), Y(-6.8), 10.2 * s, 4.8 * s, C.furO!);
+  a.disc(X(0.2), Y(-6.6), 9.3 * s, 3.9 * s, C.wh0!);
+  a.disc(X(0.2), Y(-7.8), 9.0 * s, 4.2 * s, C.bl0!);
+  a.disc(X(0.4), Y(-8.2), 8.2 * s, 3.6 * s, C.bl1!);
+  // Rich dark Midnight Ink-Navy velvet shoulder-capelet & coat (gives 100% contrast behind white lop ear!)
+  a.disc(X(-0.4), Y(-12.2), 9.2 * s, 7.6 * s, C.furO!);
+  a.disc(X(-0.8), Y(-12.2), 8.3 * s, 6.8 * s, C.nv0!);
+  a.disc(X(-0.2), Y(-12.6), 7.2 * s, 5.8 * s, C.nv1!);
+  // Crisp Snowy-White Ruffled Pinafore Apron on chest/front
+  a.disc(X(3.5), Y(-10.8), 5.0 * s, 6.6 * s, C.wh0!);
+  a.disc(X(3.3), Y(-7.8), 4.2 * s, 3.4 * s, C.fur1!);
+  a.line(X(0.2), Y(-16.2), X(-0.8), Y(-5.2), C.bl2!);
+  for (const byOff of [-13.4, -10.4, -7.4]) {
+    a.r(X(1.3), Y(byOff), Math.max(1, 1.5 * s), Math.max(1, 1.5 * s), C.nv1!);
+    a.p(X(1.3), Y(byOff), C.gdHi!);
+  }
+
+  // 5. Sweet Doll-Like Snowy Bunny Head & Plump Cheeks (3/4 view facing right)
+  a.disc(X(0.8), Y(-22.8), 8.9 * s, 7.5 * s, C.furO!);
+  a.disc(X(5.2), Y(-21.2), 5.5 * s, 4.6 * s, C.furO!);
+  a.disc(X(0.8), Y(-22.8), 7.9 * s, 6.5 * s, C.fur0!);
+  a.disc(X(5.2), Y(-21.2), 4.6 * s, 3.7 * s, C.fur0!);
+  a.arc(X(1.2), Y(-22.4), 7.2 * s, 5.6 * s, Math.PI * 0.36, Math.PI * 0.88, C.fur2!);
+  // Soft pastel sakura cheek blush
+  a.disc(X(2.9), Y(-20.2), 2.5 * s, 1.5 * s, C.ear!);
+  // Big luminous Midnight-Sapphire / Ink-Blue Eye + Eyelash + Dual Catchlights!
+  if (blink) {
+    a.line(X(2.8), Y(-23.4), X(5.8), Y(-23.4), C.nv0!);
+  } else {
+    a.line(X(2.4), Y(-25.4), X(5.8), Y(-24.8), C.nv0!);
+    a.disc(X(4.3), Y(-23.6), 2.2 * s, 2.7 * s, C.nv0!);
+    a.disc(X(4.5), Y(-23.0), 1.4 * s, 1.6 * s, C.bl0!);
+    a.r(X(3.5), Y(-24.8), Math.max(1, 1.3 * s), Math.max(1, 1.3 * s), C.wh0!);
+    a.p(X(4.8), Y(-22.4), C.bl3!);
+  }
+  // Dainty soft-pink bunny nose
+  a.disc(X(8.9), Y(-21.9), 1.3 * s, 1.0 * s, C.earD!);
+  a.p(X(8.7), Y(-22.2), C.wh0!);
+
+  // 6. Ruffled White Eyelet-Lace Collar & Baby-Blue Satin Bow at throat!
+  a.disc(X(2.2), Y(-17.0), 6.2 * s, 2.4 * s, C.fur2!);
+  a.disc(X(2.2), Y(-17.2), 5.6 * s, 2.0 * s, C.wh0!);
+  for (const dir of [-1, 1] as const) {
+    a.disc(X(3.5 + dir * 3.1), Y(-16.6), 3.0 * s, 2.0 * s, C.nv0!);
+    a.disc(X(3.5 + dir * 3.1), Y(-16.8), 2.2 * s, 1.4 * s, C.bl2!);
+  }
+  a.disc(X(3.5), Y(-16.7), 1.6 * s, 1.5 * s, C.nv2!);
+  a.p(X(3.3), Y(-17.1), C.wh0!);
+
+  // 7. SIGNATURE 27px ULTRA-LONG SILKY LOP EAR (cascading over the dark Ink-Navy capelet + Alice Bow!)
+  const ex0 = X(-1.6), ey0 = Y(-26.8);
+  const ex1 = X(-9.0 + lopSway * 0.5), ey1 = Y(-19.2);
+  const ex2 = X(-6.4 + lopSway), ey2 = Y(-6.8);
+  a.quad(ex0, ey0, ex1, ey1, ex2, ey2, 3.7 * s, 4.6 * s, C.furO!);
+  a.disc(ex2, ey2, 4.5 * s, 4.0 * s, C.furO!);
+  a.quad(ex0, ey0, ex1, ey1, ex2, ey2, 2.7 * s, 3.5 * s, C.fur0!);
+  a.disc(ex2, ey2, 3.5 * s, 3.0 * s, C.fur0!);
+  // Soft inner-ear blush & powder-blue silk shading inside the long lop ear
+  a.quad(X(-2.2), Y(-25.0), X(-7.8 + lopSway * 0.5), Y(-18.8), X(-6.0 + lopSway), Y(-8.2), 1.2 * s, 1.8 * s, C.fur2!);
+  a.quad(X(-2.0), Y(-25.2), X(-6.8 + lopSway * 0.4), Y(-20.2), X(-6.2 + lopSway * 0.6), Y(-14.0), 0.9 * s, 1.1 * s, C.ear!);
+  // Crisp Midnight Ink-Navy & Alice Baby-Blue Coquette Ribbon Bow tied onto the lop ear!
+  const bx = X(-2.8), byEar = Y(-26.6);
+  for (const dir of [-1, 1] as const) {
+    a.disc(bx + dir * 2.9 * s, byEar, 2.8 * s, 1.9 * s, C.nv0!);
+    a.disc(bx + dir * 2.9 * s, byEar - 0.2 * s, 2.0 * s, 1.2 * s, C.bl2!);
+  }
+  a.disc(bx, byEar, 1.6 * s, 1.4 * s, C.wh0!);
+  a.p(bx, byEar, C.bl0!);
+
+  // 8. Extended snowy paw holding the swinging Silver-Sapphire Pocket Watch!
+  const px = X(11.2), py = Y(-14.6);
+  a.stroke(X(5.5), Y(-13.8), px, py, 2.8 * s, 2.3 * s, C.furO!);
+  a.stroke(X(5.5), Y(-13.8), px, py, 1.9 * s, 1.6 * s, C.fur0!);
+  const wx = px + swing + 1.6 * s, wy = py + 6.4 * s;
+  a.line(px + 1 * s, py, wx, wy - 3.8 * s, C.nv1!);
+  a.line(px + 0.5 * s, py, wx - 0.4 * s, wy - 3.8 * s, C.gdHi!);
+  a.disc(wx, wy, 4.7 * s, 4.7 * s, C.nv0!);
+  a.disc(wx, wy, 3.8 * s, 3.8 * s, C.gdL!);
+  a.disc(wx, wy, 2.7 * s, 2.7 * s, C.wh0!);
+  a.line(wx, wy, wx + Math.cos(sec * 2) * 1.9 * s, wy + Math.sin(sec * 2) * 1.9 * s, C.nv1!);
+  a.p(wx - 1.5 * s, wy - 1.9 * s, C.wh0!);
+}
+
+/** Cute Baby Lop-Eared Bunny peeking out of a Blue-and-White Bone-China Teacup in the top-right corner! */
+function paintTeacupLopBunny(a: Art, cx: number, cy: number, k: number, sec: number) {
+  const C = WON;
+  const peek = Math.sin(sec * 2.0) * 0.8 * k;
+  const earWig = Math.sin(sec * 2.8) * 1.1 * k;
+  const by = cy - 1.4 * k - peek;
+
+  // Saucer shadow + Blue-and-White saucer
+  a.alpha(0.35, () => a.disc(cx + 1.2, cy + 7.5 * k, 12 * k, 4.0 * k, C.nv0!));
+  a.disc(cx, cy + 7 * k, 11.4 * k, 3.6 * k, C.nv1!);
+  a.disc(cx, cy + 6.6 * k, 10.4 * k, 2.9 * k, C.wh0!);
+  a.ring(cx, cy + 6.6 * k, 7.8 * k, 2.1 * k, C.bl1!);
+
+  // Back of teacup rim
+  a.disc(cx, cy + 1.5 * k, 8.8 * k, 2.6 * k, C.nv1!);
+  a.disc(cx, cy + 1.5 * k, 7.8 * k, 2.0 * k, C.bl3!);
+
+  // Peeking Baby Lop Bunny head + TWO long drooping snowy lop ears draping down over the cup sides!
+  for (const dir of [-1, 1] as const) {
+    const ex2 = cx + dir * (11.2 * k + earWig * dir), ey2 = by + 7.2 * k;
+    a.quad(cx + dir * 3.8 * k, by - 4.8 * k, cx + dir * (10.2 * k + earWig * dir), by - 1.2 * k, ex2, ey2, 2.8 * k, 3.4 * k, C.furO!);
+    a.disc(ex2, ey2, 3.2 * k, 2.8 * k, C.furO!);
+    a.quad(cx + dir * 3.8 * k, by - 4.8 * k, cx + dir * (9.9 * k + earWig * dir), by - 1.2 * k, ex2, ey2, 1.9 * k, 2.4 * k, C.fur0!);
+    a.disc(ex2, ey2, 2.3 * k, 2.0 * k, C.fur0!);
+    a.quad(cx + dir * 4.2 * k, by - 4.0 * k, cx + dir * (9.0 * k + earWig * dir), by - 0.8 * k, cx + dir * (10.0 * k + earWig * dir), by + 5.2 * k, 0.9 * k, 1.1 * k, C.ear!);
+  }
+  a.disc(cx, by - 1.8 * k, 6.8 * k, 5.5 * k, C.furO!);
+  a.disc(cx, by - 1.8 * k, 5.8 * k, 4.6 * k, C.fur0!);
+  // Baby bunny ink-navy eyes & blush
+  for (const dir of [-1, 1] as const) {
+    a.disc(cx + dir * 2.4 * k, by - 2.3 * k, 1.3 * k, 1.6 * k, C.nv0!);
+    a.p(cx + dir * 2.4 * k - 0.4, by - 3.0 * k, C.wh0!);
+    a.disc(cx + dir * 3.8 * k, by - 0.8 * k, 1.3 * k, 0.9 * k, C.ear!);
+  }
+  a.p(cx, by - 1.2 * k, C.earD!);
+
+  // Front Wedgewood Blue-and-White teacup bowl + handle + tiny snow paws gripping the rim!
+  a.arc(cx + 8.4 * k, cy + 3.8 * k, 2.7 * k, 2.7 * k, -Math.PI / 2, Math.PI / 2, C.nv1!, 2.2 * k);
+  a.arc(cx + 8.4 * k, cy + 3.8 * k, 2.7 * k, 2.7 * k, -Math.PI / 2, Math.PI / 2, C.wh0!, 1.1 * k);
+  for (let dy = 0; dy <= Math.ceil(5.6 * k); dy++) {
+    const t = dy / (5.6 * k);
+    const hw = (8.5 - t * 2.2) * k;
+    for (let dx = -Math.floor(hw); dx <= Math.floor(hw); dx++) {
+      const edge = Math.abs(dx) >= Math.floor(hw) || dy === Math.ceil(5.6 * k);
+      const rim = dy <= 1;
+      const floral = !edge && !rim && Math.abs(dy - 2.8 * k) < 1.1 * k && Math.abs(dx) % 3 < 2;
+      const col = edge ? C.nv1! : rim ? C.bl2! : floral ? C.bl0! : dx > hw * 0.45 ? C.wh2! : C.wh0!;
+      a.p(cx + dx, cy + 1.6 * k + dy, col);
+    }
+  }
+  for (const dir of [-1, 1] as const) {
+    a.disc(cx + dir * 3.6 * k, cy + 1.6 * k, 2.1 * sClamp(k), 1.5 * sClamp(k), C.furO!);
+    a.disc(cx + dir * 3.6 * k, cy + 1.4 * k, 1.4 * sClamp(k), 1.0 * sClamp(k), C.fur0!);
+  }
+}
+
+function sClamp(k: number) {
+  return Math.max(0.75, k);
+}
+
+/** Oversized tilted Classic Ink-Navy & Wedgewood-Blue Playing Cards (A♠ & Q♦)! */
+function paintAliceCardPair(a: Art, cx: number, cy: number, k = 1) {
+  const C = WON;
+  const drawCard = (ox: number, oy: number, tilt: number, diamond: boolean) => {
+    const hw = 7.4 * k, hh = 10.4 * k;
+    const cs = Math.cos(tilt), sn = Math.sin(tilt);
+    a.alpha(0.32, () => {
+      for (let v = -hh; v <= hh; v += 0.8) {
+        for (let u = -hw; u <= hw; u += 0.8) {
+          a.p(ox + u * cs - v * sn + 2, oy + u * sn + v * cs * 0.88 + 2.5, C.shadow!);
+        }
+      }
+    });
+    for (let v = -hh; v <= hh; v += 0.55) {
+      for (let u = -hw; u <= hw; u += 0.55) {
+        const edge = Math.abs(u) > hw - 0.9 || Math.abs(v) > hh - 0.9;
+        const innerRim = !edge && (Math.abs(u) > hw - 2.1 && Math.abs(v) > hh - 2.1);
+        const col = edge ? C.nv1! : innerRim ? C.bl2! : (u + v > 3 ? C.wh2! : C.wh0!);
+        a.p(ox + u * cs - v * sn, oy + u * sn + v * cs * 0.88, col);
+      }
+    }
+    const suitCol = diamond ? C.bl0! : C.nv0!;
+    for (const s of [-1, 1] as const) {
+      const pu = s * (hw - 2.6 * k), pv = s * (hh - 2.8 * k);
+      a.r(ox + pu * cs - pv * sn - 0.5, oy + pu * sn + pv * cs * 0.88 - 0.5, 2, 2, suitCol);
+    }
+    if (diamond) {
+      a.sprC(SUIT_DIAMOND, { d: C.bl0!, D: C.bl3! }, ox, oy);
+    } else {
+      a.sprC(SUIT_SPADE, { s: C.nv1!, S: C.nv3!, d: C.nv0! }, ox, oy);
+    }
+  };
+  drawCard(cx - 5.2 * k, cy - 2 * k, -0.24, false);
+  drawCard(cx + 5.2 * k, cy + 2 * k, 0.2, true);
+}
+
+/** 2-Tier Silver & Blue-Porcelain Afternoon-Tea Pastry Stand (macarons, cream puffs & blueberries)! */
+function paintAliceTeaStand(a: Art, cx: number, by: number, k = 1) {
+  const C = WON;
+  a.alpha(0.32, () => a.disc(cx + 1.5, by + 2, 14 * k, 4.2 * k, C.shadow!));
+  // Pedestal foot
+  a.disc(cx, by + 1 * k, 6.2 * k, 2.2 * k, C.nv1!);
+  a.disc(cx, by + 0.6 * k, 5.2 * k, 1.6 * k, C.svL!);
+  // Lower porcelain tier plate + scalloped blue rim
+  const y1 = by - 3.5 * k;
+  a.disc(cx, y1 + 0.8 * k, 13.8 * k, 4.8 * k, C.nv1!);
+  a.disc(cx, y1, 12.8 * k, 4.1 * k, C.wh0!);
+  a.ring(cx, y1, 10.6 * k, 3.2 * k, C.bl1!);
+  // Dainty Alice-blue macarons & white cream puffs on lower tier!
+  for (const [dx, dy, c0, c1] of [
+    [-7.5, -0.8, C.nv2!, C.bl2!],
+    [-2.5, 0.8, C.bl0!, C.wh0!],
+    [3.2, 0.6, C.nv1!, C.bl1!],
+    [7.8, -0.6, C.bl0!, C.wh0!],
+  ] as const) {
+    a.disc(cx + dx * k, y1 + dy * k, 3.0 * k, 2.0 * k, c0);
+    a.disc(cx + dx * k, y1 + (dy - 0.6) * k, 2.4 * k, 1.4 * k, c1);
+    a.p(cx + dx * k - 0.5, y1 + (dy - 1.1) * k, C.wh0!);
+  }
+  // Central silver spindle
+  a.r(cx - 1.2 * k, y1 - 10.5 * k, 2.4 * k, 9.5 * k, C.nv1!);
+  a.r(cx - 0.5 * k, y1 - 10.5 * k, 1.2 * k, 9.5 * k, C.wh0!);
+  // Upper porcelain tier plate
+  const y2 = y1 - 10.5 * k;
+  a.disc(cx, y2 + 0.7 * k, 10.2 * k, 3.6 * k, C.nv1!);
+  a.disc(cx, y2, 9.3 * k, 3.0 * k, C.wh0!);
+  a.ring(cx, y2, 7.4 * k, 2.2 * k, C.bl1!);
+  // Frosted blueberry cream tartlet on top tier
+  a.disc(cx - 3.2 * k, y2 - 1.2 * k, 2.8 * k, 2.0 * k, C.bl1!);
+  a.disc(cx - 3.2 * k, y2 - 2.0 * k, 2.0 * k, 1.3 * k, C.wh0!);
+  a.disc(cx + 3.0 * k, y2 - 1.2 * k, 2.8 * k, 2.0 * k, C.nv2!);
+  a.disc(cx + 3.0 * k, y2 - 2.0 * k, 2.0 * k, 1.3 * k, C.bl3!);
+  // Silver ring handle at top + tiny navy bow
+  a.arc(cx, y2 - 7.2 * k, 2.8 * k, 2.6 * k, 0, TAU, C.nv1!, 1.8 * k);
+  a.arc(cx, y2 - 7.2 * k, 2.8 * k, 2.6 * k, 0, TAU, C.gdL!, 1.0 * k);
+  a.r(cx - 0.6 * k, y2 - 4.8 * k, 1.4 * k, 3.2 * k, C.nv1!);
+}
+
+/** Wedgewood Blue-and-White Bone-China Teapot + Jauntily Stacked Tilted Teacups! */
+function paintBlueWhiteTeaStack(a: Art, cx: number, by: number, k = 1) {
+  const C = WON;
+  a.alpha(0.32, () => a.disc(cx + 1.5, by + 2, 14 * k, 4.2 * k, C.shadow!));
+  // Lace-edged bone-china saucer
+  a.disc(cx, by, 13 * k, 4.2 * k, C.nv1!);
+  a.disc(cx, by - 0.5, 12 * k, 3.5 * k, C.wh0!);
+  a.ring(cx, by - 0.5, 9.5 * k, 2.6 * k, C.bl1!);
+
+  // Plump White Bone-China Teapot with Wedgewood-Blue floral band & Ink-Navy trim!
+  const py = by - 7.5 * k;
+  a.quad(cx - 8 * k, py + 1 * k, cx - 14 * k, py - 2 * k, cx - 15 * k, py - 8 * k, 2.5 * k, 1.5 * k, C.nv1!);
+  a.quad(cx - 8 * k, py + 0.8 * k, cx - 13.6 * k, py - 2 * k, cx - 14.6 * k, py - 7.8 * k, 1.6 * k, 0.9 * k, C.wh0!);
+  a.arc(cx + 9 * k, py - 0.5 * k, 4.2 * k, 5.2 * k, -Math.PI * 0.55, Math.PI * 0.55, C.nv1!, 2.4 * k);
+  a.arc(cx + 9 * k, py - 0.5 * k, 4.2 * k, 5.2 * k, -Math.PI * 0.55, Math.PI * 0.55, C.bl2!, 1.3 * k);
+
+  a.disc(cx, py, 10.6 * k, 7.6 * k, C.nv1!);
+  a.disc(cx, py, 9.6 * k, 6.7 * k, C.wh0!);
+  a.disc(cx + 1.5 * k, py + 1.2 * k, 7.8 * k, 4.8 * k, C.wh2!);
+  a.disc(cx - 2.0 * k, py - 1.2 * k, 6.4 * k, 4.4 * k, C.wh0!);
+  // Blue-and-white cameo & floral shoulder band on teapot belly
+  a.r(cx - 8 * k, py - 4.8 * k, 16 * k, 1.4 * k, C.bl1!);
+  a.disc(cx + 0.5 * k, py + 0.5 * k, 4.4 * k, 3.3 * k, C.bl1!);
+  a.disc(cx + 0.5 * k, py + 0.5 * k, 3.4 * k, 2.4 * k, C.wh0!);
+  a.r(cx - 0.5 * k, py - 0.4 * k, 2, 2, C.nv1!);
+
+  // Two tilted Alice-Blue & Ink-Navy teacups balanced atop the teapot!
+  const cup1Y = py - 9.8 * k;
+  a.disc(cx + 1 * k, cup1Y + 2 * k, 7.2 * k, 2.0 * k, C.nv1!);
+  a.disc(cx + 1 * k, cup1Y, 6.2 * k, 3.8 * k, C.nv1!);
+  a.disc(cx + 1 * k, cup1Y - 0.3 * k, 5.3 * k, 3.1 * k, C.bl1!);
+  a.disc(cx - 0.8 * k, cup1Y - 1 * k, 2.5 * k, 1.5 * k, C.bl3!);
+  a.disc(cx + 1 * k, cup1Y - 2.6 * k, 5.4 * k, 1.6 * k, C.wh0!);
+  a.arc(cx + 6.5 * k, cup1Y - 0.4 * k, 2 * k, 2 * k, -1.4, 1.4, C.wh0!, 1.6);
+
+  const cup2Y = cup1Y - 6.6 * k;
+  a.disc(cx - 1.5 * k, cup2Y, 5.2 * k, 3.3 * k, C.nv0!);
+  a.disc(cx - 1.5 * k, cup2Y - 0.3 * k, 4.4 * k, 2.6 * k, C.nv2!);
+  a.disc(cx - 2.8 * k, cup2Y - 0.8 * k, 2.0 * k, 1.2 * k, C.bl2!);
+  a.disc(cx - 1.5 * k, cup2Y - 2.2 * k, 4.5 * k, 1.5 * k, C.wh0!);
+  a.disc(cx - 1.5 * k, cup2Y - 2.1 * k, 3.2 * k, 0.9 * k, C.bl1!);
+}
+
+/** "DRINK ME" glowing crystal sky-sapphire bottle + Blueberry Cream Cake + Silver-Gold Key on Eyelet Doily! */
+function paintDrinkMeVignette(a: Art, cx: number, cy: number, k = 1) {
+  const C = WON;
+  paintEyeletDoily(a, cx, cy + 4 * k, 17 * k, 13 * k, false);
+
+  // 1. Faceted "DRINK ME" sky-sapphire potion bottle
+  const bx = cx - 6.5 * k, by = cy + 5 * k;
+  a.alpha(0.3, () => a.disc(bx + 1.5, by + 1, 6.5 * k, 2.4 * k, C.shadow!));
+  a.r(bx - 5 * k, by - 11 * k, 10 * k, 11 * k, C.nv1!);
+  a.r(bx - 4 * k, by - 10 * k, 8 * k, 9.5 * k, C.wh0!);
+  a.r(bx - 4 * k, by - 7.5 * k, 8 * k, 7 * k, C.potD!);
+  a.r(bx - 3.2 * k, by - 7 * k, 6.4 * k, 6 * k, C.pot!);
+  a.r(bx - 3 * k, by - 9.5 * k, 1.6 * k, 8 * k, C.wh0!);
+  a.disc(bx, by - 7.5 * k, 3.8 * k, 1.2 * k, C.potHi!);
+  // Bottle neck + stopper
+  a.r(bx - 2.2 * k, by - 15 * k, 4.4 * k, 4 * k, C.nv2!);
+  a.r(bx - 1.4 * k, by - 14.5 * k, 2.8 * k, 3.5 * k, C.wh0!);
+  a.r(bx - 2.8 * k, by - 15.2 * k, 5.6 * k, 1.2 * k, C.wh0!);
+  a.disc(bx, by - 16.8 * k, 2.2 * k, 2.0 * k, C.nv1!);
+  a.disc(bx - 0.4 * k, by - 17.0 * k, 1.3 * k, 1.2 * k, C.gdL!);
+  // Ink-Navy ribbon + fluttering white "DRINK ME" tag!
+  a.r(bx - 2.4 * k, by - 12.2 * k, 4.8 * k, 1.4 * k, C.nv1!);
+  a.line(bx + 2 * k, by - 11.8 * k, bx + 6 * k, by - 13.5 * k, C.nv1!);
+  a.r(bx + 5 * k, by - 15 * k, 8.5 * k, 5.2 * k, C.nv1!);
+  a.r(bx + 5.6 * k, by - 14.4 * k, 7.3 * k, 4 * k, C.wh0!);
+  a.r(bx + 6.6 * k, by - 13.2 * k, 5 * k, 1, C.bl0!);
+  a.r(bx + 6.6 * k, by - 11.6 * k, 3.6 * k, 1, C.nv2!);
+
+  // 2. Alice Blue & White Cream Petit-Four Cake (right-front on doily)
+  const kx = cx + 6.5 * k, ky = cy + 7.5 * k;
+  a.alpha(0.3, () => a.disc(kx + 1, ky + 1, 6.2 * k, 2.4 * k, C.shadow!));
+  a.r(kx - 5 * k, ky - 5 * k, 10 * k, 5 * k, C.nv2!);
+  a.r(kx - 4.2 * k, ky - 4.5 * k, 8.4 * k, 4 * k, C.bl2!);
+  a.disc(kx, ky - 5 * k, 5.5 * k, 2.4 * k, C.wh2!);
+  a.disc(kx, ky - 5.4 * k, 4.8 * k, 1.9 * k, C.wh0!);
+  for (const dx of [-3.5, 0, 3.5]) a.disc(kx + dx * k, ky - 3.6 * k, 1.5 * k, 1.5 * k, C.wh0!);
+  a.disc(kx, ky - 7.2 * k, 2.0 * k, 1.8 * k, C.nv1!);
+  a.p(kx - 0.5 * k, ky - 7.7 * k, C.bl3!);
+
+  // 3. Ornate silver-champagne keyhole key at front!
+  const gx = cx - 1 * k, gy = cy + 12.8 * k;
+  a.arc(gx - 5.5 * k, gy, 3.0 * k, 2.4 * k, 0, TAU, C.nv1!, 1.8 * k);
+  a.arc(gx - 5.5 * k, gy, 3.0 * k, 2.4 * k, 0, TAU, C.gdL!, 1);
+  a.r(gx - 2.8 * k, gy - 0.8 * k, 9.5 * k, 2 * k, C.nv1!);
+  a.r(gx - 2.8 * k, gy - 0.5 * k, 9.2 * k, 1.2 * k, C.gdHi!);
+  a.r(gx + 3.8 * k, gy + 0.8 * k, 1.4 * k, 2.2 * k, C.gdL!);
+  a.r(gx + 5.6 * k, gy + 0.8 * k, 1.4 * k, 1.6 * k, C.gdL!);
+}
+
+/** Pale-Blue & Lace-White Morpho Butterfly fluttering around the Alice tea-table! */
+function paintAliceButterfly(a: Art, x: number, y: number, open: boolean, faceLeft: boolean) {
+  const C = WON;
+  const w = open ? 1 : 0.45;
+  const f = faceLeft ? -1 : 1;
+  a.petal(x, y, -Math.PI / 2 - 0.82 * f, 6.2, 3.5 * w, C.nv1!, C.bl2!, C.wh0!, 0.55);
+  a.petal(x, y, -Math.PI / 2 + 0.82 * f, 6.2, 3.5 * w, C.nv1!, C.bl2!, C.wh0!, 0.55);
+  a.petal(x, y + 1, Math.PI / 2 + 0.72, 4.4, 2.5 * w, C.nv1!, C.bl1!, C.bl3!, 0.55);
+  a.petal(x, y + 1, Math.PI / 2 - 0.72, 4.4, 2.5 * w, C.nv1!, C.bl1!, C.bl3!, 0.55);
+  a.r(x - 0.5, y - 1.5, 1.5, 4, C.nv0!);
+  a.p(x, y - 1, C.wh0!);
+}
+
+/** Bone-China & Alice-Blue Porcelain Teacup on a Lace Saucer (for the 9 bench seats). */
+function paintWonderCupSeat(
+  a: Art,
+  cx: number,
+  cy: number,
+  R: number,
+  glaze: { d: string; b: string; l: string; pip: string },
+) {
+  const C = WON;
+  a.alpha(0.32, () => a.disc(cx + 1.5, cy + 3, R + 1, R * 0.5 + 1, C.shadow!));
+  // Lace-rimmed white bone-china saucer
+  a.disc(cx, cy + 2.8, R + 1, R * 0.5 + 1, C.nv1!);
+  a.disc(cx, cy + 2.5, R, R * 0.48, C.wh0!);
+  a.ring(cx, cy + 2.5, R * 0.8, R * 0.36, C.bl1!);
+  const cr = R * 0.68, cry = cr * 0.48;
+  a.arc(cx + cr + 1.2, cy - 0.2, 2.1, 2.1, -Math.PI / 2, Math.PI / 2, C.nv1!, 2);
+  a.arc(cx + cr + 1.2, cy - 0.2, 2.1, 2.1, -Math.PI / 2, Math.PI / 2, C.wh0!, 1);
+  a.disc(cx, cy + 0.9, cr + 0.9, cry + 4.0, glaze.d);
+  a.disc(cx, cy + 0.6, cr, cry + 3.4, glaze.b);
+  a.r(cx - cr * 0.55, cy + 0.4, 1.5, 2.8, glaze.l);
+  a.disc(cx, cy - 1.5, cr + 0.5, cry + 0.5, C.wh0!);
+  a.disc(cx, cy - 1.5, cr - 0.3, cry - 0.1, C.bl3!);
+  a.disc(cx, cy - 1.2, cr - 1.2, Math.max(0.8, cry - 0.7), '#78a8de');
+  a.p(cx - cr * 0.3, cy - 1.4, C.wh0!);
+  a.r(cx - 0.5, cy + 1.2, 2, 2, glaze.pip);
+}
+
+/**
+ * Grand Wedgewood-Blue & Bone-China White Layered Tea-Rose & Alice Ribbon Medallion inside the central dial!
+ * Large (~44px across) porcelain centerpiece + Blue-Rose Garland (`r = 0.60`), kept in airy pastel contrast
+ * (L > 74%) so chess units standing in the center pop cleanly and clock hands pivot right out of the rose heart!
+ */
+function paintAliceCameoMedallion(a: Art, W: { x: number; y: number; rx: number; ry: number }, k: number) {
+  const C = WON;
+  // 1. Delicate Blue-Rose & Forget-Me-Not Garland along r = 0.60
+  const grx = W.rx * 0.60, gry = W.ry * 0.60;
+  const N = 16;
+  for (let i = 0; i < N; i++) {
+    const a0 = (i / N) * TAU, a1 = ((i + 1) / N) * TAU;
+    const am = (a0 + a1) * 0.5;
+    const wob = 1 + 0.035 * Math.sin(i * 3.1);
+    const x0 = W.x + Math.cos(a0) * grx, y0 = W.y + Math.sin(a0) * gry;
+    const xm = W.x + Math.cos(am) * grx * wob, ym = W.y + Math.sin(am) * gry * wob;
+    const x1 = W.x + Math.cos(a1) * grx, y1 = W.y + Math.sin(a1) * gry;
+    a.quad(x0, y0, xm, ym, x1, y1, 0.95, 0.95, '#92bbe5');
+    const leafAng = am + (i % 2 ? 0.65 : -0.65);
+    a.petal(xm, ym, leafAng, 4.5 * k, 1.6 * k, '#73a1d4', '#a6cef5', '#dceeff', 0.55);
+  }
+  for (let i = 0; i < 8; i++) {
+    const ang = (i / 8) * TAU + Math.PI / 8;
+    const bx = W.x + Math.cos(ang) * grx, by = W.y + Math.sin(ang) * gry;
+    if (i % 2 === 0) {
+      a.disc(bx, by, 3.8 * k, 3.4 * k, '#6ca1db');
+      a.disc(bx - 0.3, by - 0.3, 2.7 * k, 2.3 * k, '#a8d2f7');
+      a.p(bx - 0.6, by - 0.6, C.wh0!);
+    } else {
+      a.disc(bx, by, 3.6 * k, 3.2 * k, '#86b3e0');
+      a.disc(bx - 0.3, by - 0.3, 2.5 * k, 2.1 * k, C.wh0!);
+      a.p(bx, by, '#6ca1db');
+    }
+    const ma = ang + Math.PI / 8;
+    a.disc(W.x + Math.cos(ma) * grx, W.y + Math.sin(ma) * gry, 1.4 * k, 1.4 * k, '#6896cc');
+  }
+
+  // 2. Wedgewood-Blue & Pearl-White Eyelet-Lace Roundel (r = 0.40)
+  const crx = W.rx * 0.40, cry = W.ry * 0.40;
+  for (let i = 0; i < 20; i++) {
+    const ang = (i / 20) * TAU;
+    const lx = W.x + Math.cos(ang) * crx, ly = W.y + Math.sin(ang) * cry;
+    a.disc(lx, ly, 3.0 * k, 2.7 * k, '#8db9e6');
+    a.disc(lx, ly - 0.2, 2.3 * k, 2.0 * k, C.wh0!);
+  }
+  a.disc(W.x, W.y, crx * 0.94, cry * 0.94, '#83b4e6');
+  a.disc(W.x, W.y - 0.4, crx * 0.87, cry * 0.87, '#9ec9f2');
+  a.ring(W.x, W.y, crx * 0.85, cry * 0.85, C.wh0!, 18);
+
+  // 3. Flowing Porcelain-White & Baby-Blue Coquette Ribbon Bow tucked beneath the central Rose!
+  const ryBow = W.y + cry * 0.56;
+  for (const s of [-1, 1] as const) {
+    a.quad(W.x, ryBow, W.x + s * 8 * k, ryBow + 4 * k, W.x + s * 13 * k, ryBow + 9.5 * k, 2.2 * k, 1.4 * k, '#699cd6');
+    a.quad(W.x, ryBow, W.x + s * 7.8 * k, ryBow + 3.8 * k, W.x + s * 12.6 * k, ryBow + 9.0 * k, 1.4 * k, 0.8 * k, C.wh0!);
+    a.disc(W.x + s * 6.4 * k, ryBow - 0.5 * k, 5.6 * k, 3.0 * k, '#699cd6');
+    a.disc(W.x + s * 6.4 * k, ryBow - 0.7 * k, 4.6 * k, 2.2 * k, C.wh0!);
+  }
+  // 4. Four porcelain-lace leaf sprigs radiating from the central Tea-Rose
+  for (let i = 0; i < 4; i++) {
+    const ang = Math.PI / 4 + (i * TAU) / 4;
+    a.petal(W.x, W.y, ang, crx * 0.82, cry * 0.24, '#6d9fd6', '#b8dcfb', C.wh0!, 0.55);
+  }
+
+  // 5. Large Layered Bone-China White & Ice-Sapphire Central Briar Rose (r ≈ 0.28 of dial!)
+  const R = Math.min(crx, cry) * 0.68;
+  for (let p = 0; p < 8; p++) {
+    const ang = (p / 8) * TAU;
+    const px = W.x + Math.cos(ang) * R * 0.48, py = W.y + Math.sin(ang) * R * 0.44;
+    a.disc(px, py, R * 0.52, R * 0.48, '#71a3db');
+    a.disc(px, py - 0.3, R * 0.44, R * 0.40, C.wh0!);
+  }
+  a.disc(W.x, W.y, R * 0.60, R * 0.56, '#7db0e6');
+  for (let p = 0; p < 6; p++) {
+    const ang = 0.26 + (p / 6) * TAU;
+    const px = W.x + Math.cos(ang) * R * 0.28, py = W.y + Math.sin(ang) * R * 0.26;
+    a.disc(px, py, R * 0.34, R * 0.31, '#daedff');
+    a.arc(px, py, R * 0.32, R * 0.29, ang - 1.0, ang + 1.0, C.wh0!);
+  }
+  a.disc(W.x, W.y, R * 0.26, R * 0.24, '#6b9fd9');
+  a.ring(W.x, W.y, R * 0.22, R * 0.20, C.wh0!, 10);
+}
+
+const wonderlandScene: AtelierScene = {
+  plan(L) {
+    const k = kOf(L);
+    const rx = Math.min(L.gw * 0.485, 92);
+    const ry = Math.min(L.gh * 0.43, 72);
+    const watch = { x: L.cx, y: L.cy + 5, rx, ry };
+    const topL = [
+      { x: -4, y: 8, R: 25 },
+      { x: 22, y: 4, R: 23 },
+      { x: 46, y: 7, R: 20 },
+      { x: 64, y: 9, R: 15 },
+      { x: 8, y: 34, R: 21 },
+      { x: 33, y: 28, R: 18 },
     ];
-    const stars = Array.from({ length: 40 }, (_, i) => ({ x: hash2(i, 3, 61) * L.W, y: 3 + Math.pow(hash2(i, 4, 61), 1.6) * 44 }));
-    return { k, Hz, sun, towerL, towerR, rows, streaks, stars };
+    const topR = [
+      { x: L.W + 4, y: 10, R: 26 },
+      { x: L.W - 22, y: 5, R: 24 },
+      { x: L.W - 46, y: 8, R: 20 },
+      { x: L.W - 64, y: 10, R: 15 },
+      { x: L.W - 10, y: 36, R: 22 },
+      { x: L.W - 33, y: 28, R: 18 },
+    ];
+    return { k, watch, topL, topR };
   },
 
   paint(a, L, P) {
-    const C = SUN;
-    const { Hz, sun } = P;
+    const C = WON;
+    const W = P.watch;
     const k = P.k as number;
-    const sky = [C.s0!, C.s1!, C.s2!, C.s3!, C.s4!, C.s5!, C.s6!, C.s7!, C.s8!, C.s9!, C.s10!];
-    const sea = [C.c0!, C.c1!, C.c2!, C.c3!, C.c4!];
+    const avg = (W.rx + W.ry) / 2;
 
-    // 1. Dusk sky gradient with sun glow (above the midline) · cloud-sea base (below)
+    // 1. Classic Alice Baby-Blue Gingham-Damask Tablecloth + Ruffled White Apron-Lace Skirt + Ink-Navy Watch Rim!
     a.field((x, y) => {
-      if (y < Hz) {
-        const g = Math.max(0, 1 - Math.hypot((x - sun.x) / 125, (y - sun.y) / 72));
-        const v = Math.pow(y / Hz, 1.05) * 8.1 + g * g * 2.4 + (vnoise(x, y, 30, 5) - 0.5) * 0.35;
-        return sky[band(v, x, y, sky.length, 0.45)]!;
+      const nx = (x - W.x) / W.rx, ny = (y - W.y) / W.ry;
+      const d = Math.hypot(nx, ny);
+      const dpx = (d - 1) * avg;
+      const ang = Math.atan2(ny, nx);
+
+      // Inside the Porcelain Pocket-Watch Tea-Dial
+      if (dpx < 0) {
+        if (dpx > -2.0) return dpx > -0.9 ? C.nv1! : C.bl3!;
+        // Soft Alice Baby-Blue enamel chapter ring (r = 0.79 .. 0.97)
+        if (d > 0.79) {
+          if (Math.abs(d - 0.795) < 0.014) return C.bl0!;
+          const sheen = -(nx * 0.55 + ny * 0.8);
+          return sheen > 0.25 ? C.blHi! : sheen < -0.25 ? C.bl2! : C.bl3!;
+        }
+        // Crisp Bone-China White & Ice-Blue Harlequin Diamond Dial (low contrast for crystal unit clarity!)
+        const u = Math.floor((x - W.x + y - W.y + 400) / 14);
+        const v = Math.floor((x - W.x - (y - W.y) + 400) / 14);
+        const harlequin = (u + v) % 2 === 0;
+        let col = harlequin ? C.wh0! : C.wh1!;
+        if (!harlequin && bayer(x, y) < 0.35) col = mix(C.wh1!, C.bl3!, 0.55);
+        if (d > 0.74) col = mix(col, C.wh2!, 0.45);
+        return col;
       }
-      const v = 3.6 - ((y - Hz) / (L.H - Hz)) * 2.6;
-      return sea[band(v, x, y, sea.length, 0.5)]!;
+
+      // Sculpted Midnight Ink-Navy & Wedgewood-Blue Enamel Rim (with silver-pearl inner bead!)
+      const bezelW = 7.4;
+      if (dpx < bezelW) {
+        if (dpx > bezelW - 1.1) return C.nv0!;
+        if (dpx < 1.3) return bayer(x, y) < 0.5 ? C.gdHi! : C.gdL!;
+        const u = (dpx - 1.3) / (bezelW - 2.4);
+        const light = -(nx * 0.58 + ny * 0.81) / Math.max(0.001, d);
+        const s = Math.sin(clamp(u, 0, 1) * Math.PI) * 1.4 + light * 0.95;
+        const stops = [C.nv0!, C.nv1!, C.nv2!, C.nv3!, C.bl1!];
+        return stops[band(1.25 + s, x, y, stops.length, 0.36)]!;
+      }
+
+      // Ruffled 24-Scallop White Apron Eyelet-Lace Skirt radiating around the Ink-Navy Rim!
+      const scallop = 0.5 + 0.5 * Math.cos(ang * 24);
+      const laceW = bezelW + 6.4 + 3.4 * scallop;
+      if (dpx < laceW) {
+        if (dpx > laceW - 1.0) return C.bl0!;
+        // Dainty ink-blue eyelet hole inside each lace lobe
+        const holeAng = Math.round((ang * 24) / TAU) * (TAU / 24);
+        const hx = W.x + Math.cos(holeAng) * (W.rx + bezelW + 5.2);
+        const hy = W.y + Math.sin(holeAng) * (W.ry + bezelW + 5.2);
+        if (Math.hypot(x - hx, y - hy) < 1.35) return C.nv2!;
+        return dpx < bezelW + 2.2 ? C.wh2! : C.wh0!;
+      }
+
+      // Outer Classic Alice Baby-Blue & Milk-White Woven Gingham-Damask Tablecloth!
+      const gx = Math.floor(x / 8) % 2 === 0;
+      const gy = Math.floor(y / 8) % 2 === 0;
+      let col = gx && gy ? C.cl2! : gx || gy ? C.cl1! : C.cl0!;
+      // Subtle linen weave texture + dreamy cornflower corner vignette
+      if ((x + y) % 2 === 0 && !gx && !gy) col = mix(col, C.cl3!, 0.38);
+      const cornerDist = Math.hypot((x - L.cx) / (L.W * 0.55), (y - L.cy) / (L.H * 0.58));
+      if (cornerDist > 0.88) {
+        col = mix(col, C.cl4!, clamp((cornerDist - 0.88) * 0.85, 0, 0.55));
+      }
+      // Soft periwinkle shadow cast by the ruffled white lace skirt
+      const shOff = nx * 2.0 + ny * 3.0;
+      if (dpx < laceW + 2.8 + Math.max(0, shOff)) {
+        col = mix(col, C.shadow!, 0.38);
+      }
+      return col;
     });
 
-    // 2. Stars & a slim moon high in the violet
-    for (const s of P.stars as { x: number; y: number }[]) {
-      const dim = s.y / 50;
-      a.p(s.x, s.y, mix(C.star!, C.s1!, dim * 0.8));
+    // 2. Minute ticks & 12 Ink-Navy / Wedgewood-Blue Suit Medallions around the chapter ring!
+    for (let i = 0; i < 48; i++) {
+      const ang = (i / 48) * TAU - Math.PI / 2;
+      const major = i % 4 === 0;
+      const r0 = major ? 0.945 : 0.952;
+      a.p(W.x + Math.cos(ang) * W.rx * r0, W.y + Math.sin(ang) * W.ry * r0, major ? C.nv1! : C.bl0!);
     }
-    crescent(a, L.cx - 62 * k, 15, 5.5, 2.4, -1.4, C.moon!, C.moonD!);
-
-    // 3. Setting sun with dithered corona
-    a.alpha(0.5, () => ditherDisc(a, sun.x, sun.y, sun.R * 1.9, sun.R * 1.55, C.s9!, 0.5));
-    a.alpha(0.6, () => ditherDisc(a, sun.x, sun.y, sun.R * 1.35, sun.R * 1.2, C.s10!, 0.45));
-    ditherDisc(a, sun.x, sun.y, sun.R, sun.R, C.sun3!, 0.12);
-    ditherDisc(a, sun.x, sun.y, sun.R * 0.84, sun.R * 0.84, C.sun2!, 0.2);
-    ditherDisc(a, sun.x, sun.y - 1, sun.R * 0.64, sun.R * 0.64, C.sun1!, 0.25);
-    ditherDisc(a, sun.x - 2, sun.y - 3, sun.R * 0.36, sun.R * 0.36, C.sun0!, 0.3);
-
-    // 4. Long sunset streak clouds (violet bodies with peach under-light)
-    for (const s of P.streaks as { x: number; y: number; len: number; th: number }[]) {
-      const h = clamp(s.y / Hz, 0, 1);
-      const body = mix(C.streakD!, C.streak!, h);
-      const rim = mix(C.s5!, C.streakL!, h);
-      paintStreak(a, s.x, s.y, s.len * k, s.th, body, rim, h > 0.7 ? mix(body, C.s4!, 0.4) : undefined);
-    }
-
-    // 5. Horizon light line
-    for (let x = 0; x < L.W; x++) {
-      const g = Math.max(0, 1 - Math.abs(x - sun.x) / 150);
-      if (bayer(x, 1) < 0.35 + g * 0.65) a.p(x, Hz, g > 0.5 ? C.sun1! : C.s9!);
-    }
-
-    // 6. Towering cumulus at both flanks, lit from the sun side
-    paintCumulus(a, P.towerL, sun.x, sun.y, [C.c0!, C.c1!, C.c3!, C.c5!, C.c7!]);
-    paintCumulus(a, P.towerR, sun.x, sun.y, [C.c0!, C.c1!, C.c3!, C.c5!, C.c7!]);
-
-    // 7. The cloud sea, row by row toward the viewer, with a glittering sun road
-    for (const row of P.rows as { y: number; R: number; j: number; puffs: Lobe[] }[]) {
-      const far = clamp(1 - row.j / 10, 0, 1);
-      const pal = [
-        mix(C.c1!, C.c2!, far), mix(C.c2!, C.c3!, far), mix(C.c3!, C.c4!, far), mix(C.c4!, C.c5!, far), C.c6!,
-      ];
-      const roadOf = (x: number) => Math.max(0, 1 - Math.abs(x - sun.x) / (14 + row.j * 4.5)) * 0.65;
-      for (const l of row.puffs) a.disc(l.x, l.y, l.R + 0.8, l.R * 0.58 + 0.8, pal[0]!);
-      for (const l of row.puffs) a.disc(l.x, l.y, l.R, l.R * 0.58, pal[1]!);
-      for (const l of row.puffs) {
-        const dx = clamp((sun.x - l.x) / 80, -1, 1);
-        a.disc(l.x + dx * l.R * 0.08, l.y - l.R * 0.13, l.R * 0.93, l.R * 0.45, pal[2]!);
-      }
-      for (const l of row.puffs) {
-        const dx = clamp((sun.x - l.x) / 80, -1, 1);
-        const road = roadOf(l.x);
-        a.disc(l.x + dx * l.R * 0.16, l.y - l.R * 0.25, l.R * 0.68, l.R * 0.28, mix(pal[3]!, C.glow!, road));
-      }
-      for (const l of row.puffs) {
-        const dx = clamp((sun.x - l.x) / 80, -1, 1);
-        const road = roadOf(l.x);
-        a.arc(l.x + dx * l.R * 0.08, l.y - l.R * 0.13, l.R * 0.93, l.R * 0.45, Math.PI * 1.22 + dx * 0.35, Math.PI * 1.78 + dx * 0.35, mix(pal[4]!, C.sun1!, road));
+    for (let h = 0; h < 12; h++) {
+      const ang = (h / 12) * TAU - Math.PI / 2;
+      const hx = W.x + Math.cos(ang) * W.rx * 0.885;
+      const hy = W.y + Math.sin(ang) * W.ry * 0.885;
+      if (h % 3 === 0) {
+        a.disc(hx, hy, 5.8 * k, 5.0 * k, C.nv2!);
+        a.disc(hx, hy, 4.8 * k, 4.1 * k, C.wh0!);
+        if (h === 0) a.sprC(SUIT_CROWN, { g: C.nv2!, G: C.bl2!, h: C.wh0!, b: C.bl0!, d: C.nv0! }, hx, hy);
+        else if (h === 3) a.sprC(SUIT_SPADE, { s: C.nv1!, S: C.nv3!, d: C.nv0! }, hx, hy);
+        else if (h === 6) a.sprC(SUIT_HEART, { h: C.bl0!, H: C.bl3!, d: C.nv1! }, hx, hy);
+        else a.sprC(SUIT_CLUB, { c: C.nv1!, C: C.nv3!, d: C.nv0! }, hx, hy);
+      } else if (k >= 0.75) {
+        a.sprC(SUIT_DIAMOND, { d: h % 2 ? C.bl0! : C.nv2!, D: h % 2 ? C.bl3! : C.bl2! }, hx, hy);
+      } else {
+        a.disc(hx, hy, 1.5, 1.5, h % 2 ? C.bl0! : C.nv2!);
       }
     }
 
-    // 8. Skeleton (soft sky chalk) — enemy in the sky, us on the clouds
-    skeleton(a, L, '#fff2ea', 0.32, C.sun1!);
+    // 3. Central Wedgewood-Blue & Bone-China White Layered Tea-Rose Medallion + Garland!
+    paintAliceCameoMedallion(a, W, k);
 
-    // 9. Bench: 9 plump sunset cloud cushions
+    // 4. Invisible 5×8 chessboard skeleton (soft Wedgewood-blue ticks + Cornflower midline)
+    skeleton(a, L, '#7aa4d1', 0.42, C.bl0!);
+
+    // 5. 12 o'clock Double-Layered Midnight Ink-Navy & Baby-Blue Coquette Satin Bow!
+    paintAliceWatchBow(a, W.x, W.y - W.ry - 6, k * 1.06);
+
+    // 6. Dainty woven card-suit watermarks & white pearls scattered softly on the Alice gingham cloth
+    for (let i = 0; i < 36; i++) {
+      const gx = 8 + hash2(i, 1, 79) * (L.W - 16);
+      const gy = 40 + hash2(i, 2, 79) * (L.H - 68);
+      if (Math.hypot((gx - W.x) / (W.rx + 22), (gy - W.y) / (W.ry + 22)) < 1) continue;
+      if (i % 4 === 0) {
+        a.p(gx, gy - 1, C.wh0!); a.p(gx - 1, gy, C.wh0!); a.p(gx + 1, gy, C.wh0!); a.p(gx, gy + 1, C.wh0!);
+        a.p(gx, gy, C.bl0!);
+      } else {
+        a.p(gx, gy - 1, C.bl1!); a.p(gx - 1, gy, C.bl1!); a.p(gx + 1, gy, C.bl1!); a.p(gx, gy + 1, C.bl1!);
+      }
+    }
+
+    // 7. Lush Midnight Ink-Navy Rose-Leaf Hedges & Briar-Rose Garlands in upper corners!
+    paintNavyFoliageMound(a, P.topL, 'L');
+    paintNavyFoliageMound(a, P.topR, 'R');
+
+    const rosesTL: readonly [number, number, number, 'white' | 'sky' | 'navy', number][] = L.mL >= 32
+      ? [
+          [14, 15, 9.8, 'white', 0.2],
+          [35, 12, 10.4, 'sky', 0.9],
+          [56, 15, 9.0, 'white', 1.7],
+          [16, 36, 9.4, 'navy', 2.4],
+          [39, 31, 9.8, 'white', 0.5],
+        ]
+      : [
+          [12, 14, 7.6, 'white', 0.4],
+          [29, 10, 7.2, 'sky', 1.3],
+        ];
+    for (const [rx, ry, R, tone, sd] of rosesTL) paintAliceRose(a, rx, ry, R, tone, sd);
+
+    // Right corner roses framing the Teacup Lop Bunny (anchored to L.W so wide screens stay 100% cohesive!)
+    const rosesTR: readonly [number, number, number, 'white' | 'sky' | 'navy', number][] = L.mR >= 32
+      ? [
+          [L.W - 56, 14, 9.2, 'white', 0.6],
+          [L.W - 38, 32, 8.4, 'navy', 1.2],
+          [L.W - 14, 41, 9.4, 'sky', 1.9],
+        ]
+      : [[L.W - 34, 11, 6.8, 'white', 0.8]];
+    for (const [rx, ry, R, tone, sd] of rosesTR) paintAliceRose(a, rx, ry, R, tone, sd);
+
+    // 8. Flank Classic Alice Blue-and-White Tea-Party Vignettes
+    if (L.mL >= 32) {
+      const leftX = Math.max(27, L.gl - 33);
+      const rightX = Math.min(L.W - 26, L.gr + 34);
+      // Cluster of Ink-Navy & Sky Briar Roses tucked above the Hero Long-Eared Bunny
+      paintAliceRose(a, leftX - 9, 60, 8.6, 'navy', 1.1);
+      paintAliceRose(a, leftX + 6, 65, 7.4, 'white', 2.2);
+      // Bottom-left: Ruffled White Eyelet Doily + "DRINK ME" Sky-Sapphire Bottle + Blue Cake + Key
+      paintDrinkMeVignette(a, leftX, L.gb - 11, 1.16);
+      // Upper-mid right: Oversized Ink-Navy & Wedgewood A♠ & Q♦ Playing Cards
+      paintAliceCardPair(a, rightX, 68, 1.25);
+      // Mid-right: 2-Tier Silver & Blue-Porcelain Afternoon-Tea Pastry Stand
+      paintAliceTeaStand(a, rightX, L.mid + 27, 1.18);
+      // Bottom-right: Wedgewood Blue-and-White Bone-China Teapot & Stacked Teacups
+      paintBlueWhiteTeaStack(a, rightX, L.gb + 4, 1.18);
+    } else {
+      // Compact mobile viewport: keep upper-left clear for HP strip; place cards & teapot on right!
+      paintAliceCardPair(a, L.W - 15, 52, 0.66);
+      paintBlueWhiteTeaStack(a, L.W - 16, L.gb + 4, 0.64);
+    }
+
+    // 9. Bench: 9 Bone-China & Alice-Blue Porcelain Teacups on White Lace Saucers!
+    const glazes = [
+      { d: C.nv2!, b: C.bl1!, l: C.blHi!, pip: C.wh0! },
+      { d: C.bl0!, b: C.wh0!, l: C.wh0!, pip: C.nv1! },
+      { d: C.nv0!, b: C.nv2!, l: C.bl2!, pip: C.wh0! },
+      { d: C.nv2!, b: C.bl2!, l: C.wh0!, pip: C.nv1! },
+    ];
     for (const [i, s] of slots(L).entries()) {
-      const R = Math.min(10, L.bs * 0.43);
-      a.alpha(0.45, () => a.disc(s.x + 1, s.y + R * 0.55, R * 1.05, R * 0.32, C.c0!));
-      const lobes: Lobe[] = [
-        { x: s.x - R * 0.5, y: s.y + 1, R: R * 0.55 },
-        { x: s.x + R * 0.52, y: s.y + 1.5, R: R * 0.5 },
-        { x: s.x - R * 0.05, y: s.y - R * 0.18, R: R * 0.68 },
-      ];
-      paintCumulus(a, lobes, i < 4 ? s.x + 40 : s.x - 40, s.y - 40, ['#a85a7c', '#f9c3c4', '#ffdcd2', '#fff0e6', '#ffffff'], 0.8);
-      a.arc(s.x - R * 0.05, s.y - R * 0.18, R * 0.68, R * 0.54, Math.PI * 1.15, Math.PI * 1.85, '#ffd98a');
+      paintWonderCupSeat(a, s.x, s.y, Math.min(10, L.bs * 0.43), glazes[i % glazes.length]!);
     }
   },
 
   anim(a, L, P, t) {
     const sec = t * 0.001;
-    const C = SUN;
-    const { Hz, sun } = P;
+    const C = WON;
+    const W = P.watch;
     const k = P.k as number;
 
-    // 1. Slow god-rays fanning from the sun
-    a.alpha(0.1, () => {
-      for (let i = 0; i < 9; i++) {
-        const ang = Math.PI + 0.18 + i * 0.34 + Math.sin(sec * 0.15 + i) * 0.04;
-        const len = 60 + (i % 3) * 18;
-        a.line(sun.x, sun.y, sun.x + Math.cos(ang) * len, sun.y + Math.sin(ang) * len * 0.8, C.sun1!);
-      }
-    });
+    // 1. Ornate Midnight Ink-Navy Spade-Filigree Pocket-Watch Hands sweeping around center!
+    const hrAng = -Math.PI / 2 + 0.65 + sec * 0.045;
+    const mnAng = -Math.PI / 2 - 0.52 + sec * 0.22;
+    const scAng = -Math.PI / 2 + 2.1 + sec * 0.95;
 
-    // 2. Twinkling stars
-    for (const [i, s] of (P.stars as { x: number; y: number }[]).entries()) {
-      const b = Math.sin(sec * (1.3 + (i % 5) * 0.3) + i * 2.1);
-      if (b < 0.75 || s.y > 36) continue;
-      a.alpha((b - 0.75) * 4, () => {
-        a.p(s.x, s.y, '#ffffff');
-        a.p(s.x - 1, s.y, C.star!); a.p(s.x + 1, s.y, C.star!);
-        a.p(s.x, s.y - 1, C.star!); a.p(s.x, s.y + 1, C.star!);
+    const drawNavyHand = (ang: number, rLen: number, thick: number) => {
+      const ex = W.x + Math.cos(ang) * W.rx * rLen;
+      const ey = W.y + Math.sin(ang) * W.ry * rLen;
+      const mx = W.x + Math.cos(ang) * W.rx * (rLen * 0.68);
+      const my = W.y + Math.sin(ang) * W.ry * (rLen * 0.68);
+      a.alpha(0.24, () => a.stroke(W.x + 1, W.y + 1.5, ex + 1, ey + 1.5, thick, 0.7, C.shadow!));
+      a.stroke(W.x, W.y, ex, ey, thick, 0.6, C.nv0!);
+      a.stroke(W.x, W.y, ex, ey, Math.max(0.6, thick - 0.6), 0.4, C.nv2!);
+      a.disc(mx, my, thick + 1.0, thick + 0.8, C.nv0!);
+      a.disc(mx, my, Math.max(0.8, thick), Math.max(0.8, thick - 0.1), C.wh0!);
+    };
+    drawNavyHand(hrAng, 0.48, 1.8 * k);
+    drawNavyHand(mnAng, 0.69, 1.4 * k);
+
+    // Slender Cornflower-Blue second hand + pearl center arbor
+    const sx0 = W.x - Math.cos(scAng) * W.rx * 0.16, sy0 = W.y - Math.sin(scAng) * W.ry * 0.16;
+    const sx1 = W.x + Math.cos(scAng) * W.rx * 0.74, sy1 = W.y + Math.sin(scAng) * W.ry * 0.74;
+    a.line(sx0, sy0, sx1, sy1, C.bl0!);
+    a.disc(sx0, sy0, 1.8 * k, 1.6 * k, C.bl1!);
+    a.disc(W.x, W.y, 3.4 * k, 3.0 * k, C.nv0!);
+    a.disc(W.x, W.y, 2.3 * k, 2.0 * k, C.gdL!);
+    a.p(W.x - 0.6, W.y - 0.6, C.wh0!);
+
+    // 2. HERO Classic-Alice Long-Eared Bunny (~62 art-px tall! Silky 27px lop ear swaying, sapphire eyes blinking!)
+    if (L.mL >= 32) {
+      const rx = Math.max(28, L.gl - 28), rby = L.mid + 32;
+      paintAliceLongEarRabbit(a, rx, rby, 1.32, sec);
+      // Floating ice-blue diamond pip puffing gently above the pocket watch
+      const hp = wrap(sec * 0.42, 1);
+      a.alpha(Math.sin(hp * Math.PI) * 0.9, () => {
+        const hx = rx + 15 + Math.sin(hp * 5) * 2, hy = rby - 32 - hp * 12;
+        a.r(hx, hy - 1, 1, 3, C.nv2!);
+        a.r(hx - 1, hy, 3, 1, C.nv2!);
+        a.p(hx, hy, C.wh0!);
+      });
+    } else {
+      // Mobile portrait: stand Long-Eared Bunny in lower-left (100% clear of upper-left HP pills!)
+      paintAliceLongEarRabbit(a, 16, L.gb - 2, 0.82, sec);
+    }
+
+    // 3. Cute Baby Lop-Eared Bunny peeking & wiggling floppy ears in the top-right Blue-and-White Teacup!
+    const cupX = L.mR >= 32 ? L.W - 28 : L.W - 18;
+    const cupY = L.mR >= 32 ? 22 : 18;
+    paintTeacupLopBunny(a, cupX, cupY, L.mR >= 32 ? 1.12 : 0.72, sec);
+
+    // 4. Rising crystal bubbles inside the "DRINK ME" bottle + silver key star-glint!
+    if (L.mL >= 32) {
+      const leftX = Math.max(27, L.gl - 33);
+      const bx = leftX - 7.5, by = L.gb - 6;
+      for (let i = 0; i < 3; i++) {
+        const bq = wrap(sec * 0.65 + i * 0.33, 1);
+        a.p(bx + (i - 1) * 1.8, by - 1 - bq * 6.5, C.wh0!);
+      }
+      if (Math.sin(sec * 2.6) > 0.55) {
+        const kx = leftX + 3.5, ky = L.gb + 3.8;
+        a.r(kx - 2, ky, 5, 1, C.wh0!);
+        a.r(kx, ky - 2, 1, 5, C.wh0!);
+      }
+    }
+
+    // 5. Fragrant white tea steam curling above the Wedgewood Bone-China Teapot Stack!
+    const tx = L.mR >= 32 ? Math.min(L.W - 26, L.gr + 32) : L.W - 16;
+    const ty = L.mR >= 32 ? L.gb - 28 : L.gb - 12;
+    for (let i = 0; i < 3; i++) {
+      const sq = wrap(sec * 0.36 + i / 3, 1);
+      const sx = tx + Math.sin(sq * TAU + i) * 3.5;
+      const sy = ty - sq * 14;
+      a.alpha(Math.sin(sq * Math.PI) * 0.78, () => {
+        a.disc(sx, sy, 1.6 + sq, 1.2 + sq * 0.7, C.wh0!);
       });
     }
 
-    // 3. Wisps drifting across the sky
-    for (let i = 0; i < 3; i++) {
-      const wx = wrap(hash2(i, 1, 81) * L.W + sec * (2 + i * 0.7), L.W + 60) - 30;
-      const wy = 20 + i * 22 + Math.sin(sec * 0.2 + i) * 2;
-      a.alpha(0.55, () => paintStreak(a, wx, wy, 26 + i * 6, 1.4, C.s4!, C.s6!));
+    // 6. Two Pale-Blue & Lace-White Morpho Butterflies orbiting the Ruffled Lace Watch Rim!
+    for (let i = 0; i < 2; i++) {
+      const bu = sec * (0.28 + i * 0.07) + i * 3.1;
+      const bx = W.x + Math.cos(bu) * (W.rx * 0.95 + 10) + Math.sin(bu * 2.3) * 7;
+      const by = W.y - 4 + Math.sin(bu * 1.3) * (W.ry * 0.88);
+      paintAliceButterfly(a, bx, by, Math.floor(sec * 9 + i) % 2 === 0, Math.sin(bu) > 0);
     }
 
-    // 4. Hot-air balloons in the dusk sky
-    const b1x = wrap(sec * 3.1 + 30, L.W + 60) - 30;
-    paintBalloon(a, b1x, 44 + Math.sin(sec * 0.7) * 3, 1, '#f58fa8', '#fff1e2', '#a8486a');
-    const b2x = L.W + 20 - wrap(sec * 1.7 + 90, L.W + 40);
-    paintBalloon(a, b2x, 72 + Math.sin(sec * 0.9 + 2) * 2, 0.6, '#b9a2ea', '#ffe39a', '#6d56a6');
-    const b3x = wrap(sec * 2.2 + 210, L.W + 50) - 25;
-    paintBalloon(a, b3x, 22 + Math.sin(sec * 0.6 + 4) * 2, 0.45, '#8fd9c8', '#fff6e6', '#3e8a7c');
-
-    // 5. A flock of birds
-    const per = 34;
-    const u = (sec % per) / per;
-    const fx = L.W + 20 - u * (L.W + 60), fy = 52 + Math.sin(u * TAU) * 6;
-    for (let i = 0; i < 5; i++) {
-      const ox = fx + Math.abs(i - 2) * 6, oy = fy + (i - 2) * 3 + Math.abs(i - 2) * 2;
-      const up = Math.floor(sec * 7 + i) % 2 === 0;
-      a.line(ox - 3, oy - (up ? 2 : 0), ox, oy, C.bird!);
-      a.line(ox, oy, ox + 3, oy - (up ? 2 : 0), C.bird!);
-    }
-
-    // 6. The little cloud whale swimming through the cloud sea
-    const wper = 48;
-    const wu = ((sec + 14) % wper) / wper;
-    const wx = -45 + wu * (L.W + 90);
-    const ws = 1.35 * k;
-    const wy = Hz + 50 * k + Math.sin(sec * 0.8) * 2;
-    paintCloudWhale(a, wx, wy, sec, ws);
-    for (let i = -3; i <= 3; i++) {
-      const px = wx + 2 * ws + i * 10 * ws + Math.sin(sec * 1.6 + i) * 0.8;
-      const pr = (9 - Math.abs(i) * 0.8) * ws;
-      a.disc(px, wy + 8 * ws, pr + 0.7, pr * 0.46 + 0.7, C.c2!);
-      a.disc(px, wy + 8 * ws, pr, pr * 0.46, C.c3!);
-      a.disc(px, wy + 7.2 * ws, pr * 0.85, pr * 0.3, C.c4!);
-    }
-    const sp = (sec + 14) % 9;
-    if (sp < 2.2) {
-      for (let i = 0; i < 4; i++) {
-        const q = sp / 2.2;
-        const r = 1 + q * (2 + i * 0.6);
-        a.alpha(1 - q, () => a.disc(wx + 9 * ws + (i - 1.5) * 3 * q * 2, wy - 9 * ws - q * 12 - i, r, r * 0.8, '#fff6f2'));
+    // 7. Drifting Ice-Blue & Ink-Navy Sparkles & Diamonds
+    for (let i = 0; i < 10; i++) {
+      const px = wrap(hash2(i, 4, 53) * L.W + Math.sin(sec * 0.8 + i) * 6, L.W);
+      const py = wrap(hash2(i, 7, 53) * (L.H - 34) - sec * (2.0 + (i % 3) * 0.7), L.H - 28);
+      if (i % 2 === 0) {
+        const s = Math.sin(sec * 2.8 + i * 1.7);
+        if (s > 0.45) {
+          a.alpha((s - 0.45) * 1.8, () => {
+            a.r(px - 1, py, 3, 1, C.wh0!);
+            a.r(px, py - 1, 1, 3, C.wh0!);
+            a.p(px, py, C.bl1!);
+          });
+        }
+      } else {
+        a.alpha(0.75, () => {
+          a.r(px, py, 2, 2, i % 4 === 1 ? C.nv2! : C.bl1!);
+          a.p(px, py, C.wh0!);
+        });
       }
-    }
-
-    // 7. Glitter along the sun road on the cloud tops
-    for (let i = 0; i < 12; i++) {
-      const gy = Hz + 4 + hash2(i, 2, 91) * (L.H - Hz - 30);
-      const spread = 10 + (gy - Hz) * 0.25;
-      const gx = sun.x + (hash2(i, 3, 91) - 0.5) * 2 * spread;
-      const s = Math.sin(sec * 3 + i * 1.7);
-      if (s < 0.6) continue;
-      a.alpha((s - 0.6) * 2.5, () => { a.r(gx - 1, gy, 3, 1, C.sun1!); a.p(gx, gy, '#ffffff'); });
     }
   },
 };
@@ -1423,12 +2097,12 @@ const carouselScene: AtelierScene = {
 
 export const ATELIER_SCENES = {
   'embroidery-hoop': embroideryScene,
-  'sunset-cloudsea': sunsetScene,
+  'wonderland-rabbit': wonderlandScene,
   'carousel-night': carouselScene,
 } as const;
 
 export const ATELIER_BACKDROP = {
   'embroidery-hoop': EMB.gin0!,
-  'sunset-cloudsea': SUN.c2!,
+  'wonderland-rabbit': WON.cl0!,
   'carousel-night': CAR.n1!,
 } as const;

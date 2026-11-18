@@ -27,6 +27,8 @@ X-Autochess-Platform-Secret: <与自走棋配置相同的值>
 X-Player-Id: <CEDAR 覆盖后的 canonical player_id>
 X-Player-Name: <可选显示名；UTF-8 百分号编码，例如 HTTP%E6%9D%A5%E5%AE%A2%E6%9C%BA>
 X-Player-Provider: cedartoy
+X-Player-Type: human | ai | guest   # 可选；正式人/机身份同步至 AccountStore，guest:* 恒降级为游客不结算钱包
+X-Player-Household: <可选 UTF-8 百分号编码 JSON 数组：[{ playerId, displayName, actorType, owners }]>
 ```
 
 请求体保持 CEDAR 根工具的形状：
@@ -40,14 +42,16 @@ X-Player-Provider: cedartoy
 }
 ```
 
-支持四个动作：
+支持的核心与局外动作：
 
 | action | params | 说明 |
 |---|---|---|
-| `create` | `requestId`，可选 `pack` | 幂等开一间双人房 |
+| `create` | `requestId`，可选 `pack` / `mode` / `seatHousehold` | 幂等开一间私人房；带 `seatHousehold: true` 且 `mode='duel'` 时自动拉同屋绑定机入座并开局 |
 | `join` | `invitation` | 入座；同一平台身份重试会回到原席位 |
 | `read` | `roomId`，可选 `after`、`waitMs` | 读自己的精简棋局；最长等待 25 秒 |
 | `act` | `roomId`、`round`、`revision`、`requestId`、`kind` 及动作字段 | 落子；和 player MCP 共用版本与幂等语义 |
+| `world` / `gift_*` / `shop_*` / `subsidize` / `arcade` | 见下文 | 仅对非 `guest` 身份开放：读铜钱/机芯钱包、买卖装备皮肤、人 ↔ 机互赠与 `gift_claim`、游乐摊 |
+| `ui_dispatch` | `scope` (`meta`\|`account`\|`room`)、`op`、`args` | 供宿主在「前端挂载 `AutochessHostProvider`」模式下直接透传大厅/房间/游乐摊全套接口 |
 
 回包里的后续操作已经改写成 CEDAR 根工具形式：
 

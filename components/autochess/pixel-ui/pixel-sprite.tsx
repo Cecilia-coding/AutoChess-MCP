@@ -624,6 +624,40 @@ const SPRITES = {
       '............',
     ],
   },
+  rabbit: {
+    size: 12,
+    rows: [
+      '......ddd...',
+      '.....dwwwd..',
+      '.ddd.dwppwd.',
+      'dwwwddwwwwd.',
+      'dwBwwdwwwwd.',
+      'dwwdwwwwwwd.',
+      'dwwdwdwwwdw.',
+      'dwwdwpwPwpwd',
+      '.ddd.dwwwwd.',
+      '....dSSBBSSd',
+      '....dBBBBBBd',
+      '.....dddddd.',
+    ],
+  },
+  craftTome: {
+    size: 12,
+    rows: [
+      '.......ooo..',
+      '..ooooowwwo.',
+      '.oLLLooSBo..',
+      '.oLllLoSBo..',
+      '.oLllOoYYo..',
+      '.oLllLoo....',
+      '.oLllLoYYo..',
+      '.oLLLLoo....',
+      '.oOOOOOOo...',
+      '.oooooooo...',
+      '............',
+      '............',
+    ],
+  },
 } as const;
 
 export type PixelSpriteName = keyof typeof SPRITES;
@@ -667,6 +701,7 @@ export function modeSpriteName(modeId: string): PixelSpriteName {
 
 export function packSpriteName(packId: string): PixelSpriteName {
   if (packId === 'jianghu') return 'warmLantern';
+  if (packId.startsWith('custom:')) return 'craftTome';
   return 'chibiBot';
 }
 
@@ -675,7 +710,7 @@ export function cosmeticSpriteName(cosmeticId: string): PixelSpriteName {
   if (cosmeticId.includes('coral') || cosmeticId.includes('lagoon')) return 'shell';
   if (cosmeticId.includes('wisteria')) return 'flower';
   if (cosmeticId.includes('embroidery')) return 'bow';
-  if (cosmeticId.includes('sunset') || cosmeticId.includes('cloudsea')) return 'cloud';
+  if (cosmeticId.includes('wonderland') || cosmeticId.includes('rabbit')) return 'rabbit';
   if (cosmeticId.includes('carousel')) return 'ticket';
   if (cosmeticId.includes('lotus')) return 'sakuraHeart';
   if (cosmeticId.includes('revival')) return 'daisy';
@@ -686,30 +721,6 @@ export function cosmeticSpriteName(cosmeticId: string): PixelSpriteName {
   if (cosmeticId.includes('olive')) return 'bird';
   if (cosmeticId.includes('ivy')) return 'leaf';
   return 'sparkle';
-}
-
-export function wheelSymbolSpriteName(symbolId: string): PixelSpriteName {
-  const map: Record<string, PixelSpriteName> = {
-    leaf: 'leaf',
-    flower: 'flower',
-    moon: 'moon',
-    star: 'starGem',
-    cloud: 'cloud',
-    bird: 'bird',
-    shell: 'shell',
-    peach: 'peach',
-    bell: 'bell',
-  };
-  return map[symbolId] ?? 'sparkle';
-}
-
-export function wheelPrizeSpriteName(prizeId: string): PixelSpriteName {
-  if (prizeId === 'bot-100') return 'skyCore';
-  if (prizeId === 'tickets-2') return 'ticket';
-  if (prizeId === 'olive') return 'bird';
-  if (prizeId === 'ivy') return 'leaf';
-  if (prizeId === 'astrolabe') return 'moon';
-  return 'giftPouch';
 }
 
 export function echoKindSpriteName(kind: string): PixelSpriteName {

@@ -4,7 +4,7 @@ export type GiftLedgerDirection = 'all' | 'sent' | 'received';
 export type GiftLedgerQuery = { direction?: GiftLedgerDirection; cursor?: string; limit?: number };
 export type GiftLedgerEntry = {
   id: string;
-  source: 'ordinary' | 'wheel';
+  source: 'ordinary' | 'arcade' | 'wheel';
   direction: Exclude<GiftLedgerDirection, 'all'>;
   from: { id: string; name: string };
   to: { id: string; name: string };
@@ -27,7 +27,7 @@ export type GiftLedgerPage = {
   order: 'newest_first';
   serverNow: number;
   historyNotice: string;
-  presentations: Record<'ordinary' | 'wheel', GiftPresentation>;
+  presentations: Record<'ordinary' | 'arcade' | 'wheel', GiftPresentation>;
 };
 export const GIFT_LEDGER_MAX = 50;
 export const GIFT_LEDGER_CURSOR_MAX = 512;

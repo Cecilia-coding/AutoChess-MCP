@@ -1,0 +1,928 @@
+/* ==========================================================================
+   像素游乐摊 (Pixel Arcade: 双机台并列营业 · 三轴老虎机 + 九宫刮刮乐 + 搏倍风险)
+   严格遵循 pixel-2d 硬朗像素边框与斜角高光体系，禁止任何奶油胶囊圆角。
+   ========================================================================== */
+
+body:not(:has(.autochess-embed)):has(.arcade-page) {
+  margin: 0;
+  color: var(--ft-ink, #473b66);
+  font-family: var(--ft-font, "Fusion Pixel 12px", "Microsoft YaHei", monospace);
+  background-color: #eef6ff;
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 11px, rgba(143, 128, 186, 0.05) 11px 12px),
+    linear-gradient(180deg, #eff7ff 0%, #fef4fa 55%, #f4f1ff 100%);
+  background-attachment: fixed;
+}
+
+.arcade-page {
+  max-width: 720px;
+  margin: 14px auto 36px;
+  padding: 12px 14px 18px;
+  border: 9px solid transparent;
+  border-image: var(--ft-frame-lilac) 9 / 9px / 0 stretch;
+  border-radius: 0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f5ff 100%);
+  background-clip: padding-box;
+  box-shadow: 0 5px 0 rgba(143, 128, 186, 0.16);
+  color: var(--ft-ink, #473b66);
+  font-family: var(--ft-font, "Fusion Pixel 12px", "Microsoft YaHei", monospace);
+}
+
+.autochess-embed .arcade-page {
+  margin: 0 auto;
+  max-width: none;
+}
+
+.arcade-page.arcade-page--embedded {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-image: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.arcade-page * {
+  box-sizing: border-box;
+}
+
+.arcade-page button,
+.arcade-page input,
+.arcade-page select {
+  font: inherit;
+  color: inherit;
+  border-radius: 0;
+}
+
+.arcade-page button,
+.arcade-page select,
+.arcade-page .arcade-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 6px solid transparent;
+  border-image: var(--ft-btn-lilac) 6 / 6px / 0 stretch;
+  background: #ffffff;
+  background-clip: padding-box;
+  color: var(--ft-ink-deep, #32284c);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.arcade-page button:hover:not(:disabled),
+.arcade-page .arcade-link:hover {
+  border-image: var(--ft-btn-pink) 6 / 6px / 0 stretch;
+  background: var(--ft-pink, #fef1f7);
+}
+
+.arcade-page button:disabled {
+  opacity: 0.52;
+  cursor: default;
+}
+
+.arcade-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.arcade-topbar-left,
+.arcade-topbar-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.arcade-mode-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.arcade-mode-tab {
+  min-height: 32px !important;
+  padding: 4px 10px !important;
+  font-size: 12.5px !important;
+}
+
+.arcade-mode-tab.is-active {
+  border-image: var(--ft-btn-pink) 6 / 6px / 0 stretch !important;
+  background: var(--ft-pink-soft, #fbe2ee) !important;
+  color: var(--ft-pink-deep, #7b3656) !important;
+}
+
+.arcade-sfx-btn {
+  min-height: 32px !important;
+  padding: 4px 9px !important;
+  font-size: 12px !important;
+}
+
+.arcade-sfx-btn.is-muted {
+  opacity: 0.72;
+  background: #f3f1f8 !important;
+}
+
+.arcade-error {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border: 2px solid #d97a98;
+  background: #fdebf0;
+  color: #6b233b;
+  font-weight: 700;
+}
+
+.arcade-status-banner {
+  padding: 10px 14px;
+  border: 9px solid transparent;
+  border-image: var(--ft-frame-sky) 9 / 9px / 0 stretch;
+  background: var(--ft-sky, #edf6ff);
+  background-clip: padding-box;
+  color: var(--ft-sky-deep, #33608a);
+  font-weight: 700;
+}
+
+/* ---------- 紧凑一字随身筹码条与快捷购券抽屉 ---------- */
+
+.arcade-wallet-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.arcade-hud-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border: 2px solid #d5cae8;
+  background: #ffffff;
+  font-size: 12px;
+}
+
+.arcade-hud-chip.is-ticket {
+  border-color: #d9a84e;
+  background: #fffdf4;
+}
+
+.arcade-hud-chip.is-coin {
+  border-color: #79afd8;
+  background: #f4faff;
+}
+
+.arcade-hud-chip strong {
+  font-size: 14.5px;
+  color: var(--ft-ink-deep, #32284c);
+  font-variant-numeric: tabular-nums;
+}
+
+.arcade-hud-chip small {
+  font-size: 11px;
+  color: var(--ft-muted, #766a96);
+  font-weight: 700;
+}
+
+.arcade-chip-btn {
+  min-height: 26px !important;
+  padding: 2px 7px !important;
+  border-width: 4px !important;
+  font-size: 11px !important;
+}
+
+.arcade-chip-btn.is-mint {
+  border-image: var(--ft-btn-mint) 6 / 6px / 0 stretch !important;
+  background: #c8f3e3 !important;
+  color: #1f4b3c !important;
+}
+
+.arcade-ticket-drawer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 7px 10px;
+  border: 2px dashed var(--ft-line-soft, #c7bce8);
+  background: #fffdf5;
+  font-size: 12px;
+}
+
+.arcade-ticket-shop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ---------- 搏倍风险决策栏 ---------- */
+
+.arcade-gamble-bar {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border: 9px solid transparent;
+  border-image: var(--ft-frame-pink) 9 / 9px / 0 stretch;
+  background: linear-gradient(90deg, #fff7e2 0%, #fef0f7 100%);
+  background-clip: padding-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.arcade-gamble-bar.is-inline {
+  margin-bottom: 4px;
+  padding: 7px 9px;
+  border-width: 6px;
+}
+
+.arcade-gamble-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.arcade-gamble-info strong {
+  font-size: 14px;
+  color: var(--ft-ink-deep, #32284c);
+}
+
+.arcade-gamble-info small {
+  font-size: 11.5px;
+  color: var(--ft-ink, #473b66);
+}
+
+.arcade-gamble-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.arcade-cashout-btn {
+  min-height: 34px !important;
+  border-image: var(--ft-btn-mint) 6 / 6px / 0 stretch !important;
+  background: #a9e6cf !important;
+  color: #194534 !important;
+}
+
+.arcade-double-btn {
+  min-height: 34px !important;
+  border-image: var(--ft-btn-pink) 6 / 6px / 0 stretch !important;
+  background: #f8cfe2 !important;
+  color: #6b1d3d !important;
+}
+
+/* ---------- 聚焦单机台舞台 ---------- */
+
+.arcade-cabinets-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.arcade-cabinets-grid.is-single {
+  max-width: 688px;
+  margin: 0 auto;
+}
+
+.arcade-cabinet {
+  padding: 12px;
+  border: 9px solid transparent;
+  border-image: var(--ft-frame-lilac) 9 / 9px / 0 stretch;
+  background: #ffffff;
+  background-clip: padding-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.arcade-cabinet--slot {
+  border-image: var(--ft-frame-pink) 9 / 9px / 0 stretch;
+  background: linear-gradient(180deg, #fffbfd 0%, #ffffff 42%, #faf7ff 100%);
+}
+
+.arcade-cabinet--scratch {
+  border-image: var(--ft-frame-sky) 9 / 9px / 0 stretch;
+  background: linear-gradient(180deg, #f7fbff 0%, #ffffff 42%, #f8faff 100%);
+}
+
+.arcade-cabinet.is-focused {
+  box-shadow: 0 0 0 3px #f3a6c8;
+}
+
+.arcade-cabinet.is-win {
+  border-image: var(--ft-frame-mint) 9 / 9px / 0 stretch;
+  background: #f5fcf9;
+}
+
+.arcade-cabinet.is-jackpot {
+  border-image: var(--ft-frame-butter) 9 / 9px / 0 stretch;
+  background: #fffdf2;
+}
+
+.arcade-cabinet.is-bust {
+  border-image: var(--ft-frame-pink) 9 / 9px / 0 stretch;
+}
+
+.arcade-cabinet-marquee {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 2px dashed var(--ft-line-soft, #c7bce8);
+}
+
+.arcade-cabinet-marquee strong {
+  font-size: 16px;
+  color: var(--ft-ink-deep, #32284c);
+}
+
+.arcade-marquee-badge {
+  padding: 2px 6px;
+  border: 2px solid var(--ft-butter-accent, #d9a84e);
+  background: var(--ft-butter, #fff9e6);
+  color: var(--ft-butter-deep, #785216);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.arcade-cabinet-marquee small {
+  color: var(--ft-muted, #766a96);
+  font-size: 11.5px;
+}
+
+.arcade-info-toggle {
+  margin-left: auto;
+  min-height: 26px !important;
+  padding: 2px 8px !important;
+  border-width: 4px !important;
+  font-size: 11px !important;
+}
+
+.arcade-paytable-popover {
+  padding: 6px 8px;
+  border: 2px solid #dcd3f0;
+  background: #faf8ff;
+  font-size: 11.5px;
+}
+
+.arcade-paytable-popover table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.arcade-paytable-popover th,
+.arcade-paytable-popover td {
+  padding: 4px 6px;
+  border: 1px solid #dcd3f0;
+  text-align: left;
+}
+
+/* ---------- 老虎机滚轴 + 机械侧拉杆 ---------- */
+
+.arcade-slot-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  gap: 10px;
+  align-items: stretch;
+  margin: auto 0;
+  padding: 4px 0;
+}
+
+.arcade-slot-reels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.arcade-reel {
+  min-height: 128px;
+  padding: 10px 6px;
+  border: 6px solid transparent;
+  border-image: var(--ft-btn-lilac) 6 / 6px / 0 stretch;
+  background: #f9f7ff;
+  background-clip: padding-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.is-single .arcade-reel {
+  min-height: 158px;
+}
+
+.arcade-reel.is-spinning {
+  background: #eef6ff;
+  animation: arcadeReelStep 0.13s steps(2, end) infinite;
+}
+
+.arcade-reel.is-landed {
+  animation: arcadeReelLand 0.16s ease-out;
+}
+
+.arcade-reel.is-suspense {
+  border-image: var(--ft-btn-butter) 6 / 6px / 0 stretch;
+  background: #fff5d8;
+}
+
+.arcade-reel.is-highlight {
+  border-image: var(--ft-btn-butter) 6 / 6px / 0 stretch;
+  background: #fff9e6;
+}
+
+.arcade-reel.is-danger {
+  border-image: var(--ft-btn-pink) 6 / 6px / 0 stretch;
+  background: #fdeef3;
+}
+
+@keyframes arcadeReelStep {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(2px); }
+}
+
+@keyframes arcadeReelLand {
+  0% { transform: translateY(-4px); }
+  60% { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+
+.arcade-reel-glyph {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.is-single .arcade-reel-glyph {
+  font-size: 40px;
+}
+
+.arcade-reel-name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.arcade-slot-lever {
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 6px 4px !important;
+  min-height: 128px !important;
+  border: 2px solid #c597b6 !important;
+  border-image: none !important;
+  background: linear-gradient(180deg, #fdf3f8 0%, #f1eafb 100%) !important;
+  touch-action: none;
+  user-select: none;
+  cursor: grab !important;
+}
+
+.arcade-slot-lever:active:not(:disabled) {
+  cursor: grabbing !important;
+}
+
+.arcade-lever-track {
+  position: relative;
+  width: 14px;
+  height: 82px;
+  border: 2px solid #8f80ba;
+  background: #d8d1ee;
+  box-shadow: inset 2px 2px rgba(71, 59, 102, 0.22);
+}
+
+.is-single .arcade-lever-track {
+  height: 98px;
+}
+
+.arcade-lever-knob {
+  position: absolute;
+  left: -7px;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #7b294d;
+  background: linear-gradient(180deg, #ff8db8 0%, #e1528b 100%);
+  box-shadow: inset 2px 2px rgba(255, 255, 255, 0.55), 0 2px 0 #7b294d;
+  transition: transform 0.14s cubic-bezier(0.22, 1.4, 0.36, 1);
+}
+
+.arcade-lever-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #6b2948;
+}
+
+/* ---------- 刮刮乐九宫（真银膜涂刮画布 + 飘落银屑粒子） ---------- */
+
+.arcade-scratch-ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arcade-scratch-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.arcade-lucky-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 9px;
+  border: 2px solid var(--ft-butter-accent, #d9a84e);
+  background: var(--ft-butter, #fff9e6);
+}
+
+.arcade-lucky-title {
+  font-size: 11px;
+  color: var(--ft-butter-deep, #785216);
+}
+
+.arcade-lucky-val {
+  font-weight: 700;
+  color: var(--ft-ink-deep, #32284c);
+}
+
+.arcade-scratch-board {
+  position: relative;
+  border: 2px solid #8f80ba;
+  background: #ede9f8;
+  padding: 4px;
+  touch-action: none;
+  user-select: none;
+}
+
+.arcade-scratch-board.has-foil {
+  cursor: crosshair;
+}
+
+.arcade-scratch-board.has-foil.is-scratching {
+  cursor: grabbing;
+}
+
+.arcade-scratch-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.arcade-scratch-cell {
+  min-height: 68px !important;
+  padding: 4px !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  border: 2px solid #8f80ba !important;
+  border-image: none !important;
+}
+
+.is-single .arcade-scratch-cell {
+  min-height: 86px !important;
+}
+
+.arcade-scratch-cell.is-empty {
+  background: repeating-linear-gradient(135deg, #d7ddec 0 5px, #c2cbe0 5px 10px) !important;
+  color: #464e66 !important;
+  box-shadow: inset 0 2px #eff3fc, inset 0 -2px #aeb8cf;
+}
+
+.arcade-scratch-cell.has-ticket {
+  background: #ffffff !important;
+  opacity: 1 !important;
+}
+
+.arcade-scratch-cell.is-matched {
+  border-color: #d9a84e !important;
+  background: #fff9e4 !important;
+  box-shadow: inset 0 0 0 2px #f6d57a;
+}
+
+.arcade-scratch-cell.is-double {
+  border-color: #d96b9a !important;
+  background: #fef0f7 !important;
+}
+
+.arcade-scratch-foil {
+  position: absolute;
+  inset: 4px;
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
+  z-index: 2;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.arcade-scratch-particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.scratch-cell-glyph {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.is-single .scratch-cell-glyph {
+  font-size: 26px;
+}
+
+.scratch-cell-name {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.scratch-cell-factor {
+  font-size: 10.5px;
+  color: var(--ft-muted, #766a96);
+}
+
+.arcade-outcome-strip {
+  padding: 7px 10px;
+  border: 2px solid #c7bce8;
+  background: #f5f2fc;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.arcade-outcome-strip.is-win,
+.arcade-outcome-strip.is-jackpot {
+  border-color: #68b599;
+  background: #eafaf3;
+  color: #214d3d;
+}
+
+.arcade-outcome-strip.is-bust {
+  border-color: #df95b8;
+  background: #fef0f5;
+  color: #702d48;
+}
+
+/* ---------- 机台自带投币操作台（贴合双机台底部对齐） ---------- */
+
+.arcade-cabinet-console {
+  margin-top: auto;
+  padding: 9px;
+  border: 2px solid #cdc2ea;
+  background: #f6f8ff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arcade-stake-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.arcade-stake-chip {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 1px !important;
+  min-height: 44px !important;
+  padding: 4px 6px !important;
+  font-size: 11.5px !important;
+  text-align: left;
+}
+
+.arcade-stake-chip small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ft-muted, #766a96);
+}
+
+.arcade-stake-chip.is-active,
+.arcade-paymode-mini button.is-active {
+  border-image: var(--ft-btn-pink) 6 / 6px / 0 stretch !important;
+  background: var(--ft-pink-soft, #fbe2ee) !important;
+  color: var(--ft-pink-deep, #7b3656) !important;
+}
+
+.arcade-console-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.arcade-paymode-mini {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.arcade-paymode-mini button {
+  min-height: 30px !important;
+  padding: 2px 8px !important;
+  font-size: 11.5px !important;
+}
+
+.arcade-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.arcade-play-btn {
+  flex: 1 1 160px;
+  min-height: 38px !important;
+  border-image: var(--ft-btn-mint) 6 / 6px / 0 stretch !important;
+  background: #a4e4cb !important;
+  color: #184434 !important;
+  font-size: 13.5px;
+}
+
+.arcade-play-btn.is-relief {
+  border-image: var(--ft-btn-butter) 6 / 6px / 0 stretch !important;
+  background: #fde5a2 !important;
+  color: #5a3c07 !important;
+}
+
+.arcade-paytable {
+  border-top: 2px dashed var(--ft-line-soft, #c7bce8);
+  padding-top: 6px;
+  font-size: 11.5px;
+}
+
+.arcade-paytable summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ft-muted, #766a96);
+}
+
+.arcade-paytable table {
+  width: 100%;
+  margin-top: 6px;
+  border-collapse: collapse;
+}
+
+.arcade-paytable th,
+.arcade-paytable td {
+  padding: 4px 6px;
+  border: 1px solid #dcd3f0;
+  text-align: left;
+}
+
+.arcade-drop-callout {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border: 2px solid #d9a84e;
+  background: #fff8de;
+  color: #6b470c;
+  font-weight: 700;
+}
+
+.arcade-retry-box {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 9px solid transparent;
+  border-image: var(--ft-frame-pink) 9 / 9px / 0 stretch;
+  background: #fef1f7;
+  background-clip: padding-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* ---------- 紧凑战利品底栏（空箱单行收拢，开箱再展开） ---------- */
+
+.arcade-loot-dock {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border: 9px solid transparent;
+  border-image: var(--ft-frame-sky) 9 / 9px / 0 stretch;
+  background: var(--ft-sky-card, #f4faff);
+  background-clip: padding-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.arcade-loot-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.arcade-loot-title {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.arcade-loot-title small,
+.arcade-loot-tip {
+  font-size: 11.5px;
+  color: var(--ft-muted, #766a96);
+}
+
+.arcade-prizes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.arcade-prize-card {
+  padding: 10px;
+  border: 9px solid transparent;
+  border-image: var(--ft-frame-lilac) 9 / 9px / 0 stretch;
+  background: #ffffff;
+  background-clip: padding-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arcade-prize-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.arcade-prize-thumb {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border: 2px solid #b5a4cb;
+  image-rendering: pixelated;
+}
+
+.arcade-prize-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.arcade-gift-form {
+  padding: 12px 14px;
+  border: 9px solid transparent;
+  border-image: var(--ft-frame-pink) 9 / 9px / 0 stretch;
+  background: var(--ft-pink, #fef1f7);
+  background-clip: padding-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.arcade-gift-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.arcade-gift-row input {
+  flex: 1 1 200px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 2px solid #b5a4cb;
+  background: #ffffff;
+}
+
+.arcade-prize-history {
+  font-size: 12px;
+}
+
+@media (max-width: 860px) {
+  .arcade-cabinets-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .arcade-stake-row {
+    grid-template-columns: 1fr;
+  }
+}

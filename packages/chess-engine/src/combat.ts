@@ -9,6 +9,7 @@ export interface BattleContent {
   effectiveTraits(unit: Combatant): string[];
   uniqueTraitCounts(roster: Combatant[]): Map<string, number>;
   findHex(id: string): HexDef | null | undefined;
+  findItem?(id: string): ItemDef | null;
   traits: readonly TraitDef[];
   items: readonly ItemDef[];
 }
@@ -1634,7 +1635,7 @@ export function createBattleEngine(content: BattleContent) {
   }
 
   function findItem(id: string) {
-    return allItems.find((entry) => entry.id === id) ?? null;
+    return content.findItem?.(id) ?? allItems.find((entry) => entry.id === id) ?? null;
   }
 
   /**

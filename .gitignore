@@ -42,6 +42,9 @@ scripts/__pycache__/
 next-env.d.ts
 /dist/
 /public/pixel-mascots/
+/public/pixel-jianghu/
+/public/pixel-studio/
+/.generated/
 /.wrangler/
 /outputs/
 /work/

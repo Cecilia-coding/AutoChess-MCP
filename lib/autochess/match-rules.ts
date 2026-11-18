@@ -1,5 +1,6 @@
 import type { HexRarity } from '../../content/autochess/types';
 
+import { getGameConfig } from '../meta/game-config';
 import { MODE_PACKS, modePack, type MatchModeId } from '../../packs/modes/registry';
 import type { ModeRules } from '../../packs/modes/types';
 export type { MatchModeId } from '../../packs/modes/registry';
@@ -41,8 +42,17 @@ export function parseMatchMode(value?: string | null): MatchModeId {
 export function matchRules(mode?: string | null, seats?: unknown): MatchRules {
   const pack = modePack(mode);
   const base = MATCH_MODES[pack.id];
-  return { ...base, hexRarities: [...base.hexRarities], hexPicks: base.hexPicks.map(pick => ({...pick})),
-    seatCount: pack.seatPolicy === 'fixed' ? base.seatCount : evenSeatCount(seats ?? process.env.CHESS_SEATS, base.seatCount) };
+  const pacing = getGameConfig().pacing;
+  return {
+    ...base,
+    startHp: pack.id === 'duel' ? pacing.duelStartHp : pacing.standardStartHp,
+    lossDamageScale: pack.id === 'duel' ? pacing.duelDamageScale : (base.lossDamageScale ?? 1),
+    income: pacing.roundBaseIncome,
+    interestCap: pacing.baseInterestCap,
+    hexRarities: [...base.hexRarities],
+    hexPicks: base.hexPicks.map(pick => ({ ...pick })),
+    seatCount: pack.seatPolicy === 'fixed' ? base.seatCount : evenSeatCount(seats ?? process.env.CHESS_SEATS, base.seatCount),
+  };
 }
 
 export function hexPickAt(round: number, rules: MatchRules = matchRules()): HexRarity | null {

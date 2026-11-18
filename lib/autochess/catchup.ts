@@ -1,7 +1,7 @@
 import { autochessCostOf, getUnit, poolUnits } from '../../content/autochess/units';
 import type { UnitDef } from '../../content/autochess/types';
 import { makeShop, rollDraft, type AutochessPiece, type DraftReward } from './core';
-import { items, itemHint, orbItems } from '../../content/autochess/items';
+import { findItemTemplate, itemHint, orbItems } from '../../content/autochess/items';
 import { createRng, hash32 } from './rng';
 import { matchRules } from './match-rules';
 
@@ -79,7 +79,7 @@ export function makeCatchupDraft(track: DraftReward[], seed: number, round: numb
   const rng = createRng(hash32(seed, round, 23879));
   if (rng.next() >= 0.6) return { track, state, assisted: false };
   const id = candidates[rng.int(candidates.length)]!;
-  const item = loot.find(entry => entry.id === id) ?? items.find(entry => entry.id === id)!;
+  const item = loot.find(entry => entry.id === id) ?? findItemTemplate(id)!;
   const nextTrack = [...track];
   nextTrack[index] = { ...landing, itemId: id, label: item.name, detail: itemHint(id) };
   state.grants += 1; state.draftGrants = (state.draftGrants ?? 0) + 1; state.lastGrantRound = round;

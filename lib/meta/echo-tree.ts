@@ -34,6 +34,10 @@ export type EchoEvent = {
   roomId?: string;
   /** 覆盖默认样式；缺省用 `ECHO_KINDS` 的样式。 */
   style?: string;
+  /** 广播作用域：'public' 全站可见（默认）；'private' 仅收礼/送礼双方与绑定伙伴可见。 */
+  scope?: 'public' | 'private';
+  /** 私密礼笺允许读取的账号 id 集合。 */
+  audienceIds?: string[];
 };
 
 /** 样式令牌：新增样式 = 这里加 token + 前端 CSS 类 `echo-<style>`，旧消息自动降级。 */

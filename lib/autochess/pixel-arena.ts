@@ -9,7 +9,10 @@ import {
   pixelBench as boardBench,
   pixelBenchSlot as boardBenchSlot,
 } from "./pixel-board";
+import { findUnit } from "../../content/autochess/units";
+import { resolveUnitSpriteId } from "../../packs/ephemeral-registry";
 import { pixelAppearance } from "../../packs/presentation";
+import { assetUrl } from "../meta/asset-url";
 import { applyBoardSkinToAppearance } from "../meta/pixel-board-skins";
 import type { PixelAppearance, PixelEffectAdapter, EffectCue } from "../presentation/types";
 import { hexAlpha, paintAnimatedBoardAccents, paintStaticBoardScene, paintTranslucentDragGrid, type AnimatedAnchor } from "./pixel-board-decor";
@@ -207,7 +210,7 @@ export function createArena(
       const asset = new Image();
       const direct = file.startsWith("data:") || file.startsWith("/") || file.startsWith("http");
       const suffix = !direct && appearance?.assetVersion ? `?v=${appearance.assetVersion}` : "";
-      asset.src = direct ? file : (appearance?.publicPath ?? "") + file + suffix;
+      asset.src = assetUrl(direct ? file : (appearance?.publicPath ?? "") + file + suffix);
       images.set(file, asset);
     }
     const asset = images.get(file)!;
@@ -440,8 +443,9 @@ export function createArena(
   }
   function drawUnit(unit: UnitFrame, point: Point, time: number, moving: boolean, lift = 0) {
     const entry = entries.get(unit.id);
+    const spriteLookup = resolveUnitSpriteId(unit.appearanceId ?? entry?.piece.templateId ?? "");
     const character = appearance?.manifest.units.find(
-      (character) => character.id === (unit.appearanceId ?? entry?.piece.templateId),
+      (character) => character.id === spriteLookup,
     );
     const selected = entry?.piece.id === view?.selectedId;
     const itemHover =
@@ -1092,12 +1096,13 @@ export function createArena(
         event.clientX > rect.right - 8;
       pointer.outsideCanvas = outside;
       if (outside) {
+        const spriteLookup = resolveUnitSpriteId(entry.piece.templateId);
         const unitMeta = appearance?.manifest.units.find(
-          (u) => u.id === entry.piece.templateId,
+          (u) => u.id === spriteLookup,
         );
         callbacks.onDragGhost?.({
           templateId: entry.piece.templateId,
-          name: unitMeta?.name ?? entry.piece.templateId,
+          name: findUnit(entry.piece.templateId)?.name ?? unitMeta?.name ?? entry.piece.templateId,
           x: event.clientX,
           y: event.clientY,
           overSell,

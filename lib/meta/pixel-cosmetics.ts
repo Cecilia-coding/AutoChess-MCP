@@ -1,3 +1,5 @@
+import { assetUrl } from './asset-url';
+
 const CACHE_LIMIT = 400;
 const avatarCache = new Map<string, string>();
 const frameCache = new Map<string, string>();
@@ -81,7 +83,7 @@ const SCENE_PREVIEWS = new Set([
   'skin-coral-lagoon',
   'skin-wisteria-brook',
   'skin-embroidery-hoop',
-  'skin-sunset-cloudsea',
+  'skin-wonderland-rabbit',
   'skin-carousel-night',
   'skin-revival',
   'skin-rose-court',
@@ -91,8 +93,8 @@ const SCENE_PREVIEWS = new Set([
 ]);
 
 /** Public path for the 16-bit board skin preview PNG. */
-export function pixelBoardPreviewPath(boardId: string): string {
-  return SCENE_PREVIEWS.has(boardId) ? `/pixel-scenes/${boardId}.png` : `/pixel-cosmetics/boards/${boardId}.png`;
+export function pixelBoardPreviewPath(boardId: string, baseOverride?: string): string {
+  return assetUrl(SCENE_PREVIEWS.has(boardId) ? `/pixel-scenes/${boardId}.png` : `/pixel-cosmetics/boards/${boardId}.png`, baseOverride);
 }
 
 type AvatarPalette = {

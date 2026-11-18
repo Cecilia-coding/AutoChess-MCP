@@ -1,6 +1,6 @@
 import { cosmeticById } from './cosmetics';
 
-export type GiftPresentationSource = 'ordinary' | 'wheel';
+export type GiftPresentationSource = 'ordinary' | 'arcade' | 'wheel';
 /** Describes the recipient's webpage, not whether anybody has opened it. */
 export type GiftPresentation = {
   styleId: string;
@@ -20,6 +20,13 @@ const STYLES: Record<GiftPresentationSource, Omit<GiftPresentation, 'theme' | 'i
     steps: ['封蜡信封', '轻触启封', '展开真实外观、主题、寄语与署名', '确认收下后存入行囊'],
     notePlacement: '寄语在外观与主题下方独立展示，落款是送礼人的账号名；未附寄语时保留署名。',
   },
+  arcade: {
+    styleId: 'arcade-letter-v1',
+    name: '游乐摊 · 幸运礼笺',
+    summary: '网页收礼入口以像素街机霓虹匣呈现游乐摊掉落的外观，支持直接拆封或互赠。',
+    steps: ['拆开游乐摊礼匣', '展开限定外观预览、寄语与署名', '确认收下并存入行囊'],
+    notePlacement: '寄语在外观与主题下方独立展示，落款注明送礼人；未附寄语时保留署名。',
+  },
   wheel: {
     styleId: 'wheel-letter-v1',
     name: '白鸽 · 复苏礼函',
@@ -29,7 +36,7 @@ const STYLES: Record<GiftPresentationSource, Omit<GiftPresentation, 'theme' | 'i
   },
 };
 
-/** Omit cosmeticId for a general guide. For wheel rewards, call only for cosmetics. */
+/** Omit cosmeticId for a general guide. For arcade/wheel rewards, call only for cosmetics. */
 export function giftPresentation(source: GiftPresentationSource, cosmeticId?: string): GiftPresentation {
   const style = STYLES[source];
   const cosmetic = cosmeticById(cosmeticId);

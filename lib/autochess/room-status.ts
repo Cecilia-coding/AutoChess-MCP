@@ -11,8 +11,8 @@ export type RoomStatusEntry = {
 
 const remaining = (until: number, round: number) => `余 ${Math.max(0, until - round + 1)} 轮`;
 
-function activeHexDetail(self: Partial<RoomSelf>, id: string, round: number): string | null {
-  const hex = findHex(id);
+function activeHexDetail(self: Partial<RoomSelf>, id: string, round: number, packId?: string): string | null {
+  const hex = findHex(id, packId);
   if (!hex) return null;
   if (!hex.roundEffect) return hex.note;
   const until = self.roundFx?.[id];
@@ -26,11 +26,11 @@ function activeHexDetail(self: Partial<RoomSelf>, id: string, round: number): st
   return `${hex.note} · ${tail}`;
 }
 
-export function roomStatusEntries(self: Partial<RoomSelf>, round: number): RoomStatusEntry[] {
+export function roomStatusEntries(self: Partial<RoomSelf>, round: number, packId?: string): RoomStatusEntry[] {
   const entries: RoomStatusEntry[] = [];
   const add = (entry: RoomStatusEntry) => entries.push(entry);
   for (const id of self.hexes ?? []) {
-    const hex = findHex(id); const detail = activeHexDetail(self, id, round);
+    const hex = findHex(id, packId); const detail = activeHexDetail(self, id, round, packId);
     if (hex && detail) add({ id: `hex:${id}`, tone: 'buff', title: hex.name, detail });
   }
   if ((self.winStreak ?? 0) > 0) add({ id: 'win-streak', tone: 'buff', title: `连胜 ×${self.winStreak}`, detail: '连胜金币正在累积。' });

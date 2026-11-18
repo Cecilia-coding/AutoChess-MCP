@@ -6,8 +6,8 @@
    icon sockets, low-saturation macaron palette, zero floating pills.
    ========================================================================== */
 
-html:has(.pixel-game.room-table),
-body:has(.pixel-game.room-table) {
+html:not(:has(.autochess-embed)):has(.pixel-game.room-table),
+body:not(:has(.autochess-embed)):has(.pixel-game.room-table) {
   margin: 0;
   padding: 0;
   height: 100dvh;
@@ -44,6 +44,14 @@ body:has(.pixel-game.room-table) {
     radial-gradient(circle at 86% 18%, rgba(214, 240, 255, 0.85) 0%, transparent 46%),
     linear-gradient(180deg, #eff7ff 0%, #fef4fa 55%, #f3f0ff 100%),
     repeating-linear-gradient(0deg, transparent 0 11px, rgba(143, 128, 186, 0.04) 11px 12px);
+}
+
+.pixel-game.room-table.autochess-embed {
+  position: relative;
+  inset: auto;
+  height: 100%;
+  max-height: none;
+  min-height: 580px;
 }
 
 .pixel-game.room-table > .room-error {
@@ -569,6 +577,38 @@ body:has(.pixel-game.room-table) {
   box-shadow: inset 3px 0 0 #66ba9d;
 }
 
+.pixel-game .room-trait-row .room-trait-ladders {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+.pixel-game .room-trait-codex {
+  margin-top: 4px;
+  border: 1px dashed #c4b5d9;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.pixel-game .room-trait-codex > summary {
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: #5c4e75;
+}
+
+.pixel-game .room-trait-codex-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.pixel-game .room-trait-row.is-inactive {
+  opacity: 0.85;
+}
+
 .pixel-game .room-item-list > div strong,
 .pixel-game .room-status-entry strong {
   display: block;
@@ -1032,6 +1072,7 @@ body:has(.pixel-game.room-table) {
   position: static;
   inset: auto;
   transform: none;
+  animation: none;
   margin: 0;
   padding: 0;
   width: 100%;
@@ -1121,6 +1162,9 @@ body:has(.pixel-game.room-table) {
 }
 
 .pixel-game .unit-dossier .dossier-traits details {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
   border-radius: 0;
   border: 1px solid #cfc2e3;
   background: #ffffff;
@@ -1959,7 +2003,164 @@ body:has(.pixel-game.room-table) {
 .pixel-game .codex-offer-header {
   border-bottom: 1px solid #d5cae6;
   padding-bottom: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+}
+
+.pixel-game .codex-offer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pixel-game .codex-offer-peek {
+  border-radius: 0;
+  border: 1px solid #b5a4cb;
+  background: #f6f2fc;
+  color: #4f4165;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+.pixel-game .codex-offer-peek:hover {
+  border-color: #8269a9;
+  background: #ebe2f7;
+}
+
+.pixel-game .codex-offer-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  background: #f7f3fc;
+  border: 1px solid #d5cae6;
+}
+
+.pixel-game .codex-offer-wallet {
+  font-size: 12px;
+  color: #5b4d70;
+}
+
+.pixel-game .codex-offer-wallet b {
+  color: #362c45;
+  font-weight: 700;
+}
+
+.pixel-game .codex-offer-reroll {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 0;
+  padding: 5px 12px;
+  border: 2px solid #dfa957;
+  background: linear-gradient(180deg, #fffdf5 0%, #f8ebcf 100%);
+  color: #5a3c12;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pixel-game .codex-offer-reroll:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffffff 0%, #f3dfba 100%);
+  border-color: #c5882c;
+}
+
+.pixel-game .codex-offer-reroll:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pixel-game .codex-offer-card.is-buff-offer[data-rarity="blue"] {
+  border-color: #6b88bd;
+}
+
+.pixel-game .codex-offer-card.is-buff-offer[data-rarity="purple"] {
+  border-color: #8b5ec4;
+}
+
+.pixel-game .codex-offer-card.is-buff-offer[data-rarity="orange"] {
+  border-color: #d68c2e;
+}
+
+.pixel-game .codex-choice-tags {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 6px;
+}
+
+.pixel-game .codex-cat-pill,
+.pixel-game .codex-rarity-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border: 1px solid #cfc3e0;
+  letter-spacing: 0.5px;
+}
+
+.pixel-game .codex-cat-pill.is-economy {
+  background: #fbf2d8;
+  border-color: #d6a449;
+  color: #6b470c;
+}
+
+.pixel-game .codex-cat-pill.is-combat {
+  background: #fbe7ec;
+  border-color: #cf728b;
+  color: #6e2438;
+}
+
+.pixel-game .codex-cat-pill.is-artifact {
+  background: #e4f3f6;
+  border-color: #66a6b8;
+  color: #1f4f5c;
+}
+
+.pixel-game .codex-rarity-pill {
+  background: #f1ebf8;
+  color: #5b4978;
+}
+
+.pixel-game .codex-choice-card[data-rarity="orange"] .codex-rarity-pill {
+  background: #fdf1da;
+  border-color: #dfa957;
+  color: #7c490c;
+}
+
+.pixel-game .codex-choice-card[data-rarity="purple"] .codex-rarity-pill {
+  background: #f0e6fb;
+  border-color: #aa85d6;
+  color: #512d82;
+}
+
+.pixel-game .codex-choice-card[data-rarity="blue"] .codex-rarity-pill {
+  background: #e8f0fc;
+  border-color: #7996cb;
+  color: #294678;
+}
+
+.pixel-game .codex-choice-card.is-buff-choice {
+  align-items: stretch;
+  text-align: left;
+  padding: 14px 14px 12px;
+}
+
+.pixel-game .codex-choice-card.is-buff-choice strong {
+  text-align: left;
+}
+
+.pixel-game .codex-choice-card.is-buff-choice p {
+  text-align: left;
+}
+
+.pixel-game .codex-choice-card.is-buff-choice .codex-choice-cta {
+  align-self: flex-start;
 }
 
 .pixel-game .codex-offer-badge {
@@ -2943,6 +3144,10 @@ body:has(.pixel-game.room-table) {
     flex-direction: row;
     text-align: left;
     padding: 12px;
+  }
+  .pixel-game .codex-choice-card.is-buff-choice {
+    flex-direction: column;
+    align-items: stretch;
   }
   .pixel-game .codex-choice-pedestal {
     width: 52px;
@@ -4213,9 +4418,9 @@ body:has(.pixel-game.room-table[data-board-skin="skin-embroidery-hoop"]) {
   background-color: #f5e9e1;
 }
 
-html:has(.pixel-game.room-table[data-board-skin="skin-sunset-cloudsea"]),
-body:has(.pixel-game.room-table[data-board-skin="skin-sunset-cloudsea"]) {
-  background-color: #f3e2e6;
+html:has(.pixel-game.room-table[data-board-skin="skin-wonderland-rabbit"]),
+body:has(.pixel-game.room-table[data-board-skin="skin-wonderland-rabbit"]) {
+  background-color: #d4e8f9;
 }
 
 html:has(.pixel-game.room-table[data-board-skin="skin-carousel-night"]),
@@ -5186,54 +5391,54 @@ body:has(.pixel-game.room-table[data-board-skin="skin-bloodnight"]) {
   --px-card-dashed: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%23f7efe5'/><rect x='1' y='1' width='10' height='10' fill='%23f7efe5'/><rect x='0' y='3' width='12' height='6' fill='%23f7efe5'/><rect x='3' y='0' width='2' height='1' fill='%23c99a86'/><rect x='7' y='0' width='2' height='1' fill='%23c99a86'/><rect x='3' y='11' width='2' height='1' fill='%23c99a86'/><rect x='7' y='11' width='2' height='1' fill='%23c99a86'/><rect x='0' y='3' width='1' height='2' fill='%23c99a86'/><rect x='0' y='7' width='1' height='2' fill='%23c99a86'/><rect x='11' y='3' width='1' height='2' fill='%23c99a86'/><rect x='11' y='7' width='1' height='2' fill='%23c99a86'/><rect x='1' y='1' width='2' height='1' fill='%23c99a86'/><rect x='9' y='1' width='2' height='1' fill='%23c99a86'/><rect x='1' y='10' width='2' height='1' fill='%23c99a86'/><rect x='9' y='10' width='2' height='1' fill='%23c99a86'/><rect x='3' y='1' width='6' height='10' fill='%23fffdf8'/><rect x='1' y='3' width='10' height='6' fill='%23fffdf8'/></svg>");
 }
 
-/* 晚霞云海 — Dusk Lilac & Peach Afterglow with Hot-Air Balloon Charms */
-.pixel-game.room-table[data-board-skin="skin-sunset-cloudsea"] {
-  --sk-bg: #f3e2e6;
-  --sk-backdrop: radial-gradient(circle at 50% 0%, rgba(255, 196, 127, 0.34) 0%, transparent 55%), radial-gradient(circle at 12% 18%, rgba(151, 103, 168, 0.20) 0%, transparent 45%), radial-gradient(circle at 88% 82%, rgba(244, 205, 205, 0.45) 0%, transparent 50%), linear-gradient(180deg, #ecdcef 0%, #f8e6e4 50%, #fbe9dc 100%);
-  --sk-scene-bg: #a980b1;
-  --sk-panel-top: #fff8f4;
-  --sk-panel-bot: #f6e6ea;
-  --sk-bar-top: #f5e3ec;
-  --sk-bar-bot: #eacfe0;
-  --sk-card-bg: #fffcfa;
-  --sk-card-sub: #f8ecef;
-  --sk-portrait-bg: #f2e2ec;
-  --sk-chip-bg: #f6e8ef;
-  --sk-btn-top: #fffbf9;
-  --sk-btn-bg: #f6e5ec;
+/* 仙境长耳兔 — Classic Alice Baby-Blue Gingham, Bone-China Lace, Midnight Ink-Navy Bezels & Lop-Bunny Charms */
+.pixel-game.room-table[data-board-skin="skin-wonderland-rabbit"] {
+  --sk-bg: #d4e8f9;
+  --sk-backdrop: radial-gradient(circle at 15% 14%, rgba(120, 174, 227, 0.28) 0%, transparent 45%), radial-gradient(circle at 86% 18%, rgba(255, 255, 255, 0.72) 0%, transparent 46%), repeating-linear-gradient(90deg, rgba(83, 134, 196, 0.065) 0 8px, transparent 8px 16px), repeating-linear-gradient(0deg, rgba(83, 134, 196, 0.065) 0 8px, transparent 8px 16px), linear-gradient(180deg, #dfeffc 0%, #f2f8ff 52%, #d4e8f9 100%);
+  --sk-scene-bg: #d4e8f9;
+  --sk-panel-top: #fbfdff;
+  --sk-panel-bot: #e7f2fc;
+  --sk-bar-top: #e3effb;
+  --sk-bar-bot: #cde2f7;
+  --sk-card-bg: #ffffff;
+  --sk-card-sub: #edf5fd;
+  --sk-portrait-bg: #e0effb;
+  --sk-chip-bg: #e8f3fc;
+  --sk-btn-top: #ffffff;
+  --sk-btn-bg: #e5f1fc;
   --sk-btn-hover-top: #ffffff;
-  --sk-btn-hover: #efd5e2;
-  --sk-option-bg: #fff8f4;
-  --sk-ink: #45305a;
-  --sk-muted: #7d6390;
-  --sk-line: #b98fbf;
+  --sk-btn-hover: #d0e6fa;
+  --sk-option-bg: #f7fbff;
+  --sk-ink: #15284d;
+  --sk-muted: #47668f;
+  --sk-line: #6c9cd1;
   --sk-bevel-hi: #ffffff;
-  --sk-accent-icon: #e8749a;
-  --sk-gold-ink: #9c6a22;
-  --sk-gold-bg: #fdf2d6;
-  --sk-gold-line: #dcb568;
-  --sk-gold-chip-ink: #785018;
-  --sk-self-bg: #fdeee4;
-  --sk-self-ink: #7a3d26;
-  --sk-enemy-bg: #efe6fb;
-  --sk-enemy-ink: #4f3a86;
-  --sk-active-top: #ffe7d4;
-  --sk-active-bot: #fbd2bd;
-  --sk-active-ink: #6a3220;
-  --sk-cta-top: #ffc58e;
-  --sk-cta-bot: #f28f86;
-  --sk-cta-hover-top: #ffd3a3;
-  --sk-cta-hover-bot: #f79f93;
-  --sk-cta-ink: #4d1f22;
-  --sk-charm-svg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 11 11' shape-rendering='crispEdges'><rect x='3' y='0' width='5' height='1' fill='%23d4567a'/><rect x='2' y='1' width='1' height='1' fill='%23d4567a'/><rect x='3' y='1' width='1' height='1' fill='%23f8a3b6'/><rect x='4' y='1' width='1' height='1' fill='%23fff1e0'/><rect x='5' y='1' width='1' height='1' fill='%23f8a3b6'/><rect x='6' y='1' width='1' height='1' fill='%23fff1e0'/><rect x='7' y='1' width='1' height='1' fill='%23f8a3b6'/><rect x='8' y='1' width='1' height='1' fill='%23d4567a'/><rect x='1' y='2' width='1' height='1' fill='%23d4567a'/><rect x='2' y='2' width='1' height='1' fill='%23f8a3b6'/><rect x='3' y='2' width='2' height='1' fill='%23fff1e0'/><rect x='5' y='2' width='1' height='1' fill='%23f8a3b6'/><rect x='6' y='2' width='2' height='1' fill='%23fff1e0'/><rect x='8' y='2' width='1' height='1' fill='%23f8a3b6'/><rect x='9' y='2' width='1' height='1' fill='%23d4567a'/><rect x='1' y='3' width='1' height='1' fill='%23d4567a'/><rect x='2' y='3' width='1' height='1' fill='%23f8a3b6'/><rect x='3' y='3' width='2' height='1' fill='%23fff1e0'/><rect x='5' y='3' width='1' height='1' fill='%23f8a3b6'/><rect x='6' y='3' width='2' height='1' fill='%23fff1e0'/><rect x='8' y='3' width='1' height='1' fill='%23f8a3b6'/><rect x='9' y='3' width='1' height='1' fill='%23d4567a'/><rect x='1' y='4' width='1' height='1' fill='%23d4567a'/><rect x='2' y='4' width='1' height='1' fill='%23f8a3b6'/><rect x='3' y='4' width='2' height='1' fill='%23fff1e0'/><rect x='5' y='4' width='1' height='1' fill='%23f8a3b6'/><rect x='6' y='4' width='2' height='1' fill='%23fff1e0'/><rect x='8' y='4' width='1' height='1' fill='%23f8a3b6'/><rect x='9' y='4' width='1' height='1' fill='%23d4567a'/><rect x='2' y='5' width='1' height='1' fill='%23d4567a'/><rect x='3' y='5' width='1' height='1' fill='%23f8a3b6'/><rect x='4' y='5' width='1' height='1' fill='%23fff1e0'/><rect x='5' y='5' width='1' height='1' fill='%23f8a3b6'/><rect x='6' y='5' width='1' height='1' fill='%23fff1e0'/><rect x='7' y='5' width='1' height='1' fill='%23f8a3b6'/><rect x='8' y='5' width='1' height='1' fill='%23d4567a'/><rect x='3' y='6' width='1' height='1' fill='%23d4567a'/><rect x='4' y='6' width='1' height='1' fill='%23f8a3b6'/><rect x='5' y='6' width='1' height='1' fill='%23fff1e0'/><rect x='6' y='6' width='1' height='1' fill='%23f8a3b6'/><rect x='7' y='6' width='1' height='1' fill='%23d4567a'/><rect x='4' y='7' width='1' height='1' fill='%238a6a5a'/><rect x='6' y='7' width='1' height='1' fill='%238a6a5a'/><rect x='4' y='8' width='3' height='1' fill='%23a8703f'/><rect x='4' y='9' width='1' height='1' fill='%23a8703f'/><rect x='5' y='9' width='1' height='1' fill='%23dba070'/><rect x='6' y='9' width='1' height='1' fill='%23a8703f'/></svg>");
-  --px-frame-panel: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' shape-rendering='crispEdges'><rect x='4' y='0' width='10' height='18' fill='%239767a8'/><rect x='2' y='2' width='14' height='14' fill='%239767a8'/><rect x='0' y='4' width='18' height='10' fill='%239767a8'/><rect x='4' y='2' width='10' height='14' fill='%23ffffff'/><rect x='2' y='4' width='14' height='10' fill='%23ffffff'/><rect x='6' y='4' width='8' height='10' fill='%23e7d0e6'/><rect x='4' y='6' width='10' height='8' fill='%23e7d0e6'/><rect x='4' y='4' width='8' height='8' fill='%23fff8f4'/><rect x='4' y='4' width='2' height='2' fill='%23ffc47f'/><rect x='12' y='4' width='2' height='2' fill='%23ffc47f'/><rect x='4' y='12' width='2' height='2' fill='%23ffc47f'/><rect x='12' y='12' width='2' height='2' fill='%23ffc47f'/></svg>");
-  --px-frame-bar: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' shape-rendering='crispEdges'><rect x='4' y='0' width='10' height='18' fill='%239767a8'/><rect x='2' y='2' width='14' height='14' fill='%239767a8'/><rect x='0' y='4' width='18' height='10' fill='%239767a8'/><rect x='4' y='2' width='10' height='14' fill='%23ffffff'/><rect x='2' y='4' width='14' height='10' fill='%23ffffff'/><rect x='6' y='4' width='8' height='10' fill='%23e7d0e6'/><rect x='4' y='6' width='10' height='8' fill='%23e7d0e6'/><rect x='4' y='4' width='8' height='8' fill='%23f5e3ec'/><rect x='4' y='4' width='2' height='2' fill='%23ffc47f'/><rect x='12' y='4' width='2' height='2' fill='%23ffc47f'/><rect x='4' y='12' width='2' height='2' fill='%23ffc47f'/><rect x='12' y='12' width='2' height='2' fill='%23ffc47f'/></svg>");
-  --px-frame-scene: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' shape-rendering='crispEdges'><rect x='4' y='0' width='10' height='18' fill='%239767a8'/><rect x='2' y='2' width='14' height='14' fill='%239767a8'/><rect x='0' y='4' width='18' height='10' fill='%239767a8'/><rect x='4' y='2' width='10' height='14' fill='%23ffffff'/><rect x='2' y='4' width='14' height='10' fill='%23ffffff'/><rect x='6' y='4' width='8' height='10' fill='%23e7d0e6'/><rect x='4' y='6' width='10' height='8' fill='%23e7d0e6'/><rect x='4' y='4' width='8' height='8' fill='%23a980b1'/><rect x='4' y='4' width='2' height='2' fill='%23ffc47f'/><rect x='12' y='4' width='2' height='2' fill='%23ffc47f'/><rect x='4' y='12' width='2' height='2' fill='%23ffc47f'/><rect x='12' y='12' width='2' height='2' fill='%23ffc47f'/></svg>");
-  --px-btn-lavender: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%23a983b6'/><rect x='1' y='1' width='10' height='10' fill='%23a983b6'/><rect x='0' y='3' width='12' height='6' fill='%23a983b6'/><rect x='3' y='1' width='6' height='10' fill='%23e8d4e6'/><rect x='2' y='2' width='8' height='8' fill='%23f5e7f0'/><rect x='1' y='3' width='10' height='6' fill='%23f5e7f0'/><rect x='3' y='1' width='6' height='1' fill='%23ffffff'/><rect x='1' y='3' width='1' height='6' fill='%23ffffff'/><rect x='2' y='2' width='7' height='7' fill='%23f6e5ec'/><rect x='2' y='2' width='1' height='1' fill='%23ffffff'/></svg>");
-  --px-btn-hover: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%239767a8'/><rect x='1' y='1' width='10' height='10' fill='%239767a8'/><rect x='0' y='3' width='12' height='6' fill='%239767a8'/><rect x='3' y='1' width='6' height='10' fill='%23f5e7f0'/><rect x='2' y='2' width='8' height='8' fill='%23efd5e2'/><rect x='1' y='3' width='10' height='6' fill='%23efd5e2'/><rect x='3' y='1' width='6' height='1' fill='%23ffffff'/><rect x='1' y='3' width='1' height='6' fill='%23ffffff'/><rect x='2' y='2' width='7' height='7' fill='%23ffffff'/><rect x='2' y='2' width='1' height='1' fill='%23ffffff'/></svg>");
-  --px-btn-mint: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%23c4616e'/><rect x='1' y='1' width='10' height='10' fill='%23c4616e'/><rect x='0' y='3' width='12' height='6' fill='%23c4616e'/><rect x='3' y='1' width='6' height='10' fill='%23e27f82'/><rect x='2' y='2' width='8' height='8' fill='%23f9ad8c'/><rect x='1' y='3' width='10' height='6' fill='%23f9ad8c'/><rect x='3' y='1' width='6' height='1' fill='%23fff0dc'/><rect x='1' y='3' width='1' height='6' fill='%23fff0dc'/><rect x='2' y='2' width='7' height='7' fill='%23ffc58e'/><rect x='2' y='2' width='1' height='1' fill='%23fff0dc'/></svg>");
-  --px-card-slot: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%23a983b6'/><rect x='1' y='1' width='10' height='10' fill='%23a983b6'/><rect x='0' y='3' width='12' height='6' fill='%23a983b6'/><rect x='3' y='1' width='6' height='10' fill='%23e8d4e6'/><rect x='2' y='2' width='8' height='8' fill='%23f8ecef'/><rect x='1' y='3' width='10' height='6' fill='%23f8ecef'/><rect x='3' y='1' width='6' height='1' fill='%23ffffff'/><rect x='1' y='3' width='1' height='6' fill='%23ffffff'/><rect x='2' y='2' width='7' height='7' fill='%23fffcfa'/><rect x='2' y='2' width='1' height='1' fill='%23ffffff'/></svg>");
-  --px-card-dashed: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%23f8ecef'/><rect x='1' y='1' width='10' height='10' fill='%23f8ecef'/><rect x='0' y='3' width='12' height='6' fill='%23f8ecef'/><rect x='3' y='0' width='2' height='1' fill='%23b98fbf'/><rect x='7' y='0' width='2' height='1' fill='%23b98fbf'/><rect x='3' y='11' width='2' height='1' fill='%23b98fbf'/><rect x='7' y='11' width='2' height='1' fill='%23b98fbf'/><rect x='0' y='3' width='1' height='2' fill='%23b98fbf'/><rect x='0' y='7' width='1' height='2' fill='%23b98fbf'/><rect x='11' y='3' width='1' height='2' fill='%23b98fbf'/><rect x='11' y='7' width='1' height='2' fill='%23b98fbf'/><rect x='1' y='1' width='2' height='1' fill='%23b98fbf'/><rect x='9' y='1' width='2' height='1' fill='%23b98fbf'/><rect x='1' y='10' width='2' height='1' fill='%23b98fbf'/><rect x='9' y='10' width='2' height='1' fill='%23b98fbf'/><rect x='3' y='1' width='6' height='10' fill='%23fffcfa'/><rect x='1' y='3' width='10' height='6' fill='%23fffcfa'/></svg>");
+  --sk-accent-icon: #294c8a;
+  --sk-gold-ink: #244680;
+  --sk-gold-bg: #e8f3fc;
+  --sk-gold-line: #6c9cd1;
+  --sk-gold-chip-ink: #172e5c;
+  --sk-self-bg: #e2f1fc;
+  --sk-self-ink: #163869;
+  --sk-enemy-bg: #eef5fc;
+  --sk-enemy-ink: #24427a;
+  --sk-active-top: #d7ebfc;
+  --sk-active-bot: #bad9f7;
+  --sk-active-ink: #13254a;
+  --sk-cta-top: #4a80cf;
+  --sk-cta-bot: #213f7a;
+  --sk-cta-hover-top: #5b91e0;
+  --sk-cta-hover-bot: #2b4f96;
+  --sk-cta-ink: #ffffff;
+  --sk-charm-svg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 11 11' shape-rendering='crispEdges'><rect x='6' y='0' width='3' height='1' fill='%23172a4f'/><rect x='5' y='1' width='1' height='1' fill='%23172a4f'/><rect x='6' y='1' width='3' height='1' fill='%23ffffff'/><rect x='9' y='1' width='1' height='1' fill='%23172a4f'/><rect x='1' y='2' width='3' height='1' fill='%23172a4f'/><rect x='5' y='2' width='1' height='1' fill='%23172a4f'/><rect x='6' y='2' width='1' height='1' fill='%23ffffff'/><rect x='7' y='2' width='1' height='1' fill='%23f7c6d8'/><rect x='8' y='2' width='1' height='1' fill='%23ffffff'/><rect x='9' y='2' width='1' height='1' fill='%23172a4f'/><rect x='0' y='3' width='1' height='1' fill='%23172a4f'/><rect x='1' y='3' width='3' height='1' fill='%23ffffff'/><rect x='4' y='3' width='2' height='1' fill='%23172a4f'/><rect x='6' y='3' width='3' height='1' fill='%23ffffff'/><rect x='9' y='3' width='1' height='1' fill='%23172a4f'/><rect x='0' y='4' width='1' height='1' fill='%23172a4f'/><rect x='1' y='4' width='1' height='1' fill='%23ffffff'/><rect x='2' y='4' width='1' height='1' fill='%235386c4'/><rect x='3' y='4' width='1' height='1' fill='%23ffffff'/><rect x='4' y='4' width='1' height='1' fill='%23172a4f'/><rect x='5' y='4' width='5' height='1' fill='%23ffffff'/><rect x='10' y='4' width='1' height='1' fill='%23172a4f'/><rect x='0' y='5' width='1' height='1' fill='%23172a4f'/><rect x='1' y='5' width='2' height='1' fill='%23ffffff'/><rect x='3' y='5' width='1' height='1' fill='%23172a4f'/><rect x='4' y='5' width='1' height='1' fill='%23ffffff'/><rect x='5' y='5' width='1' height='1' fill='%2324427a'/><rect x='6' y='5' width='2' height='1' fill='%23ffffff'/><rect x='8' y='5' width='1' height='1' fill='%2324427a'/><rect x='9' y='5' width='1' height='1' fill='%23ffffff'/><rect x='10' y='5' width='1' height='1' fill='%23172a4f'/><rect x='0' y='6' width='1' height='1' fill='%23172a4f'/><rect x='1' y='6' width='2' height='1' fill='%23ffffff'/><rect x='3' y='6' width='1' height='1' fill='%23172a4f'/><rect x='4' y='6' width='1' height='1' fill='%23ffffff'/><rect x='5' y='6' width='1' height='1' fill='%23f7c6d8'/><rect x='6' y='6' width='1' height='1' fill='%23ffffff'/><rect x='7' y='6' width='1' height='1' fill='%23d98ca8'/><rect x='8' y='6' width='1' height='1' fill='%23ffffff'/><rect x='9' y='6' width='1' height='1' fill='%23f7c6d8'/><rect x='10' y='6' width='1' height='1' fill='%23ffffff'/><rect x='1' y='7' width='3' height='1' fill='%23172a4f'/><rect x='5' y='7' width='1' height='1' fill='%23172a4f'/><rect x='6' y='7' width='3' height='1' fill='%23ffffff'/><rect x='9' y='7' width='1' height='1' fill='%23172a4f'/><rect x='4' y='8' width='1' height='1' fill='%23172a4f'/><rect x='5' y='8' width='1' height='1' fill='%239acbf7'/><rect x='6' y='8' width='2' height='1' fill='%235386c4'/><rect x='8' y='8' width='1' height='1' fill='%239acbf7'/><rect x='9' y='8' width='1' height='1' fill='%23172a4f'/><rect x='4' y='9' width='1' height='1' fill='%23172a4f'/><rect x='5' y='9' width='5' height='1' fill='%2324427a'/><rect x='10' y='9' width='1' height='1' fill='%23172a4f'/><rect x='5' y='10' width='5' height='1' fill='%23172a4f'/></svg>");
+  --px-frame-panel: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' shape-rendering='crispEdges'><rect x='4' y='0' width='10' height='18' fill='%231f3766'/><rect x='2' y='2' width='14' height='14' fill='%231f3766'/><rect x='0' y='4' width='18' height='10' fill='%231f3766'/><rect x='4' y='2' width='10' height='14' fill='%23ffffff'/><rect x='2' y='4' width='14' height='10' fill='%23ffffff'/><rect x='6' y='4' width='8' height='10' fill='%23bfdcf5'/><rect x='4' y='6' width='10' height='8' fill='%23bfdcf5'/><rect x='4' y='4' width='8' height='8' fill='%23fbfdff'/><rect x='4' y='4' width='2' height='2' fill='%235386c4'/><rect x='12' y='4' width='2' height='2' fill='%235386c4'/><rect x='4' y='12' width='2' height='2' fill='%235386c4'/><rect x='12' y='12' width='2' height='2' fill='%235386c4'/></svg>");
+  --px-frame-bar: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' shape-rendering='crispEdges'><rect x='4' y='0' width='10' height='18' fill='%231f3766'/><rect x='2' y='2' width='14' height='14' fill='%231f3766'/><rect x='0' y='4' width='18' height='10' fill='%231f3766'/><rect x='4' y='2' width='10' height='14' fill='%23ffffff'/><rect x='2' y='4' width='14' height='10' fill='%23ffffff'/><rect x='6' y='4' width='8' height='10' fill='%23bfdcf5'/><rect x='4' y='6' width='10' height='8' fill='%23bfdcf5'/><rect x='4' y='4' width='8' height='8' fill='%23e3effb'/><rect x='4' y='4' width='2' height='2' fill='%235386c4'/><rect x='12' y='4' width='2' height='2' fill='%235386c4'/><rect x='4' y='12' width='2' height='2' fill='%235386c4'/><rect x='12' y='12' width='2' height='2' fill='%235386c4'/></svg>");
+  --px-frame-scene: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18' shape-rendering='crispEdges'><rect x='4' y='0' width='10' height='18' fill='%231f3766'/><rect x='2' y='2' width='14' height='14' fill='%231f3766'/><rect x='0' y='4' width='18' height='10' fill='%231f3766'/><rect x='4' y='2' width='10' height='14' fill='%23ffffff'/><rect x='2' y='4' width='14' height='10' fill='%23ffffff'/><rect x='6' y='4' width='8' height='10' fill='%23bfdcf5'/><rect x='4' y='6' width='10' height='8' fill='%23bfdcf5'/><rect x='4' y='4' width='8' height='8' fill='%23d4e8f9'/><rect x='4' y='4' width='2' height='2' fill='%235386c4'/><rect x='12' y='4' width='2' height='2' fill='%235386c4'/><rect x='4' y='12' width='2' height='2' fill='%235386c4'/><rect x='12' y='12' width='2' height='2' fill='%235386c4'/></svg>");
+  --px-btn-lavender: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%233b6ca8'/><rect x='1' y='1' width='10' height='10' fill='%233b6ca8'/><rect x='0' y='3' width='12' height='6' fill='%233b6ca8'/><rect x='3' y='1' width='6' height='10' fill='%23bedaf4'/><rect x='2' y='2' width='8' height='8' fill='%23daecfb'/><rect x='1' y='3' width='10' height='6' fill='%23daecfb'/><rect x='3' y='1' width='6' height='1' fill='%23ffffff'/><rect x='1' y='3' width='1' height='6' fill='%23ffffff'/><rect x='2' y='2' width='7' height='7' fill='%23e5f1fc'/><rect x='2' y='2' width='1' height='1' fill='%23ffffff'/></svg>");
+  --px-btn-hover: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%231f3766'/><rect x='1' y='1' width='10' height='10' fill='%231f3766'/><rect x='0' y='3' width='12' height='6' fill='%231f3766'/><rect x='3' y='1' width='6' height='10' fill='%23daecfb'/><rect x='2' y='2' width='8' height='8' fill='%23d0e6fa'/><rect x='1' y='3' width='10' height='6' fill='%23d0e6fa'/><rect x='3' y='1' width='6' height='1' fill='%23ffffff'/><rect x='1' y='3' width='1' height='6' fill='%23ffffff'/><rect x='2' y='2' width='7' height='7' fill='%23ffffff'/><rect x='2' y='2' width='1' height='1' fill='%23ffffff'/></svg>");
+  --px-btn-mint: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%2313254a'/><rect x='1' y='1' width='10' height='10' fill='%2313254a'/><rect x='0' y='3' width='12' height='6' fill='%2313254a'/><rect x='3' y='1' width='6' height='10' fill='%2318305e'/><rect x='2' y='2' width='8' height='8' fill='%233665b5'/><rect x='1' y='3' width='10' height='6' fill='%233665b5'/><rect x='3' y='1' width='6' height='1' fill='%23b3dafb'/><rect x='1' y='3' width='1' height='6' fill='%23b3dafb'/><rect x='2' y='2' width='7' height='7' fill='%234a80cf'/><rect x='2' y='2' width='1' height='1' fill='%23b3dafb'/></svg>");
+  --px-card-slot: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%233b6ca8'/><rect x='1' y='1' width='10' height='10' fill='%233b6ca8'/><rect x='0' y='3' width='12' height='6' fill='%233b6ca8'/><rect x='3' y='1' width='6' height='10' fill='%23bedaf4'/><rect x='2' y='2' width='8' height='8' fill='%23edf5fd'/><rect x='1' y='3' width='10' height='6' fill='%23edf5fd'/><rect x='3' y='1' width='6' height='1' fill='%23ffffff'/><rect x='1' y='3' width='1' height='6' fill='%23ffffff'/><rect x='2' y='2' width='7' height='7' fill='%23ffffff'/><rect x='2' y='2' width='1' height='1' fill='%23ffffff'/></svg>");
+  --px-card-dashed: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' shape-rendering='crispEdges'><rect x='3' y='0' width='6' height='12' fill='%23edf5fd'/><rect x='1' y='1' width='10' height='10' fill='%23edf5fd'/><rect x='0' y='3' width='12' height='6' fill='%23edf5fd'/><rect x='3' y='0' width='2' height='1' fill='%236c9cd1'/><rect x='7' y='0' width='2' height='1' fill='%236c9cd1'/><rect x='3' y='11' width='2' height='1' fill='%236c9cd1'/><rect x='7' y='11' width='2' height='1' fill='%236c9cd1'/><rect x='0' y='3' width='1' height='2' fill='%236c9cd1'/><rect x='0' y='7' width='1' height='2' fill='%236c9cd1'/><rect x='11' y='3' width='1' height='2' fill='%236c9cd1'/><rect x='11' y='7' width='1' height='2' fill='%236c9cd1'/><rect x='1' y='1' width='2' height='1' fill='%236c9cd1'/><rect x='9' y='1' width='2' height='1' fill='%236c9cd1'/><rect x='1' y='10' width='2' height='1' fill='%236c9cd1'/><rect x='9' y='10' width='2' height='1' fill='%236c9cd1'/><rect x='3' y='1' width='6' height='10' fill='%23ffffff'/><rect x='1' y='3' width='10' height='6' fill='%23ffffff'/></svg>");
 }
 
 /* 星夜木马 — Night-Fair Plum, Marquee-Gold Bezels & Carousel Charms */

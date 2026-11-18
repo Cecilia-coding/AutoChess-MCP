@@ -67,15 +67,18 @@ export function hazardLuck(seed: number): number {
   return min + (max - min) * rng.next();
 }
 
-/** 本回合的命中概率（%），已按 `capPct` 夹紧。这是**理论值**（东方越多越高），只用于展示。 */
-export function hazardChancePct(hazard: UnitHazard, ctx: HazardRollContext): number {
+/** 本回合的命中概率（%），已按 `capPct` 夹紧（可选 `chanceScalePct` 用于纯净家宽等风控减免）。 */
+export function hazardChancePct(hazard: UnitHazard, ctx: HazardRollContext, chanceScalePct = 100): number {
   if (hazard.immuneAtStar !== undefined && ctx.star >= hazard.immuneAtStar) return 0;
-  if (ctx.zone === 'bench' && hazard.benchChancePct !== undefined) return hazard.benchChancePct;
+  if (ctx.zone === 'bench' && hazard.benchChancePct !== undefined) {
+    return Math.max(0, Math.min(100, hazard.benchChancePct * (chanceScalePct / 100)));
+  }
   let pct = hazard.basePct;
   for (const metric of hazard.metrics ?? []) {
     pct += METRIC_HANDLERS[metric.k](metric, ctx, hazard);
   }
-  return Math.max(0, Math.min(hazard.capPct, pct));
+  const clamped = Math.max(0, Math.min(hazard.capPct, pct));
+  return Math.max(0, Math.min(100, clamped * (chanceScalePct / 100)));
 }
 
 /**
@@ -85,8 +88,8 @@ export function hazardChancePct(hazard: UnitHazard, ctx: HazardRollContext): num
 export const HAZARD_ROUND_LUCK = { min: 0.35, max: 1.65 } as const;
 
 /** 每回合独立掷一次；返回是否命中与本回合理论概率（便于 UI 显示风险档位）。 */
-export function rollHazard(hazard: UnitHazard, ctx: HazardRollContext): HazardRoll {
-  const chancePct = hazardChancePct(hazard, ctx);
+export function rollHazard(hazard: UnitHazard, ctx: HazardRollContext, chanceScalePct = 100): HazardRoll {
+  const chancePct = hazardChancePct(hazard, ctx, chanceScalePct);
   if (chancePct <= 0) return { hazard, chancePct, hit: false };
   const key = `${ctx.unitId}:${hazard.id}:${ctx.seatId}${hazard.perPieceRoll ? `:${ctx.pieceId ?? ctx.unitId}` : ''}`;
   const rng = createRng(hash32(ctx.seed ^ hashString(0, key), ctx.round, 0x9a11));

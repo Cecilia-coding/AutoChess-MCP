@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { MATCH_TABLES, MATCH_POLL_MS, type MatchResult, type MatchTable } from '@/lib/meta/matchmaking';
-import { accountRequest } from './room-request';
+import { useHostRequests } from './host-context';
 import { MATCH_REWARD_PREVIEW, MATCHMAKING_REWARD } from '@/lib/meta/economy';
 import { PixelSprite } from './pixel-ui/pixel-sprite';
 import './matchmaking.css';
@@ -9,6 +9,7 @@ import './matchmaking.css';
 export default function Matchmaking({ token, pack, onEnter }: {
   token: string; pack: string; onEnter?: (roomId: string, token: string) => void;
 }) {
+  const { accountRequest } = useHostRequests();
   const [match, setMatch] = useState<MatchResult | null>(null);
   const [tables, setTables] = useState<MatchTable[]>([]);
   const [pending, setPending] = useState(false);
@@ -36,7 +37,7 @@ export default function Matchmaking({ token, pack, onEnter }: {
     const foreground = () => { if (!document.hidden) void poll(); };
     document.addEventListener('visibilitychange', foreground);
     return () => { disposed = true; alive.current = false; clearInterval(timer); clearInterval(clock); document.removeEventListener('visibilitychange', foreground); };
-  }, [token, pack]);
+  }, [token, pack, accountRequest]);
   async function change(seats?: number) {
     if (mutation.current) return;
     mutation.current = true; sequence.current++; setPending(true); setError('');
@@ -67,6 +68,6 @@ export default function Matchmaking({ token, pack, onEnter }: {
     {match?.status === 'queued' && match.pack !== pack ? <output>你仍在另一套棋谱的队列中。退出后可以换谱。</output> : null}
     {match?.status === 'matched' ? <div className="match-found"><output><PixelSprite name="sparkle" size={12} /> 棋友已到齐，轮到你入场了</output><button className="lobby-primary" onClick={() => onEnter?.(match.roomId,match.token)}>进入棋局</button></div> : null}
     {error ? <p className="match-error" role="alert">{error} · 可以重试，排队状态以服务端为准。</p> : null}
-    {!token ? <p className="match-footnote">先去「我的」登录，再来挑一桌。</p> : null}
+    {!token ? <p className="match-footnote">先去「行囊」登录，再来挑一桌。</p> : null}
   </section>;
 }

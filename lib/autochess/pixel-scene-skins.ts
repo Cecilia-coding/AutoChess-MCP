@@ -38,7 +38,7 @@ export type PixelSceneId =
   | 'coral-lagoon'
   | 'wisteria-brook'
   | 'embroidery-hoop'
-  | 'sunset-cloudsea'
+  | 'wonderland-rabbit'
   | 'carousel-night';
 
 export const PIXEL_SCENE_IDS: readonly PixelSceneId[] = [
@@ -51,7 +51,7 @@ export const PIXEL_SCENE_IDS: readonly PixelSceneId[] = [
   'coral-lagoon',
   'wisteria-brook',
   'embroidery-hoop',
-  'sunset-cloudsea',
+  'wonderland-rabbit',
   'carousel-night',
 ];
 
@@ -1719,7 +1719,7 @@ function astralScene(T: AstralTheme): Scene {
       });
 
       // Billowing pixel star-clouds overlapping the outer observatory walls so edges feel dreamy & non-rectangular!
-      for (const [cx, cy, rw] of [
+      for (const [cx, cy, _rw] of [
         [L.gl - 20, L.gt + 70, 16],
         [L.gl - 24, L.gb - 38, 18],
         [L.gr + 22, L.gt + 66, 17],

@@ -1,4 +1,6 @@
 import type { SettlementReceipt } from '../meta/economy';
+import type { BuffOfferChoice, BuffRarityId } from '../meta/journey-buffs';
+import type { CustomPackV1 } from '../pack-studio/schema';
 import type { MatchModeId } from '../../packs/modes/registry';
 import type { AutochessOpponent, DraftReward } from './core';
 import type { BattleOutput, Combatant } from './types';
@@ -9,7 +11,12 @@ import type { HexRarity } from '../../content/autochess/types';
 export type HexOffer = {
   round: number;
   rarity: HexRarity;
-  choices: { id: string; name: string; rarity: HexRarity; note: string; gold?: number }[];
+  rarityId?: BuffRarityId;
+  rarityLabel?: string;
+  rerollsUsed?: number;
+  maxRerolls?: number;
+  rerollCost?: number | null;
+  choices: (BuffOfferChoice | { id: string; name: string; rarity: HexRarity; note: string; gold?: number; category?: string; categoryLabel?: string })[];
 };
 
 /** 开局三选一：标签与候选池来自所在棋谱，选 1 件进背包后才能就绪。 */
@@ -38,9 +45,10 @@ export type RoomAction =
   /** 食用/使用一次性道具（珍馐等）：永久属性记在棋子身上。 */
   | { kind: 'consume'; piece: string; item: string }
   | { kind: 'roll' | 'claim' | 'roll_and_claim' | 'ready' | 'resign' | 'cancel_room' | 'refresh' }
-  /** 金币购买经验：`times` 次，每次 4 金换 4 点。 */
+  /** 金币购买经验：`times` 次，每次 4 金换 4+Buff点。 */
   | { kind: 'buy_xp'; times?: number }
   | { kind: 'pick_hex'; hex: string }
+  | { kind: 'reroll_hex' }
   | { kind: 'pick_item'; item: string }
   | { kind: 'pick_sword'; item: string }
   | { kind: 'plan'; plan: CompanionPlan; ready?: boolean }
@@ -101,6 +109,8 @@ export type RoomSelf = AutochessOpponent & RoomRefRegistry & {
   hexPayouts?: { round: number; gold: number; hex: string; minGold?: number }[];
   /** 风控：累计封号次数（unitId → 次数），作查IP黑名单。 */
   banCounts?: Record<string, number>;
+  /** 本局永久免疫查 IP 与官活罢工的棋子 id 列表（如 FP32 满血版）。 */
+  hazardImmunePieceIds?: string[];
   /** 本回合风控结果：封号离场 / 罢工缺席 / 售罄 / 价格波动（查 IP 战后结算，其余在回合开始结算）。 */
   roundHazards?: { round: number; banned?: RoomHazardBan[]; struck: string[]; soldOut: string[]; priceDelta: Record<string, number> };
   draft?: { round: number; sourceRound?: number; track: DraftReward[]; position: number; roll?: number; landing?: number };
@@ -111,7 +121,14 @@ export type RoomView = {
   id: string; revision: number; round: number; phase: 'waiting' | 'prepare' | 'finished';
   cancelled?: boolean;
   mode?: MatchModeId; maxHp?: number;
-  pack?: string; packName?: string; seatCount?: number; opponentIndex?: number; venue?: RoomVenue;
+  pacing?: {
+    xpBuyCost: number;
+    xpBuyAmount: number;
+    shopRefreshCost: number;
+    interestCap: number;
+    roundBaseIncome: number;
+  };
+  pack?: string; packName?: string; customPack?: CustomPackV1; ephemeral?: boolean; seatCount?: number; opponentIndex?: number; venue?: RoomVenue;
   seats: RoomSeatView[]; self?: RoomSelf; seatIndex?: number; battle?: RoomBattle;
   /** 弹幕流（最近 N 条，含机/人的发言）。 */
   danmaku?: DanmakuMessage[];

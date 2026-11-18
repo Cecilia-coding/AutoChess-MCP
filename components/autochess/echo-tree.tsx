@@ -3,19 +3,21 @@ import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
 import { echoStyleOf, formatEchoLine, formatEchoTime, type EchoEvent } from '@/lib/meta/echo-tree';
 import { EchoLiveQueue, ECHO_LIVE_MAX_AGE_MS, ECHO_LIVE_POLL_MS } from '@/lib/meta/echo-live';
-import { metaRequest } from './room-request';
+import { readAccountToken } from './account-session';
+import { useAutochessHost, useHostRequests } from './host-context';
 import { PixelSprite, echoKindSpriteName } from './pixel-ui/pixel-sprite';
 import './echo-tree.css';
 
 /** 回音树面板：树上的一张张礼笺，点开看附言。样式令牌由 lib/meta/echo-tree.ts 驱动。 */
 export function EchoTreePanel({ events, empty }: { events: EchoEvent[]; empty?: string }) {
+  const host = useAutochessHost();
   const [openId, setOpenId] = useState<string | null>(null);
   return <section className="echo-tree" aria-label="回音树">
     <div className="echo-tree-heading">
       <span className="echo-tree-mark" aria-hidden="true"><PixelSprite name="clover" size={18} /></span>
       <div>
         <h3>回音树</h3>
-        <p>送礼成功会在这里留一张礼笺，全站都看得见。</p>
+        <p>{host.features.echoScope === 'private' ? '仅自己与绑定伙伴可见的私密礼笺。' : '送礼成功会在这里留一张礼笺，全站都看得见。'}</p>
       </div>
     </div>
     {events.length ? <ol className="echo-tree-list">
@@ -43,9 +45,13 @@ export function EchoTreePanel({ events, empty }: { events: EchoEvent[]; empty?: 
  * 样式令牌见 lib/meta/echo-tree.ts；换色改 echo-tree.css。
  */
 export function EchoBanner({ pollMs = ECHO_LIVE_POLL_MS, visibleMs = 9000 }: { pollMs?: number; visibleMs?: number }) {
+  const host = useAutochessHost();
+  const { metaRequest } = useHostRequests();
   const [current, setCurrent] = useState<EchoEvent | null>(null);
+  const enabled = host.features.echoScope !== 'none';
 
   useEffect(() => {
+    if (!enabled) return;
     let active = true;
     let polling = false;
     let initialized = false;
@@ -82,11 +88,12 @@ export function EchoBanner({ pollMs = ECHO_LIVE_POLL_MS, visibleMs = 9000 }: { p
       if (initialized && Date.now() - lastPoll >= ECHO_LIVE_MAX_AGE_MS) reset();
       const requestGeneration = generation;
       const valid = () => active && !document.hidden && requestGeneration === generation;
+      const token = readAccountToken() || undefined;
       polling = true;
       try {
         if (!initialized) {
           // Start at the current tail so opening a page does not replay old gifts.
-          const initial = await metaRequest<{ latestId: string | null; serverNow: number }>('echo', { limit: 1 });
+          const initial = await metaRequest<{ latestId: string | null; serverNow: number }>('echo', { limit: 1, ...(token ? { token } : {}) });
           if (!valid()) return;
           cursor = initial.latestId ?? null;
           queue.reset(initial.serverNow);
@@ -96,7 +103,7 @@ export function EchoBanner({ pollMs = ECHO_LIVE_POLL_MS, visibleMs = 9000 }: { p
         }
         let hasMore: boolean;
         do {
-          const page = await metaRequest<{ events: EchoEvent[]; nextId: string | null; hasMore: boolean; serverNow: number }>('echo', { afterId: cursor, limit: 50 });
+          const page = await metaRequest<{ events: EchoEvent[]; nextId: string | null; hasMore: boolean; serverNow: number }>('echo', { afterId: cursor, limit: 50, ...(token ? { token } : {}) });
           if (!valid()) return;
           cursor = page.nextId;
           queue.push(page.events ?? [], Date.now(), page.serverNow);
@@ -126,9 +133,9 @@ export function EchoBanner({ pollMs = ECHO_LIVE_POLL_MS, visibleMs = 9000 }: { p
       window.removeEventListener('offline', disconnected);
       window.removeEventListener('online', visibility);
     };
-  }, [pollMs, visibleMs]);
+  }, [enabled, pollMs, visibleMs, metaRequest]);
 
-  if (!current) return null;
+  if (!enabled || !current) return null;
   return createPortal(<output className={`echo-banner echo-${echoStyleOf(current)}`} aria-live="polite">
     <span className="echo-banner-icon" aria-hidden="true"><PixelSprite name={echoKindSpriteName(current.kind)} size={14} /></span>
     <span className="echo-banner-text">{formatEchoLine(current)}</span>

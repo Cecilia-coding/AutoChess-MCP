@@ -110,44 +110,54 @@ test('all frame assets and inline avatars/frames render pure crispEdges pixel ar
   assert.ok(!avatarSvg.includes('<circle') && !avatarSvg.includes('Gradient'));
 });
 
-test('pack-native board remains default until explicitly overridden, then switches cleanly via board:native', () => {
+test('复苏季节 (skin-revival) is initial default, cannot be bought or gifted, and supports switching', () => {
   const dir = mkdtempSync(join(tmpdir(), 'autochess-board-explicit-'));
   try {
     const store = new AccountStore(dir);
     const created = store.register('PixelTester', 'password-123');
     const accountId = store.selfAccount(created.token).id;
+    const invite = store.issueAiInvite(created.token);
+    const ai = store.registerAiWithInvite(invite.invite, 'TestBot', 'password-123');
 
-    // 1. Fresh account keeps DEFAULT_BOARD_SKIN in owned, but emits no skinId override by default.
+    // 1. Fresh account owns and defaults to DEFAULT_BOARD_SKIN (复苏季节).
     const initial = store.selfAccount(created.token);
     assert.ok(initial.owned.includes(DEFAULT_BOARD_SKIN));
-    assert.equal(initial.equipped.board, undefined);
-    assert.equal(store.seatIdentity(accountId).skinId, undefined);
-
-    // 2. Explicitly equipping 复苏季节 (skin-revival) overrides even Night Voyage pack boards.
-    const withRevival = store.equipCosmetic(created.token, DEFAULT_BOARD_SKIN);
-    assert.equal(withRevival.equipped.board, DEFAULT_BOARD_SKIN);
+    assert.equal(initial.equipped.board, DEFAULT_BOARD_SKIN);
     assert.equal(store.seatIdentity(accountId).skinId, DEFAULT_BOARD_SKIN);
 
-    // 3. Clearing back to NATIVE_BOARD_SKIN returns to pack-native without losing ownership.
-    const reverted = store.equipCosmetic(created.token, NATIVE_BOARD_SKIN);
-    assert.equal(reverted.equipped.board, undefined);
-    assert.ok(reverted.owned.includes(DEFAULT_BOARD_SKIN));
+    // 2. Default skin cannot be bought or gifted, even with sufficient funds.
+    store.grantCoins(accountId, 'human', 500);
+    assert.throws(() => store.buyCosmetic(created.token, DEFAULT_BOARD_SKIN), /初始默认/);
+    assert.throws(() => store.giftCosmetic(created.token, ai.account.id, DEFAULT_BOARD_SKIN), /初始默认外观不可赠送/);
+
+    // 3. Purchasing & equipping 玫瑰古堡 switches cleanly, and equipping 复苏季节 restores default.
+    const withRose = store.buyCosmetic(created.token, 'skin-rose-court');
+    assert.equal(withRose.equipped.board, 'skin-rose-court');
+    assert.equal(store.seatIdentity(accountId).skinId, 'skin-rose-court');
+
+    const backToRevival = store.equipCosmetic(created.token, DEFAULT_BOARD_SKIN);
+    assert.equal(backToRevival.equipped.board, DEFAULT_BOARD_SKIN);
+    assert.equal(store.seatIdentity(accountId).skinId, DEFAULT_BOARD_SKIN);
+
+    // 4. Explicit NATIVE_BOARD_SKIN clears seat skinId while keeping 复苏季节 owned.
+    const nativeMode = store.equipCosmetic(created.token, NATIVE_BOARD_SKIN);
+    assert.equal(nativeMode.equipped.board, undefined);
+    assert.ok(nativeMode.owned.includes(DEFAULT_BOARD_SKIN));
     assert.equal(store.seatIdentity(accountId).skinId, undefined);
 
-    // 4. Legacy persisted saves: unchosen DEFAULT_BOARD_SKIN yields to pack-native; explicit custom skin stays active.
+    // 5. Persisted legacy saves without board skin default to 复苏季节; explicit custom skin stays active.
     const file = join(dir, 'accounts.json');
     const saved = JSON.parse(readFileSync(file, 'utf8')) as { accounts: Array<{ id: string; cosmetics?: { owned: string[]; equipped: { board?: string }; boardExplicit?: boolean } }> };
     const record = saved.accounts.find(a => a.id === accountId)!;
     delete record.cosmetics!.boardExplicit;
-    record.cosmetics!.equipped.board = DEFAULT_BOARD_SKIN;
+    delete record.cosmetics!.equipped.board;
     writeFileSync(file, JSON.stringify(saved), 'utf8');
 
     const reloadedDefault = new AccountStore(dir);
-    assert.equal(reloadedDefault.seatIdentity(accountId).skinId, undefined);
-    assert.equal(reloadedDefault.selfAccount(created.token).equipped.board, undefined);
+    assert.equal(reloadedDefault.seatIdentity(accountId).skinId, DEFAULT_BOARD_SKIN);
+    assert.equal(reloadedDefault.selfAccount(created.token).equipped.board, DEFAULT_BOARD_SKIN);
 
     record.cosmetics!.equipped.board = 'skin-rose-court';
-    record.cosmetics!.owned.push('skin-rose-court');
     writeFileSync(file, JSON.stringify(saved), 'utf8');
 
     const reloadedExplicit = new AccountStore(dir);

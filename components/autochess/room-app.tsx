@@ -19,20 +19,27 @@ import {
   toggleSfxMuted,
   type BattleAudioCursor,
 } from '@/lib/autochess/sound';
+import {
+  playDiceLand,
+  playDiceShake,
+  preloadDraftDiceAudio,
+  unlockDraftAudio,
+} from '@/lib/autochess/draft-sfx';
 import { roomBoardSkin } from '@/lib/autochess/room-appearance';
-import { roomShopPrice, roomRefreshPrice } from '@/lib/autochess/room-economy';
+import { roomShopPrice, roomRefreshPrice, seatInterestPreview } from '@/lib/autochess/room-economy';
 import { roomStatusEntries } from '@/lib/autochess/room-status';
 import { machineInvite, playerMcpUrl } from '@/lib/autochess/invite-copy';
 import { findUnit } from '@/content/autochess/units';
 import { unitSkill } from '@/content/autochess/unit-skills';
 import { START_LEVEL, XP_BUY_COST, xpToNext, shopMaxCostForLevel } from '@/lib/autochess/level';
-import { items, itemHint } from '@/content/autochess/items';
-import { activeTier, findTrait } from '@/content/autochess/traits';
-import { COSMETICS, boardModelFor, itemImage, NATIVE_BOARD_SKIN, skinPalette } from '@/lib/meta/cosmetics';
+import { findItemTemplate, itemHint } from '@/content/autochess/items';
+import { activeTier, findTrait, nextTier } from '@/content/autochess/traits';
+import { COSMETICS, DEFAULT_BOARD_SKIN, boardModelFor, itemImage, NATIVE_BOARD_SKIN, skinPalette } from '@/lib/meta/cosmetics';
 import { resolveEffectiveBoardSkin, resolveEffectiveFrame, usePreviewWardrobe, writePreviewWardrobe } from '@/lib/meta/preview-wardrobe';
 import { pixelAvatarImage } from '@/lib/meta/pixel-items';
 import { resolveTiles } from '@/lib/game/board';
-import { packDraftIntro, packDraftTiles, packDefinition, type PackSummary } from '@/packs/registry';
+import { ensureCustomPackRegistered } from '@/lib/pack-studio/compiler';
+import { packDraftIntro, packDraftTiles, packDefinition, packTraits, type PackSummary } from '@/packs/registry';
 import { goldAmount, levelLabel, packTerms, starLabel } from '@/packs/terms';
 import type { RoomAction, RoomCredentials, RoomMutation, RoomView, RoomBattle, RoomHazardBan } from '@/lib/autochess/room-types';
 import type { Combatant } from '@/lib/autochess/types';
@@ -46,7 +53,9 @@ import { EchoBanner } from './echo-tree';
 import MachineInvitePanel from './machine-invite-panel';
 import SocialInbox, { SocialInboxTrigger } from './social-inbox';
 import { readAccountToken } from './account-session';
-import { roomRequest } from './room-request';
+import { useAutochessHost, useHostRequests } from './host-context';
+import { newRequestId } from './request-id';
+import { roomPreparationUI, waitingStartHint } from './room-ui-state';
 import Feedback from './feedback';
 import { PixelIcon } from './pixel-ui/pixel-icon';
 import { PixelDraft } from './pixel-ui/pixel-draft';
@@ -73,13 +82,13 @@ class RoomCrashFence extends Component<{children: ReactNode}, {message: string}>
   }
 }
 
-async function request<T = RoomView>(op:string, args:object={}): Promise<T> {
-  return roomRequest<T>(op, args);
-}
 function roundOutcomeNotice(round: number, outcome: 'left' | 'right' | 'draw'): string {
   return `✦ 第 ${round} 轮小局${outcome === 'left' ? '胜利' : outcome === 'right' ? '失利' : '战平'}`;
 }
 function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: RoomCredentials|null|undefined;onSessionChange:(next:RoomCredentials|null)=>void}) {
+  const host = useAutochessHost();
+  const { roomRequest } = useHostRequests();
+  const request = useCallback(<T = RoomView,>(op: string, args: object = {}) => roomRequest<T>(op, args), [roomRequest]);
   const [connection,setConnection]=useState<{cursorEnabled:boolean;mcpUrl:string;packs:PackSummary[];cosmeticsSandbox?:boolean}>({cursorEnabled:false,mcpUrl:'',packs:[]});
   const preview=usePreviewWardrobe();
   const [configLoaded,setConfigLoaded]=useState(false);
@@ -90,7 +99,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
     try {const next=await request<typeof connection>('config');if(sequence===configRequest.current){setConnection(next);setConfigError('');}}
     catch(e){if(sequence===configRequest.current)setConfigError((e as Error).message);}
     finally{if(sequence===configRequest.current)setConfigLoaded(true);}
-  },[]);
+  },[request]);
   useEffect(()=>{
     void Promise.resolve().then(refreshConfig);
     const visible=()=>{if(!document.hidden)void refreshConfig();};
@@ -117,6 +126,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
   const hadActiveMatchRef = useRef<string | null>(null);
   const seenResultKeyRef = useRef<string | null>(null);
   const [savedSession,setSavedSession]=useState<RoomCredentials|null>(null);
+  const [offerHidden,setOfferHidden]=useState(false);
   const seenBattle=useRef(''); const seenHazards=useRef(new Set<string>()); const busyRef=useRef(false); const current=useRef<RoomCredentials|null>(null);
   const pending=useRef<RoomMutation|null>(null);
   const dropAtClientRef=useRef<((clientX:number,clientY:number)=>ClientDropTarget)|null>(null);
@@ -129,7 +139,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
   const itemDragHandlersRef=useRef<{move:(e:PointerEvent)=>void;end:(e:PointerEvent,cancelled:boolean)=>void}|null>(null);
   const suppressShopClickRef=useRef(false);
   const suppressItemClickRef=useRef(false);
-  const adopt=(next:RoomView)=>{const old=latestView.current;if(old?.id===next.id&&old.revision>next.revision)return;latestView.current=next;setActiveSoundPack(packDefinition(next.pack).presentation?.soundId);setView(next);};
+  const adopt=(next:RoomView)=>{const old=latestView.current;if(old?.id===next.id&&old.revision>next.revision)return;if(next.customPack)ensureCustomPackRegistered(next.customPack);latestView.current=next;setActiveSoundPack(packDefinition(next.pack).presentation?.soundId);setView(next);};
   useEffect(()=>{
     if(initialCredentials!==undefined)return;
     const params=new URLSearchParams(window.location.search); const hash=new URLSearchParams(window.location.hash.slice(1));
@@ -145,7 +155,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
       if(inFlight||stopped||document.hidden)return;
       if(typeof navigator!=='undefined' && navigator.onLine===false){setError(OFFLINE);return;}
       inFlight=true;
-      try {const next=await request('state',credentials);if(!stopped){adopt(next);setError('');}}
+    try {const next=await request('state',credentials);if(!stopped){adopt(next);setError('');}}
       catch(e){if(!stopped)setError((e as Error).message);}finally{inFlight=false;}
     };
     void refresh();
@@ -162,19 +172,26 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
       window.removeEventListener('online',resume);
       window.removeEventListener('offline',drop);
     };
-  },[credentials]);
+  },[credentials,request]);
   useEffect(()=>{
     if(!credentials || !view?.self || view.seatIndex!==0)return;
     void request<{invitation:string;watchToken:string}>('invite',credentials).then(info=>{
-      setInvitation(info.invitation);setWatchLink(`${location.origin}/autochess/room?room=${credentials.roomId}#watch=${info.watchToken}`);
+      setInvitation(info.invitation);setWatchLink(`${location.origin}${host.routes.room}?room=${credentials.roomId}#watch=${info.watchToken}`);
     }).catch(()=>{});
-  },[credentials,view?.seatIndex]);
+  },[credentials,view?.seatIndex,request,host.routes.room]);
   useEffect(()=>{
     if(!view?.battle || seenBattle.current===view.battle.output.battleId)return;
-    seenBattle.current=view.battle.output.battleId;setShopOpen(false);setDraftOpen(false);setSelected(undefined);setPendingItem(null);setInspectedPieceId(null);
+    seenBattle.current=view.battle.output.battleId;setShopOpen(false);setDraftOpen(false);setOfferHidden(false);setSelected(undefined);setPendingItem(null);setInspectedPieceId(null);
     setPlayback({battle:view.battle,time:0});
   },[view?.battle?.output.battleId]);
+  const offerKey = `${view?.round ?? 0}:${Boolean(view?.self?.swordOffer)}:${Boolean(view?.self?.hexOffer)}:${Boolean(view?.self?.itemOffer)}`;
+  useEffect(() => {
+    setOfferHidden(false);
+  }, [offerKey]);
   useEffect(() => installSfxUnlock(), []);
+  useEffect(() => {
+    if (draftOpen || view?.self?.draft || view?.self?.hexOffer) preloadDraftDiceAudio();
+  }, [draftOpen, view?.self?.draft, Boolean(view?.self?.hexOffer)]);
   const roomSoundId = credentials && view?.pack ? packDefinition(view.pack).presentation?.soundId : undefined;
   useEffect(() => {
     setActiveSoundPack(roomSoundId);
@@ -265,11 +282,14 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
   const action=async(command:RoomAction)=>{
     const state=latestView.current;
     if(!credentials||!state?.self||busyRef.current)return;busyRef.current=true;setBusy(true);
-    const payload={...credentials,round:state.round,revision:state.self.revision,requestId:crypto.randomUUID(),action:command};pending.current=payload;
+    const payload={...credentials,round:state.round,revision:state.self.revision,requestId:newRequestId(),action:command};pending.current=payload;
+    if(command.kind==='roll'||command.kind==='reroll_hex'){unlockDraftAudio();playDiceShake();}
     if(command.kind==='move'){setMovePreview({roomId:state.id,round:state.round,revision:state.self.revision,action:command});setNotice('正在保存站位…');}
     try {const next=await request('action',payload);adopt(next);pending.current=null;setError('');
-      if(command.kind==='claim'){setDraftOpen(false);setNotice(next.self?.draftLabel??'奖励已入账');playSfx('buy');}
-      if(command.kind==='roll'){setNotice(`骰点已锁定，落点奖励不会因${terms.reroll.name}而改变`);playSfx('reroll');}
+      if(command.kind==='claim'){const landed=state.self.draft?.landing!==undefined?state.self.draft.track[state.self.draft.landing]:undefined;setDraftOpen(false);setNotice(next.self?.draftLabel??'奖励已入账');playSfx(landed?.kind==='mishap'?'place':'buy');}
+      if(command.kind==='roll'){setNotice(`骰点已锁定，落点奖励不会因${terms.reroll.name}而改变`);playDiceLand(next.self?.draft?.roll);}
+      if(command.kind==='reroll_hex'){playDiceLand((next.self?.hexOffer?.rerollsUsed ?? 0) + 1);setNotice('🎲 已掷骰换出一批同阶奇遇');}
+      if(command.kind==='pick_hex'){playSfx('buy');setNotice('✦ 已采纳本轮奇遇 Buff');}
       if(command.kind==='refresh'){playSfx('reroll');}
       if(command.kind==='move'){setNotice('站位已保存');playSfx('place');}
       if(command.kind==='withdraw'||command.kind==='equip'||command.kind==='consume'){playSfx('place');}
@@ -301,7 +321,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
     busyRef.current=true;setBusy(true);
     const beforeAll=[...state.self.board,...(state.self.bench??[])];
     const beforeIds=new Set(beforeAll.map(p=>p.id));
-    const buyPayload={...credentials,round:state.round,revision:state.self.revision,requestId:crypto.randomUUID(),action:{kind:'buy' as const,index:shopIndex}};
+    const buyPayload={...credentials,round:state.round,revision:state.self.revision,requestId:newRequestId(),action:{kind:'buy' as const,index:shopIndex}};
     pending.current=buyPayload;
     try {
       const afterBuy=await request('action',buyPayload);
@@ -324,7 +344,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
       const moveAction={kind:'move' as const,piece:created.id,row:target.row,col:target.col};
       setMovePreview({roomId:afterBuy.id,round:afterBuy.round,revision:afterBuy.self.revision,action:moveAction});
       try {
-        const afterMove=await request('action',{...credentials,round:afterBuy.round,revision:afterBuy.self.revision,requestId:crypto.randomUUID(),action:moveAction});
+        const afterMove=await request('action',{...credentials,round:afterBuy.round,revision:afterBuy.self.revision,requestId:newRequestId(),action:moveAction});
         adopt(afterMove);
         if(!merged.length)setNotice('已招募并直接上阵');
       } catch {
@@ -342,11 +362,11 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
   const [danmakuText,setDanmakuText]=useState('');
   const sayDanmaku=async()=>{
     const text=danmakuText.trim();if(!text||!credentials)return;setDanmakuText('');
-    try{adopt(await request('action',{...credentials,round:view?.round??0,revision:view?.self?.revision??0,requestId:crypto.randomUUID(),action:{kind:'danmaku',text}}));setError('');}
+    try{adopt(await request('action',{...credentials,round:view?.round??0,revision:view?.self?.revision??0,requestId:newRequestId(),action:{kind:'danmaku',text}}));setError('');}
     catch(e){setError((e as Error).message);}
   };
   const closeShop=()=>{setShopOpen(false);if(view?.self?.draft)setDraftOpen(true);};
-  /** 人退出房间 = 认输：清掉本机会话回大厅，并向旧房间发送认输。机不走这条。 */
+  /** 退出房间：独立端默认认输；宿主嵌入式可配置 preserve-seat 暂离回大厅。 */
   const leaveRoom=async()=>{
     if(busyRef.current)return;
     busyRef.current=true;
@@ -354,8 +374,8 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
     try{localStorage.removeItem(SESSION);}catch{/* 隐私模式忽略 */}
     // 换房重建整个会话：旧请求只持有已卸载实例的状态 setter。
     onSessionChange(null);
-    if(credentials&&state?.self&&state.self.hp>0&&state.phase!=='finished'){
-      try{await request('action',{...credentials,round:state.round,revision:state.self.revision,requestId:crypto.randomUUID(),action:{kind:'resign'}});}catch{/* 离开本机视图，服务端状态以重连查询为准 */}
+    if(host.features.leaveMode!=='preserve-seat'&&credentials&&state?.self&&state.self.hp>0&&state.phase!=='finished'){
+      try{await request('action',{...credentials,round:state.round,revision:state.self.revision,requestId:newRequestId(),action:{kind:'resign'}});}catch{/* 离开本机视图，服务端状态以重连查询为准 */}
     }
   };
   /** 单人开局：补路人机后进入备战。 */
@@ -363,9 +383,9 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
   const replay=useMemo(()=>replayBattle?roomPlayback(replayBattle,viewerSeat):null,[replayBattle,viewerSeat]);
   const statsBattle=playback?.battle??view?.battle;
   const statsReplay=useMemo(()=>statsBattle?roomPlayback(statsBattle,viewerSeat):null,[statsBattle,viewerSeat]);
-  const startSolo=async()=>{if(!credentials||busyRef.current)return;busyRef.current=true;setBusy(true);try{adopt(await request('start',credentials));setError('');setNotice('已补路人机，开始布阵');}catch(e){setError((e as Error).message);}finally{busyRef.current=false;setBusy(false);}};
-  if(!credentials)return <div className="lobby-viewport"><div role={error?'alert':undefined}>{error}</div>{savedSession?<div className="lobby-saved-session"><span className="saved-icon"><PixelIcon name="crown" size={15}/></span><span>检测到未完成棋局</span><button className="btn-resume" type="button" onClick={()=>setCredentials(savedSession)}>重连席位</button><button className="btn-clear" type="button" onClick={()=>{try{localStorage.removeItem(SESSION);}catch{}setSavedSession(null);}}>清除存档</button></div>:null}<Lobby packs={connection.packs} packsLoading={!configLoaded} packsError={configError} mcpUrl={connection.mcpUrl} cosmeticsSandbox={connection.cosmeticsSandbox} onRefreshPacks={refreshConfig} onPacksChanged={packs=>{configRequest.current++;setConnection(current=>({...current,packs}));setConfigError('');}} onCreate={(packId,mode)=>void create(packId,mode)}             onJoin={(invitation,joinKey)=>void joinRoom(invitation,joinKey)} onEnterRoom={(roomId,token)=>setCredentials({roomId,token})} busy={busy}/></div>;
-  if(!view)return <div className="lobby-viewport"><main className="lobby-restore-card"><p>{error||'正在恢复棋局…'}</p><p className="lobby-hint">席位还在。不要急着清掉本机凭证；连上后会自己同步。</p><button type="button" onClick={()=>{try{localStorage.removeItem(SESSION);}catch{}onSessionChange(null);}}>返回棋室入口</button></main></div>;
+  const startSolo=async()=>{if(!credentials||busyRef.current)return;busyRef.current=true;setBusy(true);try{adopt(await request('start',{...credentials,requestId:newRequestId()}));setError('');setNotice('已补路人机，开始布阵');}catch(e){setError((e as Error).message);}finally{busyRef.current=false;setBusy(false);}};
+  if(!credentials)return <div className={`lobby-viewport ${host.features.embeddedContainer?'autochess-embed':''}`.trim()}><div role={error?'alert':undefined}>{error}</div>{savedSession?<div className="lobby-saved-session"><span className="saved-icon"><PixelIcon name="crown" size={15}/></span><span>检测到未完成棋局</span><button className="btn-resume" type="button" onClick={()=>setCredentials(savedSession)}>重连席位</button><button className="btn-clear" type="button" onClick={()=>{try{localStorage.removeItem(SESSION);}catch{}setSavedSession(null);}}>清除存档</button></div>:null}<Lobby packs={connection.packs} packsLoading={!configLoaded} packsError={configError} mcpUrl={connection.mcpUrl} cosmeticsSandbox={connection.cosmeticsSandbox} onRefreshPacks={refreshConfig} onPacksChanged={packs=>{configRequest.current++;setConnection(current=>({...current,packs}));setConfigError('');}} onCreate={(packId,mode)=>void create(packId,mode)}             onJoin={(invitation,joinKey)=>void joinRoom(invitation,joinKey)} onEnterRoom={(roomId,token)=>setCredentials({roomId,token})} busy={busy}/></div>;
+  if(!view)return <div className={`lobby-viewport ${host.features.embeddedContainer?'autochess-embed':''}`.trim()}><main className="lobby-restore-card"><p>{error||'正在恢复棋局…'}</p><p className="lobby-hint">席位还在。不要急着清掉本机凭证；连上后会自己同步。</p><button type="button" onClick={()=>{try{localStorage.removeItem(SESSION);}catch{}onSessionChange(null);}}>返回棋室入口</button></main></div>;
   const displayed=previewRoomMove(view,movePreview);
   const self=displayed.self;const watching=!self;const index=view.seatIndex??0;
   const enemyIndex=view.opponentIndex ?? (view.seats.length===2 ? 1-index : undefined);
@@ -374,7 +394,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
   const equippedBoard = resolveEffectiveBoardSkin({
     sandbox,
     previewBoard: preview.board,
-    seatSkinId: roomBoardSkin(displayed),
+    seatSkinId: roomBoardSkin(displayed) ?? DEFAULT_BOARD_SKIN,
   });
   const ownFrame = resolveEffectiveFrame({
     sandbox,
@@ -385,8 +405,10 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
   const shownEnemy=playbackEnemy!==undefined?view.seats[playbackEnemy]:enemy;
   const board=playback?playback.battle.boards[index]!:own?.board??[];
   const bench=playback?playback.battle.benches[index]!:own?.bench??[];
-  const refreshPrice=self?roomRefreshPrice(self,view.round):0;
-  const editable=!!self&&self.hp>0&&!self.ready&&!playback&&view.phase!=='finished'&&!busy;
+  const liveXpBuyCost=view.pacing?.xpBuyCost??XP_BUY_COST;
+  const refreshPrice=self?roomRefreshPrice(self,view.round,view.pacing?.shopRefreshCost):0;
+  const prepUI=roomPreparationUI(displayed,!!playback,busy);
+  const editable=prepUI.editable;
   const draft=self?.draft;
   const hexOffer=self?.hexOffer;
   const finish=()=>{
@@ -403,23 +425,24 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
    const move=(piece:string,row:number,col:number)=>{void action({kind:'move',piece,row,col});setSelected(undefined);};
    const backToLobby=()=>{
      if(watching){
-       window.history.replaceState(null,'','/autochess/room');
+       window.history.replaceState(null,'',host.features.embeddedContainer?window.location.pathname:host.routes.lobby);
        try{const saved=localStorage.getItem(SESSION);setSavedSession(saved?JSON.parse(saved) as RoomCredentials:null);}catch{setSavedSession(null);}
        setCredentials(null);return;
      }
      try{localStorage.removeItem(SESSION);}catch{/* 隐私模式忽略 */}
      setSavedSession(null);setCredentials(null);
    };
-   const equipment=(id:string)=>items.find(x=>x.id===id)?.name??id;
+   const equipment=(id:string)=>findItemTemplate(id)?.name??id;
    const cleanItemHint=(id:string)=>itemHint(id).replace(/\*\*\s*|\s*\*\*/g,'').replace(/(^|[；;]\s*)\*\s*/g,'$1').trim();
-   const itemRarity=(id:string)=>items.find(x=>x.id===id)?.family??'white';
+   const itemRarity=(id:string)=>findItemTemplate(id)?.family??'white';
    const ranking=[...view.seats].map((seat,index)=>({...seat,index})).sort((a,b)=>b.hp-a.hp||a.index-b.index);
    const draftIntro=packDraftIntro(view.pack);
    const boardTiles=resolveTiles(packDraftTiles(view.pack));
    const traitCounts=self?uniqueTraitCounts(self.board):new Map<string,number>();
-   const statusEntries=self?roomStatusEntries(self,view.round):[];
+   const allPackTraits=packTraits(view.pack);
+   const statusEntries=self?roomStatusEntries(self,view.round,view.pack):[];
   // 一次性食用/使用类道具：显示「食用/使用/重铸」按钮
-  const consumeLabel=(id:string)=>items.find(x=>x.id===id)?.consume?.label;
+  const consumeLabel=(id:string)=>findItemTemplate(id)?.consume?.label;
   const playerUrl=playerMcpUrl(connection.mcpUrl);
   const inviteText=machineInvite(playerUrl,invitation);
    const pixel=packDefinition(view.pack).presentation?.renderer === 'pixel-2d';
@@ -544,9 +567,9 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
    const maxHp = view.maxHp ?? modePack(view.mode).rules.startHp;
     const roomMenu=!watching?<details className="autochess-companion room-float"><summary className={pixel?'pixel-hud-slot':undefined} aria-label="房间菜单" title="房间菜单">{pixel?<><PixelIcon name="menu" size={13}/><span className="pixel-hud-slot-label">菜单</span></>:'☰'}</summary><div className="room-actions rounded-xl border bg-white p-3 text-sm">
         <button className="room-menu-close" type="button" onClick={event=>event.currentTarget.closest('details')?.removeAttribute('open')}>收起房间菜单</button>
-        <SocialInboxTrigger variant="menu" />
-        <Feedback roomId={view.id} variant="menu" />
-        <p>{`${modePack(view.mode).name} · `}房间 {view.id} · {enemy?`对局中 · ${enemy.name}`:`等待棋友（${view.seats.length}/${view.seatCount}）`}</p>
+        {host.features.social ? <SocialInboxTrigger variant="menu" /> : null}
+        {host.features.feedback ? <Feedback roomId={view.id} variant="menu" /> : null}
+        <p>{`${modePack(view.mode).name} · `}{view.packName ?? ''} · 房间 {view.id}{view.ephemeral ? ' · 内存自研房（不存盘）' : ''} · {enemy?`对局中 · ${enemy.name}`:`等待棋友（${view.seats.length}/${view.seatCount}）`}</p>
         {view.seatIndex===0&&enemy?<><button type="button" disabled={busy||view.phase!=='prepare'||enemy.ready} onClick={async()=>{try{adopt(await request('poke',credentials!));setNotice('催促已登记；需客户端正在监听，30秒内重复点击会合并。');}catch(e){setError((e as Error).message);}}}>踹醒它</button><p role="status">{view.wake?.status} · 自动续聊需要客户端适配器正在等待</p></>:null}
         {view.seatIndex===0?<><MachineInvitePanel credentials={credentials} mcpUrl={playerUrl} canInvite={view.phase==='waiting'&&view.seats.length<(view.seatCount??2)} onNotice={setNotice}/><button className="m-1 rounded border p-2" disabled={!invitation||!playerUrl} onClick={()=>copy(inviteText,'邀请词抄好了，发给它就行')}>复制普通邀请</button><button className="m-1 rounded border p-2" disabled={!playerUrl} onClick={()=>copy(playerUrl,'MCP 地址抄好了')}>复制 MCP 地址</button><button className="m-1 rounded border p-2" disabled={!watchLink} onClick={()=>copy(watchLink,'观战链接抄好了')}>复制观战链接</button><p className="break-all">给机的 MCP：{playerUrl||'加载中…'}</p></>:null}
         {view.phase!=='finished'&&self&&self.hp>0?<button className="m-1 rounded border p-2" onClick={()=>action({kind:'resign'})}>认输结束</button>:<button className="m-1 rounded border p-2" onClick={backToLobby}>新建一局</button>}
@@ -555,7 +578,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
           <option value={NATIVE_BOARD_SKIN}>原盘·随棋谱</option>
           {SANDBOX_BOARD_OPTIONS.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
         </select></label> : null}
-        <button className="m-1 rounded border p-2" type="button" onClick={()=>void leaveRoom()}>退出房间（自动认输）</button>
+        <button className="m-1 rounded border p-2" type="button" onClick={()=>void leaveRoom()}>{host.features.leaveMode==='preserve-seat'?'暂离房间（保留席位）':'退出房间（自动认输）'}</button>
        </div></details>:null;
     const pixelHudTools = pixel ? <>
       {sandbox ? <label className="pixel-hud-board-picker" title={`实时试穿全部 ${SANDBOX_BOARD_OPTIONS.length} 套像素棋盘与联动按键皮肤`}>
@@ -569,8 +592,8 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
         <PixelIcon name={sfxMuted ? 'mute' : 'volume'} size={13} />
         <span className="pixel-hud-slot-label">{sfxMuted ? '静音' : '音效'}</span>
       </button>
-      <SocialInboxTrigger variant="pixel" />
-      <Feedback roomId={view.id} variant="pixel" />
+      {host.features.social ? <SocialInboxTrigger variant="pixel" /> : null}
+      {host.features.feedback ? <Feedback roomId={view.id} variant="pixel" /> : null}
       {roomMenu}
     </> : undefined;
     const danmakuFlying=<DanmakuStream key={view.id} messages={view.danmaku??[]} playbackRound={playback?.battle.round} covered={shopOpen} />;
@@ -610,7 +633,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
           {pixel ? <img className="pixel-versus-avatar" src={pixelAvatarImage(shownEnemy?.accountId ?? shownEnemy?.id ?? 'enemy', { bot: shownEnemy?.bot })} alt="" draggable={false} /> : <Avatar id={shownEnemy?.accountId ?? shownEnemy?.id ?? 'enemy'} frame={shownEnemy?.frame} size={30} />}
         </div>
       </div>;
-   return <main data-pack={view.pack} data-board-skin={equippedBoard || undefined} className={`room-table autochess-table mx-auto max-w-[1500px] px-3 py-3 text-[var(--ink)] ${pixel?'pixel-game':''}`}>
+   return <main data-pack={view.pack} data-board-skin={equippedBoard || undefined} className={`room-table autochess-table mx-auto max-w-[1500px] px-3 py-3 text-[var(--ink)] ${pixel?'pixel-game':''} ${host.features.embeddedContainer?'autochess-embed':''}`.trim()}>
        {!pixel?roomMenu:null}
      {!pixel?<section className={`danmaku-strip ${shopOpen?'is-covered':''}`} aria-label="弹幕">{danmakuFlying}{composer}</section>:null}
      {error?<p className="room-error" role="alert">{error} {pending.current?<button onClick={retry}>重试刚才操作</button>:null}</p>:null}
@@ -623,24 +646,59 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
     {!pixel&&self?.bounty?.bank?<p className="px-2">连败赏金 {goldAmount(terms, self.bounty.bank)} · 取胜领取，淘汰清零</p>:null}
     {!pixel&&playback?<output>正在回放第 {playback.battle.round} 轮 · 棋友可同时准备下一轮</output>:null}
     {self?.result?<RoomResult key={view.id} result={self.result} finished={view.phase==='finished'} show={!playback} onReturn={backToLobby}/>:view.phase==='finished'&&!playback?<p className="p-3 font-bold" role="status">{view.winner==='draw'?'平局':`${view.seats[view.winner??0]?.name??'对方'} 获胜`} · 棋局已保存</p>:null}
-    {!pixel&&draftOpen&&draft&&!self?.result&&!playback?<section className="room-draft" aria-label="旅途选秀">
+    {!pixel&&prepUI.offers&&draftOpen&&draft?<section className="room-draft" aria-label="旅途选秀">
       <header className="room-draft-header"><div><span className="room-draft-kicker">autochess · 一掷定缘</span><h2>旅途选秀</h2><p>每轮一次，落点已保存。领取后回到棋盘。</p></div><button onClick={()=>setDraftOpen(false)}>暂回棋盘</button></header>
       <div className="board-grid">{boardTiles.map((tile,i)=><article key={tile.id} className={`board-tile ${tile.type} ${(draft.landing??draft.position)===i?'active':''}`} style={{gridRow:tile.coordinate[0],gridColumn:tile.coordinate[1]}}><span className="tile-number">{String(i+1).padStart(2,'0')}</span><strong>{tile.name}</strong><small title={draft.track[i]?.detail}>{draft.track[i]?.label}</small></article>)}
         <div className="board-center"><span className="room-draft-state">{draft.roll===undefined?'等待掷骰':'落点已锁定 · 待领取'}</span><div className="room-dice-face" aria-label={draft.roll===undefined?'骰子':`骰点 ${draft.roll}`}>{draft.roll??'?'}</div><h3>{draft.landing===undefined?'下一站，会遇见什么？':draft.track[draft.landing]?.label}</h3><p>{draft.landing===undefined?'装备、棋子、机缘或小小意外，都在这条旅途中。':draft.track[draft.landing]?.detail}</p><button className="room-draft-primary" disabled={busy} onClick={()=>action({kind:draft.roll===undefined?'roll':'claim'})}>{busy?'正在结算…':draft.roll===undefined?'掷骰子 · 出发':draft.track[draft.landing!]?.kind==='mishap'?'接受遭遇 · 返回棋盘':'领取奖励 · 返回棋盘'}</button></div>
       </div></section>:
     <>
-    {pixel&&draftOpen&&draft&&!self?.result&&!playback?<PixelDraft draft={draft} tiles={boardTiles} terms={terms} intro={draftIntro} busy={busy} onClose={()=>setDraftOpen(false)} onAct={()=>void action({kind:draft.roll===undefined?'roll':'claim'})}/>:null}
-    {(self?.swordOffer||self?.hexOffer||self?.itemOffer)&&!self?.result&&!playback?<div className="room-offer-overlay">
+    {pixel&&prepUI.offers&&draftOpen&&draft?<PixelDraft draft={draft} tiles={boardTiles} terms={terms} intro={draftIntro} busy={busy} onClose={()=>setDraftOpen(false)} onAct={()=>void action({kind:draft.roll===undefined?'roll':'claim'})}/>:null}
+    {prepUI.offers&&!offerHidden&&(self?.swordOffer||self?.hexOffer||self?.itemOffer)?<div className="room-offer-overlay">
     {self?.swordOffer?<section className="codex-offer-card" aria-label={`开局${self.swordOffer.label}三选一`}>
-      <header className="codex-offer-header"><span className="codex-offer-badge">✦ 一掷定剑 · 命途初现 ✦</span><h2 className="font-heading text-xl">开局{self.swordOffer.label} · 三选一</h2><p className="text-sm">选一件进装备背包，选完方可就绪布阵。</p></header>
+      <header className="codex-offer-header"><div className="codex-offer-top"><span className="codex-offer-badge">✦ 一掷定剑 · 命途初现 ✦</span><button type="button" className="codex-offer-peek" onClick={()=>setOfferHidden(true)}>暂看棋盘</button></div><h2 className="font-heading text-xl">开局{self.swordOffer.label} · 三选一</h2><p className="text-sm">选一件进装备背包，选完方可就绪布阵。</p></header>
       <div className="codex-offer-grid">{self.swordOffer.choices.map(id=><button key={id} disabled={!editable} data-rarity={itemRarity(id)} className="codex-choice-card" onClick={()=>void action({kind:'pick_sword',item:id})}><span className="codex-choice-pedestal"><img className="peach-card-art" src={itemImage(id,{label:equipment(id)})} alt=""/></span><strong>{equipment(id)}</strong><p className="text-sm">{cleanItemHint(id)}</p><span className="codex-choice-cta">择此入局 ▸</span><span className="card-fleuron-corner">✦</span></button>)}</div>
     </section>:null}
-    {hexOffer?<section className="codex-offer-card" aria-label="心悟三选一">
-      <header className="codex-offer-header"><span className="codex-offer-badge">❖ 灵台顿悟 · 局势天工 ❖</span><h2 className="font-heading text-xl">心悟三选一 · {hexOffer.rarity==='orange'?'橙色神圣':hexOffer.rarity==='gold'?'金色史诗':hexOffer.rarity==='purple'?'紫色稀有':'蓝色经典'}</h2><p className="text-sm">本轮全员同一稀有度。择一精修入道。</p></header>
-      <div className="codex-offer-grid">{hexOffer.choices.map(hex=><button key={hex.id} disabled={!editable} data-rarity={hexOffer.rarity} className={`codex-choice-card rarity-${hexOffer.rarity}`} onClick={()=>action({kind:'pick_hex',hex:hex.id})}><strong>{hex.name}</strong><p className="text-sm">{hex.note}</p><span className="codex-choice-cta">领悟此道 ▸</span><span className="card-fleuron-corner">❖</span></button>)}</div>
-    </section>:null}
+    {hexOffer?(()=>{
+      const rerollsUsed=hexOffer.rerollsUsed??0;
+      const maxRerolls=hexOffer.maxRerolls??0;
+      const rerollsLeft=Math.max(0,maxRerolls-rerollsUsed);
+      const rerollCost=hexOffer.rerollCost;
+      const rarityText=hexOffer.rarityLabel??(hexOffer.rarity==='orange'?'传说奇遇':hexOffer.rarity==='purple'?'稀世奇遇':'普通奇遇');
+      const rarityShort=hexOffer.rarity==='orange'?'传说':hexOffer.rarity==='purple'?'稀世':'普通';
+      const interestInfo=self?seatInterestPreview(self,view.pacing?.interestCap??4,view.pack,view.round):{interest:0,cap:4,flat:0};
+      const interestText=interestInfo.cap<=0?`无利息 · 每轮分红 +${interestInfo.flat}`:`存款息 +${interestInfo.interest}（上限 ${interestInfo.cap}${interestInfo.flat>0?` · 另有分红 +${interestInfo.flat}`:''}）`;
+      const canReroll=editable&&rerollCost!==null&&rerollCost!==undefined&&(self?.gold??0)>=rerollCost;
+      return <section className={`codex-offer-card is-buff-offer rarity-${hexOffer.rarity}`} data-rarity={hexOffer.rarity} aria-label="旅途选秀 · 奇遇三选一">
+        <header className="codex-offer-header">
+          <div className="codex-offer-top">
+            <span className="codex-offer-badge">❖ 旅途选秀 · 全员同阶奇遇 ❖</span>
+            <button type="button" className="codex-offer-peek" onClick={()=>setOfferHidden(true)}>暂看棋盘</button>
+          </div>
+          <h2 className="font-heading text-xl">奇遇三选一 · {rarityText}</h2>
+          <p className="text-sm">第 {view.round} 轮全桌同稀有度、词条各异；择一或花费 {terms.gold.name} 掷骰重投。</p>
+        </header>
+        <div className="codex-offer-toolbar">
+          <span className="codex-offer-wallet">当前 {terms.gold.name}：<b>{self?.gold??0}</b> · {interestText}</span>
+          {maxRerolls>0?<button type="button" className="codex-offer-reroll" disabled={!canReroll} onClick={()=>void action({kind:'reroll_hex'})}>{pixel?<PixelIcon name="dice" size={13}/>:<span>🎲</span>}<span>{rerollCost===null||rerollCost===undefined?'本轮重投已用尽':(self?.gold??0)<rerollCost?`重投需 ${goldAmount(terms,rerollCost)}（余 ${rerollsLeft} 次）`:`掷骰换一批 · ${goldAmount(terms,rerollCost)}（余 ${rerollsLeft} 次）`}</span></button>:null}
+        </div>
+        <div className="codex-offer-grid">{hexOffer.choices.map(hex=>{
+          const cat=hex.category??'combat';
+          const catLabel=hex.categoryLabel??(cat==='economy'?'运营':cat==='artifact'?'奇物':'战力');
+          return <button key={hex.id} type="button" disabled={!editable} data-rarity={hexOffer.rarity} data-category={cat} className={`codex-choice-card is-buff-choice rarity-${hexOffer.rarity}`} onClick={()=>void action({kind:'pick_hex',hex:hex.id})}>
+            <div className="codex-choice-tags">
+              <span className={`codex-cat-pill is-${cat}`}>{catLabel}</span>
+              <span className="codex-rarity-pill">{rarityShort}</span>
+            </div>
+            <strong>{hex.name}</strong>
+            <p className="text-sm">{hex.note}</p>
+            <span className="codex-choice-cta">择此奇遇 ▸</span>
+            <span className="card-fleuron-corner">❖</span>
+          </button>;
+        })}</div>
+      </section>;
+    })():null}
     {self?.itemOffer?<section className="codex-offer-card" aria-label="装备宝箱多选一">
-      <header className="codex-offer-header"><span className="codex-offer-badge">✧ 灵宝锦囊 · 奇门遁甲 ✧</span><h2 className="font-heading text-xl">装备宝箱 · 从 {(self.itemOffer.boxes[self.itemOffer.boxIndex]??[]).length} 件里选 1</h2><p className="text-sm">还剩 {self.itemOffer.boxes.length-self.itemOffer.boxIndex} 箱待启封。</p></header>
+      <header className="codex-offer-header"><div className="codex-offer-top"><span className="codex-offer-badge">✧ {self.itemOffer.source} · 装备补给 ✧</span><button type="button" className="codex-offer-peek" onClick={()=>setOfferHidden(true)}>暂看棋盘</button></div><h2 className="font-heading text-xl">装备三选一 · 从 {(self.itemOffer.boxes[self.itemOffer.boxIndex]??[]).length} 件里选 1</h2><p className="text-sm">还剩 {self.itemOffer.boxes.length-self.itemOffer.boxIndex} 箱待启封。</p></header>
       <div className="codex-offer-grid">{(self.itemOffer.boxes[self.itemOffer.boxIndex]??[]).map(id=><button key={id} disabled={!editable} data-rarity={itemRarity(id)} className="codex-choice-card" onClick={()=>void action({kind:'pick_item',item:id})}><span className="codex-choice-pedestal"><img className="peach-card-art" src={itemImage(id,{label:equipment(id)})} alt=""/></span><strong>{equipment(id)}</strong><p className="text-sm">{cleanItemHint(id)}</p><span className="codex-choice-cta">收入行囊 ▸</span><span className="card-fleuron-corner">✧</span></button>)}</div>
     </section>:null}
     </div>:null}
@@ -663,7 +721,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
            <span className="room-ranking-hp"><i style={{width:`${Math.max(0,Math.min(100,seat.hp/maxHp*100))}%`}}/><b>{seat.hp}</b></span>
          </div>)}
        </div>
-       {self ? <div className="room-ranking-self" aria-label={`我的${terms.level.name}与${terms.level.shop}`}><span>{terms.level.name} {levelLabel(terms, self.level??START_LEVEL)}</span><span>{terms.level.xp} {self.xp??0}/{xpNext??'MAX'}</span><span>{terms.level.shop} {shopMaxCostForLevel(self.level??START_LEVEL)}费</span><span>{terms.level.upgrade} {goldAmount(terms, XP_BUY_COST)}</span></div> : null}
+       {self ? <div className="room-ranking-self" aria-label={`我的${terms.level.name}与${terms.level.shop}`}><span>{terms.level.name} {levelLabel(terms, self.level??START_LEVEL)}</span><span>{terms.level.xp} {self.xp??0}/{xpNext??'MAX'}</span><span>{terms.level.shop} {shopMaxCostForLevel(self.level??START_LEVEL)}费</span><span>{terms.level.upgrade} {goldAmount(terms, liveXpBuyCost)}</span></div> : null}
      </aside>} information={<aside className="room-sidepanel" aria-label="棋局信息">
        <div className="room-side-tabs">
          {pixel ? <button className={activeRightTab==='unit'?'is-active':''} onClick={()=>setRightTab('unit')}><PixelIcon name="star" size={11}/>棋子</button> : null}
@@ -677,7 +735,36 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
            dockedPiece ? <UnitInspector docked piece={dockedPiece} board={isOwnPiece(dockedPiece)?board:enemyBoardPieces} side={isOwnPiece(dockedPiece)?'left':'right'} owner={isOwnPiece(dockedPiece)?'己方':(shownEnemy?.name??'对方')} replaying={!!playback} onClose={activeInspected?()=>setInspectedPieceId(null):undefined} onUnequip={editable&&isOwnPiece(dockedPiece)?(itemId)=>{void action({kind:'unequip',piece:dockedPiece.id,item:itemId});}:undefined} actions={renderInspectorActions(dockedPiece)} terms={terms} />
            : <div className="pixel-empty-pane"><PixelIcon name="star" size={18}/><p>点击棋盘或备战席上的棋子，即可在此检视属性、技能与装备。</p></div>
          ) : activeRightTab==='battle' ? <BattleStats output={statsReplay?.output} timeMs={playback?.time??statsReplay?.output.durationMs??0} running={!!playback} round={statsBattle?.round} opponent={statsReplay?view.seats[statsReplay.opponent]?.name:undefined}/>
-         : activeRightTab==='traits' ? <div className="room-trait-list">{[...traitCounts.entries()].map(([id,count])=>{const trait=findTrait(id);if(!trait)return null;const tier=activeTier(trait,count);return <div className={`room-trait-row ${tier?'is-active':''}`} key={id}><span>{trait.name}</span><b>{count}</b><small>{tier?`激活 ${tier}`:'未激活'}</small></div>})}{!traitCounts.size?<p>暂无上场羁绊，拖动备战棋子上阵即可激活。</p>:null}</div>
+         : activeRightTab==='traits' ? (()=>{
+           const fieldedRows = [...traitCounts.entries()]
+             .map(([id, count]) => ({ trait: findTrait(id), id, count }))
+             .filter((entry): entry is { trait: NonNullable<ReturnType<typeof findTrait>>; id: string; count: number } => Boolean(entry.trait))
+             .sort((a, b) => (activeTier(b.trait, b.count) ? 1 : 0) - (activeTier(a.trait, a.count) ? 1 : 0) || b.count - a.count);
+           const unfieldedTraits = allPackTraits.filter((t) => !traitCounts.has(t.id));
+           return <div className="room-trait-list">
+             {fieldedRows.map(({ id, trait, count }) => {
+               const tier = activeTier(trait, count);
+               const next = nextTier(trait, count);
+               return <div className={`room-trait-row ${tier ? 'is-active' : ''}`} key={id}>
+                 <span>{trait.name}</span>
+                 <b>{next ? `${count}/${next}` : count}</b>
+                 <small className="room-trait-status">{tier ? `已激活 ${tier}阶` : next ? `还差 ${next - count} 激活` : '未激活'}</small>
+                 <small className="room-trait-ladders">{trait.ladders}</small>
+               </div>;
+             })}
+             {!fieldedRows.length ? <p>暂无上场羁绊，拖动备战棋子上阵即可激活。</p> : null}
+             {unfieldedTraits.length ? <details className="room-trait-codex" open={!fieldedRows.length}>
+               <summary>本局全部未上场羁绊（{unfieldedTraits.length}）</summary>
+               <div className="room-trait-codex-list">
+                 {unfieldedTraits.map((trait) => <div className="room-trait-row is-inactive" key={trait.id}>
+                   <span>{trait.name}</span>
+                   <b>0/{trait.tiers[0] ?? 2}</b>
+                   <small className="room-trait-ladders">{trait.ladders}</small>
+                 </div>)}
+               </div>
+             </details> : null}
+           </div>;
+         })()
          : activeRightTab==='items' ? <div className="room-item-list">{equippedTabTarget&&equippedTabTarget.itemIds.length?<div className="pixel-bag-equipped-group"><div className="pixel-bag-equipped-head">已装在「{findUnit(equippedTabTarget.templateId)?.name??equippedTabTarget.templateId}」身上</div>{equippedTabTarget.itemIds.map((id,i)=><div className="pixel-bag-equipped-card" key={`eq-${equippedTabTarget.id}-${id}-${i}`}><img className="peach-card-art" src={itemImage(id,{label:equipment(id),pixel})} alt="" draggable={false}/><div><strong>{equipment(id)}</strong><small>{cleanItemHint(id)}</small></div><button type="button" disabled={!editable} onClick={()=>void action({kind:'unequip',piece:equippedTabTarget.id,item:id})}>卸下</button></div>)}</div>:null}{self?.inventory?.map((id,i)=>{const interact=makeItemInteract(id,i);const armed=activePendingItem?.index===i&&activePendingItem.id===id;return <button type="button" key={`${id}-${i}`} className={`pixel-bag-card ${armed?'is-armed':''}`} disabled={!editable} {...interact}><img className="peach-card-art" src={itemImage(id,{label:equipment(id),pixel})} alt="" draggable={false}/><div><strong>{equipment(id)}<em>{consumeLabel(id)??(armed?'待选目标':'拖动/点击装配')}</em></strong><small>{cleanItemHint(id)}</small></div></button>;})}{!self?.inventory?.length&&!equippedTabTarget?.itemIds.length?<p>暂无待装配装备</p>:null}</div>
          : <div className="room-status-list">{statusEntries.map(entry=><div className={`room-status-entry is-${entry.tone}`} key={entry.id}><strong>{entry.title}</strong><small>{entry.detail}</small></div>)}{!statusEntries.length?<p>当前没有额外状态</p>:null}{pixel&&view.log.length?<div className="pixel-side-log"><strong>近期纪要</strong>{view.log.slice(-6).reverse().map((line,i)=><p key={i}>{line}</p>)}</div>:null}</div>}
        </div>
@@ -693,12 +780,12 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
       selectedId={selected} onCell={(row,col)=>{if(!editable)return;const cellPiece=board.find(p=>p.localRow===row&&p.localCol===col);if(activePendingItem&&cellPiece){applyItemToPiece(activePendingItem.id,cellPiece);return;}if(activePendingItem&&!cellPiece){setPendingItem(null);return;}if(selected&&cellPiece?.id===selected){setSelected(undefined);setInspectedPieceId(cellPiece.id);return;}if(selected)move(selected,row,col);else setSelected(cellPiece?.id);}}
       onBench={id=>{if(!editable)return;const benchPiece=bench.find(p=>p.id===id);if(activePendingItem&&benchPiece){applyItemToPiece(activePendingItem.id,benchPiece);return;}setSelected(id===selected?undefined:id);}} onWithdraw={()=>{if(editable&&selected)void action({kind:'withdraw',piece:selected});}}
       onDrop={(source,target)=>{if(!editable)return;if(target.kind==='cell')move(source.id,target.row,target.col);else void action({kind:target.kind==='sell'?'sell':'withdraw',piece:source.id});}}
-      notice={notice} onInspect={()=>setShopOpen(false)} onDismiss={()=>setShopOpen(false)} shopOpen={shopOpen&&!!self&&!playback} shopEnabled={!!self&&!playback&&view.phase!=='finished'} onShopToggle={()=>shopOpen?closeShop():setShopOpen(true)}
-      controls={playback?<button className={pixel?'pixel-primary':undefined} onClick={finish}>{pixel?<PixelIcon name="play" size={13}/>:null}跳过战斗</button>:watching?<><span>实时观战</span><button onClick={backToLobby}>返回大厅</button></>:view.phase==='finished'||self?.hp===0?<><button onClick={backToLobby}>新建一局</button><button onClick={()=>void leaveRoom()}>返回大厅</button></>:view.phase==='waiting'?<>{view.seatIndex===0?<button className={pixel?'pixel-primary':undefined} disabled={busy} onClick={()=>void startSolo()}>补路人机开局</button>:<span>等待房主开局</span>}</>:<>{draft?<button className={pixel?'pixel-draft-cta':undefined} onClick={()=>{setDraftOpen(true);setShopOpen(false);}}>{pixel?<PixelIcon name="dice" size={13}/>:null}<span>前往旅途选秀</span></button>:null}<button className={pixel?`pixel-primary ${self.ready?'is-ready':''}`:undefined} disabled={busy||!!playback||view.phase!=='prepare'||(!self.ready&&(!editable||!self.board.length||!!draft||!!self.swordOffer||!!self.hexOffer||!!self.itemOffer))} onClick={()=>action({kind:self.ready?'unready':'ready'})}>{pixel?<PixelIcon name="sword" size={14}/>:null}<span>{self.swordOffer?`先选${self.swordOffer.label}`:self.hexOffer?'先选心悟':self.itemOffer?'先选宝箱':draft?'先完成选秀':self.ready?'已就绪 · 撤回':'就绪开战'}</span></button></>}
+      notice={notice || (view.phase === 'waiting' ? waitingStartHint(view.seatIndex === 0, view.seats.length < (view.seatCount ?? 2)) : '')} onInspect={()=>setShopOpen(false)} onDismiss={()=>setShopOpen(false)} shopOpen={shopOpen&&prepUI.shop} shopEnabled={prepUI.shop} onShopToggle={()=>shopOpen?closeShop():setShopOpen(true)}
+      controls={playback?<button className={pixel?'pixel-primary':undefined} onClick={finish}>{pixel?<PixelIcon name="play" size={13}/>:null}跳过战斗</button>:watching?<><span>实时观战</span><button onClick={backToLobby}>返回大厅</button></>:view.phase==='finished'||self?.hp===0?<><button onClick={backToLobby}>新建一局</button><button onClick={()=>void leaveRoom()}>返回大厅</button></>:view.phase==='waiting'?<>{view.seatIndex===0?<button className={pixel?'pixel-primary':undefined} disabled={busy} onClick={()=>void startSolo()}>补路人机开局</button>:<span>等待房主开局</span>}</>:<>{draft?<button className={pixel?'pixel-draft-cta':undefined} onClick={()=>{unlockDraftAudio();setDraftOpen(true);setShopOpen(false);playSfx('ui');}}>{pixel?<PixelIcon name="dice" size={13}/>:null}<span>前往旅途选秀</span></button>:null}{offerHidden&&(self?.hexOffer||self?.itemOffer||self?.swordOffer)?<button className={pixel?'pixel-draft-cta':undefined} onClick={()=>{unlockDraftAudio();setOfferHidden(false);setShopOpen(false);playSfx('ui');}}>{pixel?<PixelIcon name="dice" size={13}/>:null}<span>{self.hexOffer?'返回旅途选秀':self.itemOffer?'打开装备宝箱':`选择${self.swordOffer!.label}`}</span></button>:null}<button className={pixel?`pixel-primary ${self.ready?'is-ready':''}`:undefined} disabled={busy||!!playback||view.phase!=='prepare'||(!self.ready&&(!editable||!self.board.length||!!draft||!!self.swordOffer||!!self.hexOffer||!!self.itemOffer))} onClick={()=>action({kind:self.ready?'unready':'ready'})}>{pixel?<PixelIcon name="sword" size={14}/>:null}<span>{self.swordOffer?`先选${self.swordOffer.label}`:self.hexOffer?'先选奇遇':self.itemOffer?'先选宝箱':draft?'先完成选秀':self.ready?'已就绪 · 撤回':'就绪开战'}</span></button></>}
       inventory={<><strong>{pixel?<PixelIcon name="bag" size={12}/>:null}背包 · {self?.inventory?.length??0}</strong>{equippedBarTarget?.itemIds.map((id,i)=><button type="button" key={`equipped-${equippedBarTarget.id}-${id}-${i}`} className="is-equipped" data-rarity={itemRarity(id)} title={`点击从「${findUnit(equippedBarTarget.templateId)?.name??equippedBarTarget.templateId}」卸下「${equipment(id)}」`} disabled={!editable} onClick={()=>void action({kind:'unequip',piece:equippedBarTarget.id,item:id})}><img className="peach-card-art" src={itemImage(id,{label:equipment(id),pixel})} alt="" draggable={false}/><span>{equipment(id)}</span><em>卸下</em></button>)}{self?.inventory?.map((id,i)=>{const interact=makeItemInteract(id,i);const armed=activePendingItem?.index===i&&activePendingItem.id===id;return <button type="button" key={`${id}-${i}`} className={armed?'is-armed':undefined} data-rarity={itemRarity(id)} title={`${cleanItemHint(id)}（拖到棋子身上或点击装配）`} disabled={!editable||(pixel?false:!selected)} {...(pixel?interact:{onClick:()=>selected&&action({kind:consumeLabel(id)?'consume':'equip',piece:selected,item:id})})}><img className="peach-card-art" src={itemImage(id,{label:equipment(id),pixel})} alt="" draggable={false}/><span>{equipment(id)}</span></button>;})}{!self?.inventory?.length&&!equippedBarTarget?.itemIds.length?<p>{watching?'仅棋手可见':'空槽 · 战后掉落'}</p>:null}</>}
       inspectorActions={renderInspectorActions}
       onUnequipPiece={(pieceId,itemId)=>{void action({kind:'unequip',piece:pieceId,item:itemId});}}
-       topPanel={(pixel||shopOpen)&&self&&(pixel||!playback)&&view.phase!=='finished'?<div className="peach-shop" role="dialog" aria-label={`房间战后${terms.level.shop}`}>
+       topPanel={(pixel||shopOpen)&&self&&(prepUI.shop||(pixel&&view.phase==='waiting'))?<div className="peach-shop" role="dialog" aria-label={`房间战后${terms.level.shop}`}>
          <header>
            <div className="peach-shop-title">
              {pixel?<PixelIcon name="bag" size={14}/>:null}
@@ -708,7 +795,7 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
              {self.shopBanUntil&&self.shopBanUntil>=view.round?<em className="pixel-shop-ban">养精蓄锐 · 禁购</em>:null}
            </div>
            <span className="peach-shop-actions">
-             <button disabled={!editable||self.gold!<XP_BUY_COST||xpNext===null} onClick={()=>action({kind:'buy_xp'})}>{pixel?<PixelIcon name="bolt" size={11}/>:null}{terms.level.upgrade}{pixel&&xpNext!==null?` (${self.xp??0}/${xpNext})`:''} · {goldAmount(terms, XP_BUY_COST)}</button>
+             <button disabled={!editable||self.gold!<liveXpBuyCost||xpNext===null} onClick={()=>action({kind:'buy_xp'})}>{pixel?<PixelIcon name="bolt" size={11}/>:null}{terms.level.upgrade}{pixel&&xpNext!==null?` (${self.xp??0}/${xpNext})`:''} · {goldAmount(terms, liveXpBuyCost)}</button>
              <button disabled={!editable||self.gold!<refreshPrice||!self.shop.length} onClick={()=>action({kind:'refresh'})}>{pixel?<PixelIcon name="refresh" size={11}/>:null}{terms.reroll.name} · {goldAmount(terms, refreshPrice)}</button>
              {!pixel?<button onClick={closeShop}>收起{terms.level.shop}</button>:null}
            </span>
@@ -778,8 +865,8 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
            })}
            {!self.shop.length ? (pixel ? <>
              {Array.from({length: 5}, (_, i) => <div key={i} className="pixel-card-slot" aria-hidden="true"><i>✦</i></div>)}
-             <p className="pixel-locked-banner">✦ 首轮交锋结束后开放{terms.level.shop} ✦</p>
-           </> : <p>第一轮战斗结束后开放{terms.level.shop}。</p>) : null}
+             <p className="pixel-locked-banner">✦ {view.phase==='waiting'?waitingStartHint(view.seatIndex===0,view.seats.length<(view.seatCount??2)):`首轮交锋结束后开放${terms.level.shop}`} ✦</p>
+           </> : <p>{view.phase==='waiting'?waitingStartHint(view.seatIndex===0,view.seats.length<(view.seatCount??2)):`第一轮战斗结束后开放${terms.level.shop}。`}</p>) : null}
          </div>
        </div>:null}/>
      </div>
@@ -791,7 +878,14 @@ function RoomApp({initialCredentials,onSessionChange}: {initialCredentials: Room
   </main>;
 }
 
+export { RoomApp };
+
 export default function RoomPage() {
+  const host = useAutochessHost();
   const [session,setSession]=useState<{version:number;credentials:RoomCredentials|null|undefined}>({version:0,credentials:undefined});
-  return <><EchoBanner /><SocialInbox onEnterRoom={credentials=>{try{localStorage.setItem(SESSION,JSON.stringify(credentials));}catch{}window.history.replaceState(null,'',window.location.pathname);setSession(old=>({version:old.version+1,credentials}));}}><RoomCrashFence key={session.version}><RoomApp initialCredentials={session.credentials} onSessionChange={credentials=>setSession(old=>old.version===session.version?{version:old.version+1,credentials}:old)} /></RoomCrashFence></SocialInbox></>;
+  const roomNode = <RoomCrashFence key={session.version}><RoomApp initialCredentials={session.credentials} onSessionChange={credentials=>setSession(old=>old.version===session.version?{version:old.version+1,credentials}:old)} /></RoomCrashFence>;
+  return <>
+    {host.features.echoScope !== 'none' ? <EchoBanner /> : null}
+    {host.features.social ? <SocialInbox onEnterRoom={credentials=>{try{localStorage.setItem(SESSION,JSON.stringify(credentials));}catch{}window.history.replaceState(null,'',window.location.pathname);setSession(old=>({version:old.version+1,credentials}));}}>{roomNode}</SocialInbox> : roomNode}
+  </>;
 }

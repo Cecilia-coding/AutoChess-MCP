@@ -1,5 +1,15 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
+import {
+  DRAFT_DICE_FILES,
+  playDiceLand,
+  playDiceShake,
+  preloadDraftDiceAudio,
+  selectDiceLandCue,
+  unlockDraftAudio,
+} from '../lib/autochess/draft-sfx';
 import type { BattleOutput } from '../lib/autochess/types';
 import {
   consumeBattleAudioEvents,
@@ -195,4 +205,30 @@ test('every declared pack mounts its own valid sound pack and covers all 21 cues
   assert.equal(getActiveSoundPackId(), 'jianghu-sound');
   setActiveSoundPack(undefined);
   assert.equal(getActiveSoundPackId(), undefined);
+});
+
+test('draft dice SFX catalog maps to valid RIFF WAVE assets and cycles land variants cleanly', () => {
+  const publicDir = path.resolve(process.cwd(), 'public');
+  for (const [key, relPath] of Object.entries(DRAFT_DICE_FILES)) {
+    const filePath = path.join(publicDir, relPath.replace(/^\//, ''));
+    assert.equal(fs.existsSync(filePath), true, `missing draft dice asset for ${key}: ${filePath}`);
+    const bytes = fs.readFileSync(filePath);
+    assert.ok(bytes.byteLength > 8000, `${key} audio too small: ${bytes.byteLength} bytes`);
+    assert.equal(bytes.subarray(0, 4).toString('ascii'), 'RIFF', `${key} should start with RIFF header`);
+    assert.equal(bytes.subarray(8, 12).toString('ascii'), 'WAVE', `${key} should declare WAVE format`);
+  }
+
+  for (let roll = 1; roll <= 6; roll++) {
+    const first = selectDiceLandCue(roll);
+    assert.ok(first === 'land1' || first === 'land2' || first === 'land3');
+    const rotated = selectDiceLandCue(roll, first);
+    assert.notEqual(rotated, first, `same roll=${roll} should avoid repeating ${first}`);
+  }
+
+  assert.doesNotThrow(() => {
+    preloadDraftDiceAudio();
+    unlockDraftAudio();
+    playDiceShake();
+    playDiceLand(6);
+  });
 });

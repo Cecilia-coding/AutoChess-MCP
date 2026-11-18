@@ -42,38 +42,75 @@ export class EchoTreeStore {
     return event;
   }
 
+  private visibleEvents(viewerIds?: readonly string[], includePublic = true): EchoEvent[] {
+    if (!viewerIds) return this.events.filter(event => event.scope !== 'private');
+    const viewers = new Set(viewerIds);
+    return this.events.filter(event => {
+      if (event.scope !== 'private') return includePublic;
+      if (event.audienceIds?.length) return event.audienceIds.some(id => viewers.has(id));
+      return viewers.has(event.from.id) || viewers.has(event.to.id);
+    });
+  }
+
   /** 最近 N 条（新在前）。 */
-  recent(count = 40): EchoEvent[] {
+  recent(count = 40, viewerIds?: readonly string[]): EchoEvent[] {
     const n = Math.max(1, Math.min(200, Math.floor(count)));
-    return [...this.events].sort((a, b) => b.at - a.at || a.id.localeCompare(b.id)).slice(0, n);
+    return [...this.visibleEvents(viewerIds)].sort((a, b) => b.at - a.at || a.id.localeCompare(b.id)).slice(0, n);
   }
 
   /** Current tail ID: clients can subscribe from here without replaying old notices. */
-  latestId(): string | null { return this.events.at(-1)?.id ?? null; }
+  latestId(viewerIds?: readonly string[]): string | null {
+    return this.visibleEvents(viewerIds).at(-1)?.id ?? null;
+  }
 
   /**
    * Stable pagination in publication order. A null cursor starts at the oldest retained event.
    * If the cursor has fallen outside the retention window, replay retained events and let
    * the caller deduplicate by event ID instead of silently skipping them.
    */
-  pageAfter(afterId: string | null, count = 40): EchoPage {
+  pageAfter(afterId: string | null, count = 40, viewerIds?: readonly string[]): EchoPage {
+    const list = this.visibleEvents(viewerIds);
     const n = Math.max(1, Math.min(200, Math.floor(count)));
-    const index = afterId === null ? -1 : this.events.findIndex(event => event.id === afterId);
+    const index = afterId === null ? -1 : list.findIndex(event => event.id === afterId);
     const cursorReset = afterId !== null && index < 0;
     const start = index < 0 ? 0 : index + 1;
-    const events = this.events.slice(start, start + n);
+    const events = list.slice(start, start + n);
     return {
       events,
-      nextId: events.at(-1)?.id ?? (cursorReset ? this.latestId() : afterId),
-      hasMore: start + events.length < this.events.length,
+      nextId: events.at(-1)?.id ?? (cursorReset ? (list.at(-1)?.id ?? null) : afterId),
+      hasMore: start + events.length < list.length,
       ...(cursorReset ? { cursorReset: true } : {}),
     };
   }
 
   /** 拉取更新的事件（新在前）；`after` = 上次看到的毫秒时间。调用方按 id 去重。 */
-  since(after: number, count = 40): EchoEvent[] {
+  since(after: number, count = 40, viewerIds?: readonly string[]): EchoEvent[] {
     const n = Math.max(1, Math.min(200, Math.floor(count)));
-    return this.events.filter(event => event.at >= after).sort((a, b) => b.at - a.at).slice(0, n);
+    return this.visibleEvents(viewerIds).filter(event => event.at >= after).sort((a, b) => b.at - a.at).slice(0, n);
+  }
+
+  /** 按指定账号视野（人 + 绑定机）读取可见回音树事件（含私人礼笺）。 */
+  forAccounts(accountIds: readonly string[], query: { afterId?: string | null; since?: number; limit?: number; includePublic?: boolean } = {}): EchoPage | EchoEvent[] {
+    const limit = query.limit ?? 20;
+    const includePublic = query.includePublic ?? true;
+    const list = this.visibleEvents(accountIds, includePublic);
+    if (query.afterId !== undefined) {
+      const n = Math.max(1, Math.min(200, Math.floor(limit)));
+      const index = query.afterId === null ? -1 : list.findIndex(event => event.id === query.afterId);
+      const cursorReset = query.afterId !== null && index < 0;
+      const start = index < 0 ? 0 : index + 1;
+      const events = list.slice(start, start + n);
+      return {
+        events,
+        nextId: events.at(-1)?.id ?? (cursorReset ? (list.at(-1)?.id ?? null) : query.afterId),
+        hasMore: start + events.length < list.length,
+        ...(cursorReset ? { cursorReset: true } : {}),
+      };
+    }
+    const n = Math.max(1, Math.min(200, Math.floor(limit)));
+    return query.since === undefined
+      ? [...list].sort((a, b) => b.at - a.at || a.id.localeCompare(b.id)).slice(0, n)
+      : list.filter(event => event.at >= query.since!).sort((a, b) => b.at - a.at).slice(0, n);
   }
 
   size() { return this.events.length; }

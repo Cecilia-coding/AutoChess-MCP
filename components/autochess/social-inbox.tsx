@@ -2,13 +2,14 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { SocialInvite, SocialSnapshot } from '@/lib/autochess/social-types';
 import type { RoomCredentials } from '@/lib/autochess/room-types';
-import { accountRequest } from './room-request';
+import { useHostRequests } from './host-context';
 import { readAccountToken } from './account-session';
 import { PixelIcon } from './pixel-ui/pixel-icon';
 import { PixelSprite } from './pixel-ui/pixel-sprite';
 import './social-inbox.css';
 
 export function useSocialInbox(enabled = true) {
+  const { accountRequest } = useHostRequests();
   const [data, setData] = useState<SocialSnapshot | null>(null);
   const [error, setError] = useState('');
   useEffect(() => {
@@ -33,7 +34,7 @@ export function useSocialInbox(enabled = true) {
     window.addEventListener('chess-account-change', changed); window.addEventListener('storage', changed);
     document.addEventListener('visibilitychange', visible);
     return () => { stopped = true; clearInterval(timer); window.removeEventListener('chess-account-change', changed); window.removeEventListener('storage', changed); document.removeEventListener('visibilitychange', visible); };
-  }, [enabled]);
+  }, [enabled, accountRequest]);
   return { data, error };
 }
 
@@ -101,6 +102,7 @@ export default function SocialInbox({
   onEnterRoom: (seat: RoomCredentials) => void;
   children?: ReactNode;
 }) {
+  const { accountRequest } = useHostRequests();
   const { data, error: loadError } = useSocialInbox();
   const [open, setOpen] = useState(false), [busy, setBusy] = useState(''), [error, setError] = useState('');
   const [handled, setHandled] = useState<string[]>([]);

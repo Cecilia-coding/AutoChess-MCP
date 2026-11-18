@@ -1,26 +1,45 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
-
+import { AUTOCHESS_PLATFORM_PROTOCOL_VERSION } from '../meta/host-config';
 import { parseCompanionPlan } from './companion';
+import {
+  decodePlatformDisplayName,
+  parsePlatformActorType,
+  parsePlatformHousehold,
+  platformIdentity,
+  verifyPlatformSecret,
+  type PlatformActorType,
+  type PlatformHouseholdMember,
+  type PlatformIdentity,
+  type PlatformIdentityInput,
+} from './platform-identity';
+import {
+  PLATFORM_WORLD_ACTIONS,
+  type PlatformUiRequest,
+  type PlatformWorldAction,
+  type PlatformWorldBridge,
+} from './platform-world';
 import { playerRoomMutationReply, playerRoomReply, type PlayerReplyOptions } from './room-mcp';
 import type { RoomStore, SeatOwner } from './room-store';
 import type { RoomAction, RoomCredentials } from './room-types';
 
-export type PlatformIdentityInput = {
-  provider?: string;
-  playerId: string;
-  displayName?: string;
+export const PLATFORM_ADAPTER_VERSION = AUTOCHESS_PLATFORM_PROTOCOL_VERSION;
+export {
+  decodePlatformDisplayName,
+  parsePlatformActorType,
+  parsePlatformHousehold,
+  platformIdentity,
+  verifyPlatformSecret,
+  type PlatformActorType,
+  type PlatformHouseholdMember,
+  type PlatformIdentity,
+  type PlatformIdentityInput,
 };
-
-export type PlatformIdentity = PlatformIdentityInput & {
-  provider: string;
-  displayName: string;
-  owner: SeatOwner;
-};
+export { createPlatformWorldBridge, PLATFORM_WORLD_ACTIONS, type PlatformUiRequest, type PlatformWorldBridge } from './platform-world';
 
 type Params = Record<string, unknown>;
 
 const requestIdPattern = /^[A-Za-z0-9_-]{8,80}$/;
 const roomIdPattern = /^[a-f0-9]{12}$/;
+const WORLD_ACTION_SET = new Set<string>(PLATFORM_WORLD_ACTIONS);
 
 const fail = (message: string): never => { throw new Error(message); };
 
@@ -47,41 +66,6 @@ function paramsOf(value: unknown): Params {
 
 function aliased(params: Params, camel: string, snake: string): unknown {
   return params[camel] ?? params[snake];
-}
-
-/** Constant-time comparison for the loopback satellite secret. An empty secret disables the endpoint. */
-export function verifyPlatformSecret(expected: string | undefined, actual: string | undefined): boolean {
-  if (!expected || !actual) return false;
-  const left = Buffer.from(expected);
-  const right = Buffer.from(actual);
-  return left.length === right.length && timingSafeEqual(left, right);
-}
-
-/** HTTP field values stay ASCII; platforms percent-encode UTF-8 display names. */
-export function decodePlatformDisplayName(value: string | undefined): string | undefined {
-  if (!value) return undefined;
-  try { return decodeURIComponent(value); }
-  catch { return fail('X-Player-Name 编码无效'); }
-}
-
-/**
- * Turn a platform-owned identity into an opaque local seat owner.
- * Raw platform IDs remain outside room saves while account/guest/slot identities stay isolated.
- */
-export function platformIdentity(input: PlatformIdentityInput): PlatformIdentity {
-  const provider = (input.provider?.trim().toLowerCase() || 'cedartoy');
-  if (!/^[a-z0-9][a-z0-9_-]{0,31}$/.test(provider)) fail('平台标识无效');
-  const playerId = text(input.playerId, 'X-Player-Id', 128);
-  if (/\p{Cc}/u.test(playerId)) fail('X-Player-Id 无效');
-  const fallbackName = playerId.startsWith('guest:') ? 'CEDAR 游客' : `CEDAR 棋手 ${playerId.slice(-12)}`;
-  const displayName = (input.displayName?.trim().replace(/\s+/g, ' ').slice(0, 49) || fallbackName);
-  const digest = createHash('sha256').update(`${provider}\0${playerId}`).digest('hex').slice(0, 32);
-  return {
-    provider,
-    playerId,
-    displayName,
-    owner: { accountId: `platform:${provider}:${digest}`, accountName: displayName },
-  };
 }
 
 function readOptions(params: Params, entryGuide = false): PlayerReplyOptions {
@@ -136,13 +120,16 @@ function rewriteHint(value: unknown, roomId: string): unknown {
   const source = value as Record<string, unknown>;
   const out: Record<string, unknown> = {};
   for (const [key, entry] of Object.entries(source)) {
-    if (['token', 'accountToken', 'watchToken', 'password', 'optionalAction', 'feedbackAction', 'echoGuide', 'giftHistoryGuide', 'giftGuide', 'matchGuide'].includes(key)) continue;
+    if (['token', 'accountToken', 'watchToken', 'password', 'accountId', 'actorKey', 'actorType', 'activeAt', 'accountName', 'optionalAction', 'feedbackAction', 'echoGuide', 'giftHistoryGuide', 'giftGuide', 'matchGuide'].includes(key)) continue;
     if (key === 'fill' && Array.isArray(entry)) {
       out.fill = entry.filter(item => item !== 'token' && item !== 'accountToken' && item !== 'roomId')
         .map(item => typeof item === 'string' ? `params.${item}` : item);
       continue;
     }
     out[key] = rewriteHint(entry, roomId);
+  }
+  if (source.tool === 'wait') {
+    out.reason = '等待仅在当前请求内有效；不能在请求结束后唤醒客户端。使用 fallback 读取变化。';
   }
   if (typeof source.tool === 'string' && ['join_room', 'read_turn', 'wait_turn', 'act'].includes(source.tool)) {
     const action = source.tool === 'join_room' ? 'join' : source.tool === 'act' ? 'act' : 'read';
@@ -155,34 +142,114 @@ function rewriteHint(value: unknown, roomId: string): unknown {
   return out;
 }
 
+export type PlatformPlayOptions = {
+  household?: SeatOwner[];
+  householdMembers?: readonly PlatformHouseholdMember[];
+};
+
 /** Root-play adapter used by account-owning platforms such as CEDAR TOY. */
 export class PlatformRoomAdapter {
-  constructor(private readonly store: RoomStore) {}
+  constructor(
+    private readonly store: RoomStore,
+    private readonly world?: PlatformWorldBridge,
+  ) {}
 
   private credentials(identity: PlatformIdentity, roomId: string): RoomCredentials {
     return this.store.accountSeat(roomId, identity.owner.accountId) ?? fail('你没有这间房的席位；先 join');
   }
 
-  async play(identity: PlatformIdentity, rawAction: unknown, rawParams?: unknown): Promise<unknown> {
+  private resolveOwner(identity: PlatformIdentity, options?: PlatformPlayOptions): SeatOwner {
+    return this.world ? this.world.resolveSeatOwner(identity, options?.householdMembers) : identity.owner;
+  }
+
+  private resolveHouseholdSeats(identity: PlatformIdentity, options?: PlatformPlayOptions): SeatOwner[] {
+    if (!options?.household?.length) return [];
+    if (!this.world || !options.householdMembers?.length) return options.household;
+    const byId = new Map<string, PlatformHouseholdMember>();
+    for (const member of options.householdMembers) {
+      const mId = platformIdentity({
+        provider: identity.provider,
+        playerId: member.playerId,
+        ...(member.displayName ? { displayName: member.displayName } : {}),
+        actorType: member.actorType,
+      }).owner.accountId;
+      byId.set(mId, member);
+    }
+    return options.household.map((seat) => {
+      const member = byId.get(seat.accountId);
+      if (!member) return seat;
+      const memberIdentity = platformIdentity({
+        provider: identity.provider,
+        playerId: member.playerId,
+        displayName: seat.accountName,
+        actorType: member.actorType,
+      });
+      return this.world!.resolveSeatOwner(memberIdentity, options.householdMembers);
+    });
+  }
+
+  async play(
+    identity: PlatformIdentity,
+    rawAction: unknown,
+    rawParams?: unknown,
+    signal?: AbortSignal,
+    options?: PlatformPlayOptions,
+  ): Promise<unknown> {
     const action = text(rawAction, 'action', 32);
     const params = paramsOf(rawParams);
     // CEDAR may inject player_id into params for older adapters. It is deliberately ignored;
     // only the authenticated X-Player-Id header supplied by the platform selects a seat.
     if (['token', 'accountToken', 'password'].some(key => params[key] !== undefined)) fail('平台入口不接收账号或席位凭证');
 
+    if (action === 'ui_dispatch') {
+      const world = this.world;
+      if (!world) throw new Error('当前站点未挂载平台前端桥接');
+      const scope = text(params.scope, 'scope', 16);
+      if (scope !== 'meta' && scope !== 'account' && scope !== 'room') throw new Error('scope 无效');
+      const uiArgs = params.args === undefined ? {} : paramsOf(params.args);
+      const req: PlatformUiRequest = { scope, op: text(params.op, 'op', 64), args: uiArgs };
+      return world.dispatchHostUi(identity, req, options?.householdMembers);
+    }
+
+    if (WORLD_ACTION_SET.has(action)) {
+      const world = this.world;
+      if (!world) throw new Error('当前站点未开启平台局外钱包与互赠');
+      return world.handleAction(identity, action as PlatformWorldAction, params, options?.householdMembers);
+    }
+
+    if (action === 'rooms') {
+      return { rooms: this.store.platformRooms(identity.owner.accountId) };
+    }
+
     if (action === 'create' || action === 'create_room') {
       const requestId = requestIdOf(params);
       const pack = params.pack === undefined ? undefined : text(params.pack, 'pack', 40);
-      const seat = this.store.createForMachine(identity.owner, requestId, pack);
-      const current = playerRoomReply(this.store.view(seat), readOptions(params, true));
-      return rewriteHint({ roomId: seat.roomId, invitation: seat.invitation, current }, seat.roomId);
+      const mode = params.mode === undefined ? 'standard' : text(params.mode, 'mode', 32);
+      const seats = params.seats === undefined ? undefined : integer(params.seats, 'seats', 2, 16);
+      const owner = this.resolveOwner(identity, options);
+      const household = this.resolveHouseholdSeats(identity, options);
+      const seat = this.store.createForPlatform(owner, requestId, pack, mode, seats, household);
+      const current = playerRoomReply(this.store.view(this.credentials(identity, seat.roomId)), readOptions(params, true));
+      return rewriteHint({ roomId: seat.roomId, invitation: seat.invitation, current, duplicate: seat.duplicate === true }, seat.roomId);
     }
 
     if (action === 'join' || action === 'join_room') {
       const invitation = text(params.invitation, 'invitation', 100);
-      const seat = this.store.joinForAccount(invitation, identity.owner);
+      const info = this.store.invitationRoom(invitation);
+      const owner = this.resolveOwner(identity, options);
+      const seat = info.isPlatform
+        ? this.store.joinForPlatform(invitation, owner)
+        : this.store.joinForAccount(invitation, owner);
       const current = playerRoomReply(this.store.view(seat), readOptions(params, true));
-      return rewriteHint({ roomId: seat.roomId, current }, seat.roomId);
+      return rewriteHint({ roomId: seat.roomId, current, duplicate: 'duplicate' in seat && seat.duplicate === true }, seat.roomId);
+    }
+
+    if (action === 'start') {
+      const roomId = roomIdOf(params);
+      const credentials = this.credentials(identity, roomId);
+      const before = this.store.view(credentials);
+      const view = this.store.start(credentials, requestIdOf(params));
+      return rewriteHint({ ...playerRoomReply(view, readOptions(params, true)), duplicate: before.revision === view.revision }, roomId);
     }
 
     if (action === 'read' || action === 'read_turn' || action === 'wait') {
@@ -195,7 +262,7 @@ export class PlatformRoomAdapter {
       const waitMs = waitRaw === undefined ? undefined : integer(waitRaw, 'waitMs', 0, 25_000);
       if (waitMs !== undefined && after === undefined) fail('waitMs 须配 after');
       if (after !== undefined && after > initial.revision) fail('after 超出当前房间 revision');
-      const view = waitMs && initial.revision === after ? await this.store.wait(credentials, after, waitMs) : initial;
+      const view = waitMs && initial.revision === after ? await this.store.wait(credentials, after, waitMs, signal) : initial;
       return rewriteHint(playerRoomReply(view, readOptions(params)), roomId);
     }
 
@@ -203,13 +270,16 @@ export class PlatformRoomAdapter {
       const roomId = roomIdOf(params);
       const credentials = this.credentials(identity, roomId);
       const before = this.store.view(credentials);
+      if (before.phase === 'waiting' && !['say', 'cancel_room'].includes(String(params.kind))) {
+        fail('请先由房主 start');
+      }
       const round = integer(params.round, 'round', 1);
       const revision = integer(params.revision, 'revision');
       const requestId = requestIdOf(params);
       const view = this.store.mutate({ ...credentials, round, revision, requestId, action: actionOf(params, before.battle?.round) });
-      return rewriteHint(playerRoomMutationReply(before, view, { ...readOptions(params), round, revision }), roomId);
+      return rewriteHint({ ...playerRoomMutationReply(before, view, { ...readOptions(params), round, revision }), duplicate: before.revision === view.revision }, roomId);
     }
 
-    fail('未知 action；可用 create、join、read、act');
+    fail('未知 action；可用 rooms、create、join、start、read、act、world、shop_buy、shop_equip、gift_catalog、gift_send、gift_claim、subsidize、arcade');
   }
 }

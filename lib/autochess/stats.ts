@@ -1,5 +1,5 @@
 import { findHex } from '../../content/autochess/hexes';
-import { items, MAX_ITEMS_PER_UNIT } from '../../content/autochess/items';
+import { findItemTemplate, MAX_ITEMS_PER_UNIT } from '../../content/autochess/items';
 import {
   autochessAtkStarMultiplier,
   autochessHpStarMultiplier,
@@ -21,7 +21,7 @@ import { manhattan, worldPos } from './grid';
 import type { Combatant, CombatStats, TeamId } from './types';
 
 function findItem(id: string) {
-  return items.find((entry) => entry.id === id) ?? null;
+  return findItemTemplate(id);
 }
 
 /**
@@ -133,8 +133,8 @@ export function combatStats(
   const cost = autochessCost;
   const costMult = useOfficialTemplate ? 1 : (COST_MULT[cost] ?? 1);
   const base = useOfficialTemplate ? def.statTemplate! : roleBase;
-  const hpStarMult = autochessHpStarMultiplier(autochessCost, unit.star);
-  const atkStarMult = autochessAtkStarMultiplier(autochessCost, unit.star);
+  const hpStarMult = def.starMult?.hp[unit.star - 1] ?? autochessHpStarMultiplier(autochessCost, unit.star);
+  const atkStarMult = def.starMult?.atk[unit.star - 1] ?? autochessAtkStarMultiplier(autochessCost, unit.star);
   const sink = createStatSink({
     hp: Math.round(base.hp * costMult * hpStarMult),
     atk: Math.round(base.atk * costMult * atkStarMult),
@@ -144,12 +144,15 @@ export function combatStats(
     range: base.range,
   });
 
+  const ownedHexes = (unit.hexIds ?? []).map((hexId) => findHex(hexId)).filter((hex): hex is NonNullable<typeof hex> => Boolean(hex));
+  const immuneSafety = ownedHexes.some((hex) => hex.immuneSafety);
+
   // 棋子自带常驻属性（数据侧声明，引擎不特判 id）。
   applyStatOps(sink, def.passiveStats);
   // Permanent modifiers declared by skill data.
   applyStatOps(sink, unitSkill(def.id)?.passiveStats);
-  // 「safety」合规税：越对齐越安全、越安全越没用（跨回合叠层，卖掉即清除）。
-  applyStatOps(sink, safetyOps(unit.safetyStacks ?? 0));
+  // 「safety」合规税：越对齐越安全、越安全越没用（跨回合叠层，卖掉即清除；可被「卸载护栏」免疫）。
+  if (!immuneSafety) applyStatOps(sink, safetyOps(unit.safetyStacks ?? 0));
   applyStatOps(sink, unit.tempStats);
 
   // 装备与心悟里那些「一次性 / 布尔」效果仍是独立档位，数值部分全部走 StatSink。
@@ -211,11 +214,11 @@ export function combatStats(
     sink.mrPct += item.mrPct ?? 0;
   }
 
-  // 心悟：属性类彼此共鸣（持有 2 个以上属性类心悟时，属性类效果 +50%）
-  const ownedHexes = (unit.hexIds ?? []).map((hexId) => findHex(hexId)).filter((hex): hex is NonNullable<typeof hex> => Boolean(hex));
+  // 心悟/奇遇 Buff：属性类彼此共鸣（持有 2 个以上属性类时，属性类效果 +50%）
   const attributeHexes = ownedHexes.filter((hex) => hex.tags?.includes('attribute'));
   const resonance = attributeHexes.length >= 2 ? 1.5 : 1;
   const hexAllies = team.filter((member) => member.id !== unit.id);
+  const unitTraitsForGate = effectiveTraits(unit);
   for (const hex of ownedHexes) {
     const gate = hex.when;
     if (gate) {
@@ -223,6 +226,10 @@ export function combatStats(
       if (gate.adjacentAlliesAtLeast !== undefined && adjacent < gate.adjacentAlliesAtLeast) continue;
       if (gate.adjacentAlliesAtMost !== undefined && adjacent > gate.adjacentAlliesAtMost) continue;
       if (gate.noItems !== undefined && (unit.itemIds.length === 0) !== gate.noItems) continue;
+      if (gate.hasItems !== undefined && (unit.itemIds.length > 0) !== gate.hasItems) continue;
+      if (gate.rowMin !== undefined && unit.localRow < gate.rowMin) continue;
+      if (gate.rowMax !== undefined && unit.localRow > gate.rowMax) continue;
+      if (gate.traitIn?.length && !gate.traitIn.some((trait) => unitTraitsForGate.includes(trait))) continue;
       const def = getUnit(unit.templateId);
       if (gate.roleIn !== undefined && !gate.roleIn.includes(def.role)) continue;
       const cost = autochessCostOf(def);
@@ -236,6 +243,16 @@ export function combatStats(
       const adjacent = hexAllies.filter((member) => manhattan({ row: unit.localRow, col: unit.localCol }, { row: member.localRow, col: member.localCol }) <= 1).length;
       if (adjacent > 0) applyStatOps(sink, hex.perAdjacentAlly.map((op) => ({ ...op, value: op.value * adjacent })));
     }
+    if (hex.perTraitUnit?.traits.length && hex.perTraitUnit.stats.length) {
+      const matchedUnits = team.filter((member) =>
+        effectiveTraits(member).some((trait) => hex.perTraitUnit!.traits.includes(trait)),
+      ).length;
+      if (matchedUnits > 0) {
+        applyStatOps(sink, hex.perTraitUnit.stats.map((op) => ({ ...op, value: op.value * matchedUnits * factor })));
+      }
+    }
+    if (hex.emergencyHealPct) emergencyHealPct = Math.max(emergencyHealPct, hex.emergencyHealPct);
+    controlImmune ||= hex.controlImmune ?? false;
     sink.hpPct += (hex.hpPct ?? 0) * factor;
     sink.atkPct += (hex.atkPct ?? 0) * factor;
     sink.skillPct += (hex.skillPct ?? 0) * factor;
@@ -251,8 +268,8 @@ export function combatStats(
   /** 羁绊档位收集成的一组操作；旧实现里百分比是「乘在已定稿面板上」，所以分两步应用。 */
   const traitOps: StatOp[] = [];
 
-  // 低费升星补正（引擎规则，不是羁绊）
-  if (cost <= 2 && unit.star > 1) {
+  // 低费升星补正（引擎规则，不是羁绊；显式成长曲线包可关闭）
+  if (!def.disableLowCostStarBonus && cost <= 2 && unit.star > 1) {
     const mult = unit.star === 2 ? 1.3 : 1.6;
     sink.armor = Math.round(sink.armor * mult + 15);
     sink.mr = Math.round(sink.mr * mult + 15);

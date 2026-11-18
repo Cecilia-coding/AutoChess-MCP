@@ -26,6 +26,8 @@ export type PackDefinition = {
   kitItems?: readonly string[];
   draftIntro?: string;
   draftTiles?: readonly { name: string; detail: string }[];
+  /** Explicit flavor key when a runtime custom pack uses the shared journey buff pool. */
+  buffFlavor?: 'ai' | 'jianghu';
 };
 
 /** Keeps every pack declaration type-checked without teaching shared code its id. */

@@ -1,3 +1,4 @@
+import { findEphemeralTrait } from '../../packs/ephemeral-registry';
 import { allPackTraits } from '../../packs/registry';
 import type { TraitDef } from './types';
 
@@ -10,7 +11,7 @@ export function getTrait(id: string): TraitDef {
 }
 
 export function findTrait(id: string): TraitDef | null {
-  return traits.find((trait) => trait.id === id) ?? null;
+  return traits.find((trait) => trait.id === id) ?? findEphemeralTrait(id) ?? null;
 }
 
 export function isFaction(id: string): boolean {

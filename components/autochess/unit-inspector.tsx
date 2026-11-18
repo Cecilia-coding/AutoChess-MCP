@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import Image from 'next/image';
-import { items, itemHint } from '@/content/autochess/items';
+import { findItemTemplate, itemHint } from '@/content/autochess/items';
 import { activeTier, findTrait } from '@/content/autochess/traits';
 import { hazardLabels } from '@/lib/autochess/hazard-display';
 import { inspectUnit } from '@/lib/autochess/unit-inspection';
@@ -18,7 +18,7 @@ export default function UnitInspector({ piece, board, side, owner, replaying, on
   const cells = [['生命', stats.maxHp], ['攻击', stats.atk], ['护甲', stats.armor],
     ['魔抗', stats.mr], ['攻速', `${stats.aspd.toFixed(2)}/秒`], ['射程', `${stats.range} 格`]];
   const itemText = (id: string) => itemHint(id).replace(/\*\*\s*|\s*\*\*/g, '').replace(/(^|[；;]\s*)\*\s*/g, '$1').trim();
-  const equipment = (id: string) => items.find(item => item.id === id);
+  const equipment = (id: string) => findItemTemplate(id);
   const body = <>
     <div className="dossier-eyebrow"><span>✦ 棋子详情</span><span>{owner} · {fielded ? '场上' : '备战'}</span></div>
     <header className="dossier-head">

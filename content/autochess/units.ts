@@ -1,3 +1,4 @@
+import { findEphemeralUnit } from '../../packs/ephemeral-registry';
 import { activeRoster, allPackUnits } from '../../packs/registry';
 import type { UnitDef } from './types';
 
@@ -10,7 +11,7 @@ export function getUnit(id: string): UnitDef {
 }
 
 export function findUnit(id: string): UnitDef | null {
-  return unitsById.get(id) ?? null;
+  return unitsById.get(id) ?? findEphemeralUnit(id) ?? null;
 }
 
 export function playableUnits(): UnitDef[] {
