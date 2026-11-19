@@ -43,8 +43,8 @@ jobs:
           npm ci --prefix packages/chess-engine --no-audit --no-fund
           npm run build --prefix packages/chess-engine
 
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
-
       - name: Build
         run: npm run build
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
